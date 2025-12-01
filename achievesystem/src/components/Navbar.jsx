@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 
+
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 
@@ -7,9 +8,12 @@ const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
 
   return (
+    <div className="nav-container">
+      <h1>Archieve <br></br>system</h1>
     
     <div className="nav">
-      <h1 className="nav-label">Archieve System</h1>
+
+      
       
 
       {!user && (
@@ -27,11 +31,12 @@ const Navbar = () => {
           <Link to="/upload">Upload</Link>
           
 
-          {user.role === "admin" && <Link to="/admin">Admin</Link>}
+          {user.role === "admin"}
 
           
         </>
       )}
+    </div>
     </div>
   );
 };
@@ -87,6 +92,46 @@ const Navbar = () => {
             <>
               <Link to="/login" onClick={() => setIsMenuOpen(false)}>Login</Link>
               <Link to="/register" onClick={() => setIsMenuOpen(false)}>Register</Link>
+            </>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;*/
+
+
+
+/*import { Link } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext.jsx";
+
+const Navbar = () => {
+  const { user, logout } = useContext(AuthContext);
+
+  return (
+    <nav>
+      <div className="nav-container">
+        <Link to="/" className="nav-brand">
+          Archive System
+        </Link>
+        
+        <div className="nav-links">
+          {!user && (
+            <>
+              <Link to="/login">Login</Link>
+              <Link to="/register">Register</Link>
+            </>
+          )}
+
+          {user && (
+            <>
+              <Link to="/">Home</Link>
+              <Link to="/dashboard">Dashboard</Link>
+              <Link to="/upload">Upload</Link>
+              <button onClick={logout}>Logout</button>
             </>
           )}
         </div>
