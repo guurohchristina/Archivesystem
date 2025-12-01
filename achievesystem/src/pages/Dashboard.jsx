@@ -26,7 +26,7 @@ const Dashboard = () => {
 
   return (
     <div className="page">
-      <h1>Welcome to Your Dashboard</h1>
+      <h1>Welcome {user?.name}</h1>
       
       <div className="profile-info">
         <h2>Your Profile</h2>
