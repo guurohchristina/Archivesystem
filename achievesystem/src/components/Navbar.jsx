@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 
 import { useContext } from "react";
@@ -6,6 +6,12 @@ import { AuthContext } from "../context/AuthContext.jsx";
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const handleLogout = () =>{
+    logout();
+    navigate("/");
+  };
 
   return (
     <div className="nav-container">
@@ -28,10 +34,14 @@ const Navbar = () => {
         <>
         <Link to="/">Home</Link>
           <Link to="/dashboard">Dashboard</Link>
-          <Link to="/upload">Upload</Link>
+        
+          
+
           
 
           {user.role === "admin"}
+
+          <button onClick={handleLogout}>Logout</button>
 
           
         </>

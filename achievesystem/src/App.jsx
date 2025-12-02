@@ -13,6 +13,12 @@ import Profile from "./pages/Profile.jsx";
 import Upload from "./pages/Upload.jsx";
 
 
+import ManageUsers from "./pages/ManageUsers.jsx";
+import ManageFiles from "./pages/ManageFiles.jsx";
+import SystemReports from "./pages/SystemReports.jsx";
+import MyFiles from "./pages/MyFiles.jsx";
+
+
 
 
 
@@ -29,6 +35,16 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/upload" element={<Upload />} />
+
+
+
+          // In your App.jsx, make sure you have these routes:
+<Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
+<Route path="/manage-users" element={<ProtectedRoute><ManageUsers /></ProtectedRoute>} />
+<Route path="/manage-files" element={<ProtectedRoute><ManageFiles /></ProtectedRoute>} />
+<Route path="/system-reports" element={<ProtectedRoute><SystemReports /></ProtectedRoute>} />
+<Route path="/my-files" element={<ProtectedRoute><MyFiles /></ProtectedRoute>} />
+<Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         
       </Routes>
       </AuthProvider>

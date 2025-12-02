@@ -30,10 +30,7 @@ const Dashboard = () => {
       
       <div className="profile-info">
         <h2>Your Profile</h2>
-        <p><strong>Name:</strong> {user?.name}</p>
-        <p><strong>Email:</strong> {user?.email}</p>
-        <p><strong>Role:</strong> {user?.role}</p>
-        <p><strong>Member since:</strong> {user?.created_at ? new Date(user.created_at).toLocaleDateString() : "N/A"}</p>
+
       </div>
 
       <div className="dashboard-actions">
@@ -45,8 +42,9 @@ const Dashboard = () => {
             <h3>Administrator Tools</h3>
             <button onClick={() => navigate("/upload")}>Upload Files</button>
             <button onClick={() => navigate("/manage-users")}>Manage Users</button>
-            <button onClick={() => navigate("/all-files")}>View All Files</button>
-            <button onClick={() => navigate("/reports")}>System Reports</button>
+            <button onClick={() => navigate("/manage-files")}>View All Files</button>
+            <button onClick={() => navigate("/system-reports")}>System Reports</button>
+            <button onClick={() => navigate ("/my-files")}>My-Files</button>
             <button onClick={() => navigate("/system-settings")}>System Settings</button>
           </div>
         ) : (
@@ -54,7 +52,7 @@ const Dashboard = () => {
           <div className="user-actions">
             <h3>Your Files</h3>
             <button onClick={() => navigate("/upload")}>Upload New File</button>
-            <button onClick={() => navigate("/my-files")}>View My Files</button>
+            <button onClick={() => navigate("/my-files")}> My Files</button>
             <button onClick={() => navigate("/shared-files")}>Shared With Me</button>
             <button onClick={() => navigate("/profile")}>Edit Profile</button>
             <button onClick={() => navigate("/settings")}>Account Settings</button>

@@ -1,4 +1,32 @@
-import express from "express";
+// src/routes/uploadRoutes.js
+import express from 'express';
+import { uploadController, upload } from '../controllers/uploadController.js';
+import { authenticate } from '../middleware/authMiddleware.js';
+
+const router = express.Router();
+
+// Protected routes
+router.post('/', authenticate, upload.single('file'), uploadController.uploadFile);
+router.get('/my-files', authenticate, uploadController.getUserFiles);
+router.get('/shared', authenticate, uploadController.getSharedFiles);
+router.delete('/:fileId', authenticate, uploadController.deleteFile);
+router.put('/:fileId', authenticate, uploadController.updateFile);
+router.post('/:fileId/share', authenticate, uploadController.shareFile);
+
+export default router;
+
+
+
+
+
+
+
+
+
+
+
+
+/*import express from "express";
 import upload from "../middleware/uploadMiddleware.js";
 import { uploadFiles } from "../controllers/uploadController.js";
 
@@ -7,7 +35,7 @@ const router = express.Router();
 // Accept multiple files, but will also work if only one is selected
 router.post("/documents/upload", upload.array("files", 10), uploadFiles);
 
-export default router;
+export default router;*/
 
 
 /*import express from 'express';

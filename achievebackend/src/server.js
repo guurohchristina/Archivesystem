@@ -219,6 +219,10 @@ import { testConnection } from './config/db.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 
+// Update server.js to include admin routes
+import adminRoutes from './routes/adminRoutes.js';
+
+
 dotenv.config();
 
 const app = express();
@@ -234,6 +238,8 @@ app.use(cors({
   origin: ["http://localhost:5173", "https://improved-memory-xjpqw5rr799fvw5x-5173.app.github.dev"],
   credentials: true
 }));
+
+app.use('/api/admin', adminRoutes);
 
 // Simple health check - add this BEFORE any async operations
 app.get('/health', (req, res) => {
