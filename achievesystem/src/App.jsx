@@ -39,12 +39,12 @@ function App() {
 
 
           // In your App.jsx, make sure you have these routes:
-<Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
-<Route path="/manage-users" element={<ProtectedRoute><ManageUsers /></ProtectedRoute>} />
-<Route path="/manage-files" element={<ProtectedRoute><ManageFiles /></ProtectedRoute>} />
-<Route path="/system-reports" element={<ProtectedRoute><SystemReports /></ProtectedRoute>} />
-<Route path="/my-files" element={<ProtectedRoute><MyFiles /></ProtectedRoute>} />
-<Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+<Route path="/upload" element={<Upload />} />
+<Route path="/manage-users" element={<ManageUsers />} />
+<Route path="/manage-files" element={<ManageFiles />} />
+<Route path="/system-reports" element={<SystemReports />} />
+<Route path="/my-files" element={<MyFiles />} />
+<Route path="/profile" element={<Profile />} />
         
       </Routes>
       </AuthProvider>

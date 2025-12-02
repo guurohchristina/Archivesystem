@@ -1,5 +1,31 @@
+/*import express from 'express';
+import { uploadController, upload } from '../controllers/uploadController.js';
+import { authenticate } from '../middleware/authMiddleware.js';
+
+const router = express.Router();
+
+// File upload with metadata
+router.post('/', authenticate, upload.single('file'), uploadController.uploadFile);
+
+// Get user's files
+router.get('/my-files', authenticate, uploadController.getUserFiles);
+
+// File operations
+router.get('/:fileId', authenticate, uploadController.getFileDetails);
+router.delete('/:fileId', authenticate, uploadController.deleteFile);
+router.put('/:fileId', authenticate, uploadController.updateFile);
+router.get('/:fileId/download', authenticate, uploadController.downloadFile);
+
+// Additional endpoints
+router.get('/stats/summary', authenticate, uploadController.getFileStats);
+router.get('/departments/list', authenticate, uploadController.getDepartments);
+
+export default router;*/
+
+
+
 // src/routes/uploadRoutes.js
-import express from 'express';
+/*import express from 'express';
 import { uploadController, upload } from '../controllers/uploadController.js';
 import { authenticate } from '../middleware/authMiddleware.js';
 
@@ -13,7 +39,7 @@ router.delete('/:fileId', authenticate, uploadController.deleteFile);
 router.put('/:fileId', authenticate, uploadController.updateFile);
 router.post('/:fileId/share', authenticate, uploadController.shareFile);
 
-export default router;
+export default router;*/
 
 
 
@@ -37,8 +63,8 @@ router.post("/documents/upload", upload.array("files", 10), uploadFiles);
 
 export default router;*/
 
-
-/*import express from 'express';
+/*fall back on
+import express from 'express';
 import multer from 'multer';
 import path from 'path';
 //import pool from '../db.js';
@@ -138,3 +164,154 @@ router.delete('/:fileId', async (req, res) => {
 });
 
 export default router;*/
+
+
+
+
+import express from 'express';
+import { uploadController } from '../controllers/uploadController.js';
+import { upload } from '../controllers/uploadController.js';
+import { authenticate } from '../middleware/authMiddleware.js';
+
+const router = express.Router();
+
+// Apply authentication middleware to all routes
+router.use(authenticate);
+
+// =========== FILE UPLOAD ROUTES ===========
+
+// Upload file (single file upload)
+router.post('/upload', 
+  upload.single('file'),
+  uploadController.uploadFile
+);
+
+// Get all files for authenticated user with pagination and filters
+router.get('/', uploadController.getUserFiles);
+
+// Get file details by ID
+router.get('/:fileId', uploadController.getFileDetails);
+
+// Download file
+router.get('/:fileId/download', uploadController.downloadFile);
+
+// Update file metadata
+router.put('/:fileId', uploadController.updateFile);
+
+// Delete file
+router.delete('/:fileId', uploadController.deleteFile);
+
+// =========== STATISTICS & META ROUTES ===========
+
+// Get available departments
+router.get('/meta/departments', uploadController.getDepartments);
+
+// Get file statistics
+router.get('/stats/summary', uploadController.getFileStats);
+
+// =========== DEBUG & TEST ROUTES ===========
+
+// Test database connection and upload functionality
+router.get('/debug/test', async (req, res) => {
+  try {
+    console.log("🧪 DEBUG ROUTE - Testing upload system");
+    console.log("Authenticated user:", req.user);
+    
+    // Return system info
+    res.json({
+      success: true,
+      message: 'Upload system is operational',
+      system: {
+        timestamp: new Date().toISOString(),
+        user: {
+          id: req.user.userId,
+          email: req.user.email
+        },
+        endpoints: {
+          upload: 'POST /api/files/upload',
+          listFiles: 'GET /api/files/',
+          getFile: 'GET /api/files/:id',
+          download: 'GET /api/files/:id/download',
+          update: 'PUT /api/files/:id',
+          delete: 'DELETE /api/files/:id',
+          departments: 'GET /api/files/meta/departments',
+          stats: 'GET /api/files/stats/summary'
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Debug route error:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// Test file upload endpoint (simulated)
+router.post('/test-upload', authenticate, async (req, res) => {
+  try {
+    const { query } = await import('../config/db.js');
+    
+    // Create a test file record
+    const testInsert = await query(
+      `INSERT INTO files (
+        filename, filepath, filetype, original_name, file_size,
+        user_id, description, is_public, document_type, document_date,
+        department, owner, classification_level
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      RETURNING id, filename, original_name, uploaded_at`,
+      [
+        'test-' + Date.now() + '.txt',
+        'uploads/test-file.txt',
+        'text/plain',
+        'Test File.txt',
+        1024,
+        req.user.userId,
+        'Database test from API route',
+        true,
+        'Test Document',
+        new Date().toISOString().split('T')[0],
+        'IT',
+        'System',
+        'Unclassified'
+      ]
+    );
+    
+    res.json({ 
+      success: true, 
+      message: 'Test upload successful (database only)',
+      file: testInsert.rows[0]
+    });
+  } catch (error) {
+    console.error("Test upload error:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      details: error 
+    });
+  }
+});
+
+// Handle multer errors globally
+const handleMulterError = (err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    console.error('Multer error:', err);
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        success: false,
+        message: 'File size too large. Maximum size is 50MB.'
+      });
+    }
+    return res.status(400).json({
+      success: false,
+      message: `File upload error: ${err.message}`
+    });
+  }
+  next(err);
+};
+
+// Apply multer error handler
+router.use(handleMulterError);
+
+export default router;
