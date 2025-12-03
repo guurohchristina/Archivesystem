@@ -370,3 +370,4 @@ export const authController = {
 // Export individual functions if your routes need them
 export const register = authController.register;
 export const login = authController.login;
+export const getProfile = authController.getProfile;

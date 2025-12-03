@@ -123,6 +123,7 @@ export const authorize = (...allowedRoles) => {
 
 
 // src/middleware/auth.js
+
 import jwt from 'jsonwebtoken';
 import { query } from '../config/db.js';
 

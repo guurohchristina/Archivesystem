@@ -210,6 +210,7 @@ export default app;*/
 
 
 // src/server.js
+/*fall back on
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
@@ -303,6 +304,276 @@ process.on('uncaughtException', (error) => {
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+export default app;*/
+
+
+
+
+// src/server.js
+
+/*import express from 'express';fall back on
+import dotenv from 'dotenv';
+import cors from 'cors';
+import { testConnection } from './config/db.js';
+
+// Routes
+import uploadRoutes from './routes/uploadRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const HOST = '0.0.0.0';
+
+// =========== MIDDLEWARE ===========
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use(cors({
+  origin: ["http://localhost:5173", "https://improved-memory-xjpqw5rr799fvw5x-5173.app.github.dev"],
+  credentials: true
+}));
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
+// =========== ROUTES ===========
+// Health check (MUST BE FIRST)
+app.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Server is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Archive System API',
+    endpoints: {
+      health: '/health',
+      auth: '/api/auth',
+      upload: '/api/upload',
+      admin: '/api/admin'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/admin', adminRoutes);
+
+// =========== ERROR HANDLERS ===========
+// 404 handler for uncaught routes - MUST RETURN JSON
+app.use('*', (req, res) => {
+  console.log(`❌ 404: ${req.method} ${req.originalUrl}`);
+  
+  // Check if client accepts JSON
+  const acceptsJson = req.accepts('json');
+  const isApiRoute = req.originalUrl.startsWith('/api/');
+  
+  if (acceptsJson || isApiRoute) {
+    return res.status(404).json({
+      success: false,
+      message: `Route ${req.originalUrl} not found`,
+      timestamp: new Date().toISOString()
+    });
+  }
+  
+  // For non-API, non-JSON requests (browser)
+  res.status(404).send(`
+    <html>
+      <head><title>404 Not Found</title></head>
+      <body>
+        <h1>404 - Page Not Found</h1>
+        <p>The requested URL ${req.originalUrl} was not found.</p>
+        <p><a href="/">Go to homepage</a></p>
+      </body>
+    </html>
+  `);
+});
+
+// Global error handler - MUST RETURN JSON FOR API ROUTES
+app.use((err, req, res, next) => {
+  console.error('💥 Global error:', err);
+  
+  const isApiRoute = req.originalUrl.startsWith('/api/');
+  
+  // For API routes, ALWAYS return JSON
+  if (isApiRoute) {
+    return res.status(err.status || 500).json({
+      success: false,
+      message: err.message || 'Internal server error',
+      ...(process.env.NODE_ENV === 'development' && {
+        error: err.message,
+        stack: err.stack
+      }),
+      timestamp: new Date().toISOString()
+    });
+  }
+  
+  // For non-API routes
+  res.status(err.status || 500).send('Internal server error');
+});
+
+// =========== START SERVER ===========
+const server = app.listen(PORT, HOST, () => {
+  console.log(`🚀 Server running on http://${HOST}:${PORT}`);
+  console.log(`🔗 Test endpoints:`);
+  console.log(`   Health: curl http://localhost:${PORT}/health`);
+  console.log(`   API Root: curl http://localhost:${PORT}/`);
+  console.log(`   API Test: curl http://localhost:${PORT}/api/upload/test`);
+  
+  // Test database connection after server starts
+  setTimeout(async () => {
+    try {
+      const connected = await testConnection();
+      if (connected) {
+        console.log('✅ Database connection verified');
+      } else {
+        console.log('⚠️ Database connection failed, but server is running');
+      }
+    } catch (error) {
+      console.log('⚠️ Could not test database:', error.message);
+    }
+  }, 1000);
+});
+
+// Handle server errors
+server.on('error', (error) => {
+  console.error('❌ Server failed to start:', error.message);
+  if (error.code === 'EADDRINUSE') {
+    console.log('💡 Port 3000 is busy. Try:');
+    console.log('   - Setting PORT=3001 in .env file');
+    console.log('   - Or run: kill $(lsof -t -i:3000)');
+  }
+  process.exit(1);
+});
+
+// Handle process errors
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+export default app;*/
+
+
+
+
+
+
+// server.js - COMPLETE WORKING VERSION
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Routes
+import authRoutes from './routes/authRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
+
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// =========== MIDDLEWARE ===========
+// CORS
+app.use(cors({
+  origin: ["http://localhost:5173", "https://improved-memory-xjpqw5rr799fvw5x-5173.app.github.dev"],
+  credentials: true
+}));
+
+// Custom middleware to handle JSON vs FormData
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log('Content-Type:', req.headers['content-type']);
+  
+  if (req.headers['content-type'] && 
+      req.headers['content-type'].includes('multipart/form-data')) {
+    // For file uploads - parse as urlencoded, not JSON
+    express.urlencoded({ extended: true })(req, res, next);
+  } else if (req.headers['content-type'] && 
+             req.headers['content-type'].includes('application/json')) {
+    // For JSON requests
+    express.json()(req, res, next);
+  } else {
+    // For other requests
+    express.urlencoded({ extended: true })(req, res, next);
+  }
+});
+
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// =========== ROUTES ===========
+app.use('/api/auth', authRoutes);
+app.use('/api/upload', uploadRoutes);
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Server is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Root
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Archive System API',
+    endpoints: {
+      health: '/health',
+      auth: '/api/auth',
+      upload: '/api/upload'
+    }
+  });
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+  console.log(`❌ 404: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.originalUrl} not found`
+  });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error('💥 Server error:', err.message);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal server error'
+  });
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🔗 Health: http://localhost:${PORT}/health`);
+  console.log(`📤 Upload: POST http://localhost:${PORT}/api/upload`);
 });
 
 export default app;

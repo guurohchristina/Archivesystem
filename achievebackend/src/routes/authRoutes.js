@@ -9,7 +9,9 @@ router.post("/login", login);
 export default router;*/
 
 // src/routes/authRoutes.js
+/*fall back on
 import express from 'express';
+
 import { authController } from '../controllers/authController.js';
 import { authenticate } from '../middleware/authMiddleware.js';
 
@@ -21,6 +23,41 @@ router.post('/login', authController.login);
 
 // Protected route (requires authentication)
 router.get('/profile', authenticate, authController.getProfile);
+
+export default router;*/
+
+
+
+
+
+
+// routes/authRoutes.js - CORRECTED
+import express from 'express';
+import { 
+  register, 
+  login, 
+  getProfile 
+} from '../controllers/authController.js'; // Added 's'
+import { authenticate } from '../middleware/authMiddleware.js';
+
+const router = express.Router();
+
+// Test endpoint
+router.get('/test', (req, res) => {
+  console.log('✅ GET /api/auth/test');
+  res.json({
+    success: true,
+    message: 'Auth routes are working',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Public routes
+router.post('/register', register);
+router.post('/login', login);
+
+// Protected routes
+router.get('/profile', authenticate, getProfile);
 
 export default router;
 
