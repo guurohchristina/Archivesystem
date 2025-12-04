@@ -916,7 +916,8 @@ export const getFiles = uploadController.getFiles;*/
 
 
 
-// controllers/uploadControllers.js
+
+/*
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -1168,6 +1169,7 @@ export const uploadController = {
     }
   }
 };
+/*
 
 
 
@@ -1183,3 +1185,352 @@ export const uploadController = {
 
 
 
+
+
+
+*/
+
+
+// controllers/uploadControllers.js - CORRECTED VERSION
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { query } from '../config/db.js';
+
+// =========== MULTER CONFIGURATION ===========
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = 'uploads/';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
+    cb(null, uniqueName);
+  }
+});
+
+export const uploadMiddleware = multer({ 
+  storage: storage,
+  limits: { fileSize: 50 * 1024 * 1024 }
+});
+
+// =========== CONTROLLER FUNCTIONS ===========
+
+// Get all files for user (rename to getFiles)
+export const getFiles = async (req, res) => {
+  try {
+    console.log('📂 GET /api/upload - Fetching files for user:', req.user.userId);
+    
+    const result = await query(
+      'SELECT * FROM files WHERE user_id = $1 ORDER BY uploaded_at DESC',
+      [req.user.userId]
+    );
+    
+    console.log(`✅ Found ${result.rows.length} files for user ${req.user.userId}`);
+    
+    res.json({
+      success: true,
+      files: result.rows,
+      count: result.rows.length
+    });
+  } catch (error) {
+    console.error('❌ Error fetching files:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch files',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// Upload file
+export const uploadFile = async (req, res) => {
+  try {
+    console.log('📤 Upload request received');
+    console.log('File:', req.file);
+    console.log('Body:', req.body);
+    console.log('User:', req.user);
+    
+    if (!req.file) {
+      console.log('❌ No file uploaded');
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded'
+      });
+    }
+    
+    const { 
+      description = '', 
+      is_public = 'false',
+      document_type = '',
+      document_date = new Date().toISOString().split('T')[0],
+      department = '',
+      owner = '',
+      classification_level = 'Unclassified'
+    } = req.body;
+    
+    console.log('📝 Metadata:', { description, document_type, department });
+    
+    // Insert into database
+    const result = await query(
+      `INSERT INTO files (
+        filename, filepath, filetype, original_name, file_size,
+        user_id, description, is_public, document_type, document_date,
+        department, owner, classification_level
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
+       RETURNING *`,
+      [
+        req.file.filename,
+        `uploads/${req.file.filename}`,
+        req.file.mimetype,
+        req.file.originalname,
+        req.file.size,
+        req.user.userId,
+        description,
+        is_public === 'true',
+        document_type,
+        document_date,
+        department,
+        owner || req.user.name,
+        classification_level
+      ]
+    );
+    
+    const uploadedFile = result.rows[0];
+    console.log('✅ File uploaded successfully:', uploadedFile.id);
+    
+    res.status(201).json({
+      success: true,
+      message: 'File uploaded successfully',
+      file: uploadedFile,
+      downloadUrl: `/uploads/${req.file.filename}`
+    });
+    
+  } catch (error) {
+    console.error('❌ Upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Upload failed: ' + error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+};
+
+// Get single file details
+export const getFileDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await query(
+      'SELECT * FROM files WHERE id = $1 AND user_id = $2',
+      [id, req.user.userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      file: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Get file error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get file'
+    });
+  }
+};
+
+// Download file
+export const downloadFile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await query(
+      'SELECT * FROM files WHERE id = $1 AND user_id = $2',
+      [id, req.user.userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found'
+      });
+    }
+    
+    const file = result.rows[0];
+    const filePath = path.join(process.cwd(), file.filepath);
+    
+    if (!fs.existsSync(filePath)) {
+      console.log('❌ File not found on disk:', filePath);
+      return res.status(404).json({
+        success: false,
+        message: 'File not found on server'
+      });
+    }
+    
+    res.download(filePath, file.original_name);
+  } catch (error) {
+    console.error('Download error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to download file'
+    });
+  }
+};
+
+// Update file
+export const updateFile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { description, is_public, document_type, department, owner, classification_level } = req.body;
+    
+    const result = await query(
+      `UPDATE files 
+       SET description = $1, is_public = $2, document_type = $3, 
+           department = $4, owner = $5, classification_level = $6,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $7 AND user_id = $8
+       RETURNING *`,
+      [description, is_public, document_type, department, owner, classification_level, id, req.user.userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'File updated successfully',
+      file: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update file'
+    });
+  }
+};
+
+// Delete file
+export const deleteFile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get file info first
+    const fileResult = await query(
+      'SELECT * FROM files WHERE id = $1 AND user_id = $2',
+      [id, req.user.userId]
+    );
+    
+    if (fileResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found'
+      });
+    }
+    
+    const file = fileResult.rows[0];
+    const filePath = path.join(process.cwd(), file.filepath);
+    
+    // Delete from filesystem
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+    
+    // Delete from database
+    await query('DELETE FROM files WHERE id = $1', [id]);
+    
+    res.json({
+      success: true,
+      message: 'File deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete file'
+    });
+  }
+};
+
+// Additional endpoints for MyFiles page
+export const getFileStats = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    
+    // Get total files and storage
+    const statsResult = await query(
+      `SELECT COUNT(*) as total_files, COALESCE(SUM(file_size::bigint), 0) as total_storage 
+       FROM files WHERE user_id = $1`,
+      [userId]
+    );
+    
+    // Get files by type
+    const typeResult = await query(
+      `SELECT document_type, COUNT(*) as count 
+       FROM files WHERE user_id = $1 AND document_type IS NOT NULL 
+       GROUP BY document_type`,
+      [userId]
+    );
+    
+    res.json({
+      success: true,
+      data: {
+        totalFiles: parseInt(statsResult.rows[0].total_files),
+        totalStorage: parseInt(statsResult.rows[0].total_storage || 0),
+        filesByType: typeResult.rows
+      }
+    });
+  } catch (error) {
+    console.error('Error in stats:', error);
+    res.status(500).json({ success: false, message: 'Error fetching stats' });
+  }
+};
+
+export const getDepartments = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    
+    const deptResult = await query(
+      `SELECT DISTINCT department FROM files 
+       WHERE user_id = $1 AND department IS NOT NULL AND department != '' 
+       ORDER BY department`,
+      [userId]
+    );
+    
+    const departments = deptResult.rows.map(row => row.department);
+    
+    res.json({
+      success: true,
+      data: departments
+    });
+  } catch (error) {
+    console.error('Error in departments:', error);
+    res.status(500).json({ success: false, message: 'Error fetching departments' });
+  }
+};
+
+// Default export for backward compatibility
+export default {
+  getFiles,
+  uploadFile,
+  getFileDetails,
+  downloadFile,
+  updateFile,
+  deleteFile,
+  getFileStats,
+  getDepartments
+};

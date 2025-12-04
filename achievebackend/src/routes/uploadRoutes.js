@@ -548,7 +548,7 @@ export default router;*/
 
 
 
-// routes/uploadRoutes.js
+/*
 import express from 'express';
 import { 
   uploadController,
@@ -559,6 +559,7 @@ import { authenticate } from '../middleware/authMiddleware.js';
 const router = express.Router();
 
 // Test endpoint
+/*
 router.get('/test', (req, res) => {
   console.log('✅ GET /api/upload/test');
   res.json({
@@ -566,9 +567,51 @@ router.get('/test', (req, res) => {
     message: 'Upload routes are working',
     timestamp: new Date().toISOString()
   });
-});
+});*/
+
+
+/*
+router.get('/', authenticate, async (req, res) => {
+  try {
+    console.log('📂 GET /api/upload - Fetching files for user:', req.user.userId);
+    
+    const result = await query(
+      'SELECT * FROM files WHERE user_id = $1 ORDER BY uploaded_at DESC',
+      [req.user.userId]
+    );
+    
+    console.log(`✅ Found ${result.rows.length} files for user ${req.user.userId}`);
+    
+    // Format dates for frontend
+    const files = result.rows.map(file => ({
+      ...file,
+      uploaded_at: new Date(file.uploaded_at).toISOString(),
+      document_date: file.document_date ? new Date(file.document_date).toISOString().split('T')[0] : null
+    }));
+    
+    res.json({
+      success: true,
+      files: files,
+      count: files.length,
+      user: {
+        id: req.user.userId,
+        name: req.user.name
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching files:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch files',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});*/
 
 // Upload file (with authentication)
+
+/*
 router.post('/',
   authenticate,
   upload.single('file'),
@@ -576,6 +619,7 @@ router.post('/',
 );
 
 // Get user files
+
 router.get('/', authenticate, uploadController.getUserFiles);
 
 // Get single file
@@ -589,5 +633,202 @@ router.put('/:id', authenticate, uploadController.updateFile);
 
 // Delete file
 router.delete('/:id', authenticate, uploadController.deleteFile);
+
+
+// =========== ADDITIONAL ENDPOINTS ===========
+// Add these endpoints that your frontend expects
+router.get('/my-files', authenticate, async (req, res) => {
+  try {
+    const { page = 1, limit = 10, sort = 'newest', department, classification } = req.query;
+    const offset = (page - 1) * limit;
+    const userId = req.user.userId;
+    
+    // Build base query
+    let baseQuery = 'SELECT * FROM files WHERE user_id = $1';
+    let countQuery = 'SELECT COUNT(*) FROM files WHERE user_id = $1';
+    const queryParams = [userId];
+    let paramCount = 1;
+    
+    // Add filters
+    if (department) {
+      paramCount++;
+      baseQuery += ` AND department = $${paramCount}`;
+      countQuery += ` AND department = $${paramCount}`;
+      queryParams.push(department);
+    }
+    
+    if (classification) {
+      paramCount++;
+      baseQuery += ` AND classification_level = $${paramCount}`;
+      countQuery += ` AND classification_level = $${paramCount}`;
+      queryParams.push(classification);
+    }
+    
+    // Add sorting
+    switch(sort) {
+      case 'newest':
+        baseQuery += ' ORDER BY uploaded_at DESC';
+        break;
+      case 'oldest':
+        baseQuery += ' ORDER BY uploaded_at ASC';
+        break;
+      case 'name':
+        baseQuery += ' ORDER BY original_name ASC';
+        break;
+      case 'size':
+        baseQuery += ' ORDER BY file_size DESC';
+        break;
+      case 'type':
+        baseQuery += ' ORDER BY document_type ASC';
+        break;
+      default:
+        baseQuery += ' ORDER BY uploaded_at DESC';
+    }
+    
+    // Add pagination
+    paramCount++;
+    baseQuery += ` LIMIT $${paramCount}`;
+    queryParams.push(parseInt(limit));
+    
+    paramCount++;
+    baseQuery += ` OFFSET $${paramCount}`;
+    queryParams.push(offset);
+    
+    // Execute queries
+    const [filesResult, countResult] = await Promise.all([
+      query(baseQuery, queryParams.slice(0, -2)), // Remove LIMIT/OFFSET for count
+      query(countQuery, queryParams.slice(0, -2))
+    ]);
+    
+    const totalFiles = parseInt(countResult.rows[0].count);
+    
+    res.json({
+      success: true,
+      data: {
+        files: filesResult.rows,
+        pagination: {
+          totalFiles,
+          totalPages: Math.ceil(totalFiles / limit),
+          currentPage: parseInt(page),
+          limit: parseInt(limit)
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error in my-files:', error);
+    res.status(500).json({ success: false, message: 'Error fetching files' });
+  }
+});
+
+// Stats endpoint
+router.get('/stats/summary', authenticate, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    
+    // Get total files and storage
+    const statsResult = await query(
+      `SELECT COUNT(*) as total_files, COALESCE(SUM(file_size::bigint), 0) as total_storage 
+       FROM files WHERE user_id = $1`,
+      [userId]
+    );
+    
+    // Get files by type
+    const typeResult = await query(
+      `SELECT document_type, COUNT(*) as count 
+       FROM files WHERE user_id = $1 AND document_type IS NOT NULL 
+       GROUP BY document_type`,
+      [userId]
+    );
+    
+    res.json({
+      success: true,
+      data: {
+        totalFiles: parseInt(statsResult.rows[0].total_files),
+        totalStorage: parseInt(statsResult.rows[0].total_storage || 0),
+        filesByType: typeResult.rows
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error in stats:', error);
+    res.status(500).json({ success: false, message: 'Error fetching stats' });
+  }
+});
+
+// Departments endpoint
+router.get('/departments/list', authenticate, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    
+    const deptResult = await query(
+      `SELECT DISTINCT department FROM files 
+       WHERE user_id = $1 AND department IS NOT NULL AND department != '' 
+       ORDER BY department`,
+      [userId]
+    );
+    
+    const departments = deptResult.rows.map(row => row.department);
+    
+    res.json({
+      success: true,
+      data: departments
+    });
+    
+  } catch (error) {
+    console.error('Error in departments:', error);
+    res.status(500).json({ success: false, message: 'Error fetching departments' });
+  }
+});
+
+// Health check
+router.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Upload routes are healthy',
+    timestamp: new Date().toISOString()
+  });
+});
+
+export default router;*/
+
+
+
+
+
+// routes/uploadRoutes.js - UPDATED
+import express from 'express';
+import { 
+  getFiles, 
+  uploadFile, 
+  getFileDetails,
+  downloadFile,
+  updateFile,
+  deleteFile,
+  getFileStats,
+  getDepartments
+} from '../controllers/uploadController.js'; // Named imports
+import { authenticate } from '../middleware/authMiddleware.js';
+import  uploadMiddleware  from '../middleware/uploadMiddleware.js'; // Import multer middleware
+
+const router = express.Router();
+
+// =========== BASIC ROUTES ===========
+router.get('/', authenticate, getFiles);
+router.post('/', authenticate, uploadMiddleware.single('file'), uploadFile);
+router.get('/:id', authenticate, getFileDetails);
+router.get('/:id/download', authenticate, downloadFile);
+router.put('/:id', authenticate, updateFile);
+router.delete('/:id', authenticate, deleteFile);
+
+// =========== MYFILES PAGE ROUTES ===========
+router.get('/my-files', authenticate, getFiles); // Reuse getFiles with pagination
+router.get('/stats/summary', authenticate, getFileStats);
+router.get('/departments/list', authenticate, getDepartments);
+
+// Health check
+router.get('/health', (req, res) => {
+  res.json({ success: true, message: 'Upload routes working' });
+});
 
 export default router;

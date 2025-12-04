@@ -498,10 +498,12 @@ const PORT = process.env.PORT || 3000;
 
 // =========== MIDDLEWARE ===========
 // CORS
+/*
 app.use(cors({
   origin: ["http://localhost:5173", "https://improved-memory-xjpqw5rr799fvw5x-5173.app.github.dev"],
   credentials: true
 }));
+
 
 // Custom middleware to handle JSON vs FormData
 app.use((req, res, next) => {
@@ -520,7 +522,29 @@ app.use((req, res, next) => {
     // For other requests
     express.urlencoded({ extended: true })(req, res, next);
   }
+});*/
+
+
+// =========== MIDDLEWARE ===========
+// CORS
+app.use(cors({
+  origin: ["http://localhost:5173", "https://improved-memory-xjpqw5rr799fvw5x-5173.app.github.dev"],
+  credentials: true
+}));
+
+// Standard middleware - ALWAYS apply these
+app.use(express.json());  // Parse JSON bodies
+app.use(express.urlencoded({ extended: true }));  // Parse URL-encoded bodies
+
+// Logging middleware (after parsing)
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log('Content-Type:', req.headers['content-type']);
+  console.log('Body keys:', Object.keys(req.body || {}));
+  next();
 });
+
+
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
