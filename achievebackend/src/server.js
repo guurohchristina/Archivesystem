@@ -487,6 +487,7 @@ import { fileURLToPath } from 'url';
 // Routes
 import authRoutes from './routes/authRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 dotenv.config();
 
@@ -552,6 +553,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // =========== ROUTES ===========
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

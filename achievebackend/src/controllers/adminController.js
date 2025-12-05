@@ -1,5 +1,6 @@
 
-// src/controllers/adminController.js
+// src/controllers/adminController.j
+
 import { query } from '../config/db.js';
 
 export const adminController = {
@@ -286,3 +287,200 @@ export const adminController = {
     }
   }
 };
+
+
+
+
+
+
+// controllers/adminController.js (note singular 'Controller', not 'Controllers')
+/*
+import User from '../models/User.js';
+import File from '../models/files.js';
+
+// Get all users with pagination and search ach
+export const getAllUsers = async (req, res) => {
+  try {
+    console.log('🔍 GET /api/admin/users called');
+    
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const search = req.query.search || '';
+
+    console.log('Query params:', { page, limit, search });
+
+    // Build query for search
+    let query = {};
+    if (search) {
+      query = {
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } }
+        ]
+      };
+    }
+
+    console.log('Query:', query);
+
+    // Get total count
+    const totalUsers = await User.countDocuments(query);
+    console.log('Total users:', totalUsers);
+    
+    // Get users with pagination
+    const users = await User.find(query)
+      .select('-password')
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    console.log('Found users:', users.length);
+
+    // Get file counts for each user
+    const usersWithStats = await Promise.all(
+      users.map(async (user) => {
+        const fileCount = await File.countDocuments({ user_id: user._id });
+        return {
+          ...user,
+          id: user._id,
+          file_count: fileCount
+        };
+      })
+    );
+
+    console.log('Users with stats ready');
+
+    res.status(200).json({
+      success: true,
+      data: {
+        users: usersWithStats,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalUsers / limit),
+          totalUsers,
+          limit
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error in getAllUsers:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching users',
+      error: error.message
+    });
+  }
+};
+
+// Update user role
+export const updateUserRole = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { role } = req.body;
+
+    console.log('🔄 Update role request:', { userId, role });
+
+    if (!['user', 'admin'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid role'
+      });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { role },
+      { new: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'User role updated',
+      data: updatedUser
+    });
+
+  } catch (error) {
+    console.error('Error updating role:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// Delete user
+export const deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    console.log('🗑️ Delete user request:', userId);
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Delete user's files
+    await File.deleteMany({ user_id: userId });
+    
+    // Delete user
+    await User.findByIdAndDelete(userId);
+
+    res.status(200).json({
+      success: true,
+      message: 'User deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// Get all files (admin)
+export const getAllFiles = async (req, res) => {
+  try {
+    const files = await File.find().populate('user_id', 'name email');
+    res.json({ success: true, files });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Delete file as admin
+export const deleteFileAsAdmin = async (req, res) => {
+  try {
+    const { fileId } = req.params;
+    await File.findByIdAndDelete(fileId);
+    res.json({ success: true, message: 'File deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Export controller object
+export const adminController = {
+  getAllUsers,
+  updateUserRole,
+  deleteUser,
+  getAllFiles,
+  deleteFileAsAdmin
+};
+*/
+
+
+

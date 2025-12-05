@@ -100,7 +100,7 @@ export default function Login() {
   );
 }*/
 
-
+/*fall back on
 import { useState, useContext, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
@@ -207,7 +207,7 @@ const Login = () => {
         </button>
       </form>
 
-      {/* Quick login buttons for testing */}
+      
       <div className="quick-login-buttons">
         <h3>Quick Test Logins:</h3>
         <button 
@@ -232,4 +232,172 @@ const Login = () => {
   );
 };
 
+export default Login;*/
+
+
+
+
+import { useState, useContext, useEffect } from "react";
+import { AuthContext } from "../context/AuthContext.jsx";
+import { useNavigate } from "react-router-dom";
+
+const Login = () => {
+  const { login, isAuthenticated } = useContext(AuthContext);
+  const navigate = useNavigate();
+  
+  const [formData, setFormData] = useState({
+    email: "",
+    password: ""
+  });
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Email is invalid";
+    
+    if (!formData.password) newErrors.password = "Password is required";
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const submit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+    
+    setLoading(true);
+    try {
+      await login(formData.email, formData.password);
+      // Navigation will happen automatically due to the useEffect above
+    } catch (error) {
+      alert(error.message || "Invalid credentials");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: "" }));
+    }
+  };
+
+  // 🎯 FIXED: Correct admin credentials
+  const quickAdminLogin = () => {
+    setFormData({
+      email: "archieveadmin@gmail.com",  // Your actual admin email
+      password: "Admin@123"              // Your actual admin password
+    });
+  };
+
+  // Quick user login for testing
+  const quickUserLogin = () => {
+    setFormData({
+      email: "test@example.com",
+      password: "password123"
+    });
+  };
+
+  // 🆕 Add debug function
+  const debugAdmin = async () => {
+    console.log("🛠️ Debug admin login...");
+    const response = await fetch('https://improved-memory-xjpqw5rr799fvw5x-3000.app.github.dev/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: "archieveadmin@gmail.com",
+        password: "Admin@123"
+      })
+    });
+    
+    const result = await response.json();
+    console.log("Debug result:", result);
+    alert(`Debug: ${result.message}\nSuccess: ${result.success}\nRole: ${result.user?.role}`);
+  };
+
+  return (
+    <div className="page">
+      <h1>Login</h1>
+
+      <form className="form" onSubmit={submit}>
+        <div>
+          <input
+            type="email"
+            placeholder="Email Address"
+            value={formData.email}
+            onChange={(e) => handleChange("email", e.target.value)}
+            disabled={loading}
+          />
+          {errors.email && <span className="error">{errors.email}</span>}
+        </div>
+
+        <div>
+          <input
+            type="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={(e) => handleChange("password", e.target.value)}
+            disabled={loading}
+          />
+          {errors.password && <span className="error">{errors.password}</span>}
+        </div>
+
+        <button type="submit" disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
+        </button>
+      </form>
+
+      {/* Quick login buttons for testing */}
+      <div className="quick-login-buttons">
+        <h3>Quick Test Logins:</h3>
+        <button 
+          onClick={quickAdminLogin}
+          style={{ margin: "5px" }}
+        >
+          Admin Login
+        </button>
+        <button 
+          onClick={quickUserLogin}
+          style={{ margin: "5px" }}
+        >
+          Test User Login
+        </button>
+        {/* 🎯 FIXED: Show correct credentials */}
+        <p>Admin: archieveadmin@gmail.com / Admin@123</p>
+        <p>Test User: test@example.com / password123</p>
+        
+        {/* 🆕 Debug button */}
+        <button 
+          onClick={debugAdmin}
+          style={{ margin: "5px", backgroundColor: "#6f42c1", color: "white" }}
+        >
+          Debug Admin Login
+        </button>
+      </div>
+
+      <p style={{ textAlign: "center", marginTop: "20px" }}>
+        Don't have an account? <a href="/register">Register here</a>
+      </p>
+    </div>
+  );
+};
+
 export default Login;
+
+
+
+
+
+

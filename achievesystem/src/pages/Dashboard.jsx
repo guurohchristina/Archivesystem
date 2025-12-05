@@ -44,7 +44,7 @@ const Dashboard = () => {
             <button onClick={() => navigate("/manage-users")}>Manage Users</button>
             <button onClick={() => navigate("/manage-files")}>View All Files</button>
             <button onClick={() => navigate("/system-reports")}>System Reports</button>
-            <button onClick={() => navigate ("/my-files")}>My-Files</button>
+            <button onClick={() => navigate ("/my-files")}>MyFiles</button>
             <button onClick={() => navigate("/system-settings")}>System Settings</button>
           </div>
         ) : (
