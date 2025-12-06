@@ -313,7 +313,7 @@ const Login = () => {
   // 🆕 Add debug function
   const debugAdmin = async () => {
     console.log("🛠️ Debug admin login...");
-    const response = await fetch('https://improved-memory-xjpqw5rr799fvw5x-3000.app.github.dev/api/auth/login', {
+    const response = await fetch('http://localhost:3000/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
