@@ -814,7 +814,7 @@ const ManageUsers = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0); // Added totalUsers state
 
-  const API_BASE = 'https://improved-memory-xjpqw5rr799fvw5x-3000.app.github.dev';
+  const API_BASE = 'http://localhost:3000';
 
   useEffect(() => {
     console.log("🔄 ManageUsers useEffect triggered");

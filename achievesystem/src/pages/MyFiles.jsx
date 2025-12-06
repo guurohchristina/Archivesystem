@@ -1760,7 +1760,7 @@ const [selectedFile, setSelectedFile] = useState(null);
   const documentTypes = [...new Set(files.map(f => f.document_type).filter(Boolean))];
   const classifications = ["Unclassified", "Confidential", "Secret", "Top Secret"];
 
-  const API_BASE = 'https://improved-memory-xjpqw5rr799fvw5x-3000.app.github.dev';
+  const API_BASE = 'http://localhost:3000';
 
   useEffect(() => {
     fetchUserFiles();

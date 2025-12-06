@@ -241,7 +241,7 @@ const ManageFiles = () => {
   const [error, setError] = useState("");
   const [totalFiles, setTotalFiles] = useState(0);
 
-  const API_BASE = 'https://improved-memory-xjpqw5rr799fvw5x-3000.app.github.dev';
+  const API_BASE = 'http://localhost:3000';
 
   useEffect(() => {
     fetchFiles();
