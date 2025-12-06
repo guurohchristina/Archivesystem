@@ -529,7 +529,7 @@ app.use((req, res, next) => {
 // =========== MIDDLEWARE ===========
 // CORS
 app.use(cors({
-  origin: ["http://localhost:5173", "https://improved-memory-xjpqw5rr799fvw5x-5173.app.github.dev"],
+  origin: ["http://localhost:5173/", "https://improved-memory-xjpqw5rr799fvw5x-5173.app.github.dev"],
   credentials: true
 }));
 
