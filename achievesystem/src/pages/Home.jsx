@@ -766,7 +766,7 @@ const Home = () => {
         <div className="hero-content">
           <h1>Organize, Secure, and Access Your Files</h1>
           <p>
-            Archieve System provides secure archiving solutions for students, educators, businesses etc. 
+            Archieve System  archiving solutions for students, educators, businesses etc. 
             Keep your important documents safe, organized, and accessible.
           </p>
           <div className="cta-buttons">
