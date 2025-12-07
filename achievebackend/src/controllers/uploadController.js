@@ -1286,7 +1286,7 @@ export const getPublicFiles = async (req, res) => {
     }
     
     // Add ordering
-    baseQuery += ' ORDER BY f.created_at DESC';
+    baseQuery += ' ORDER BY f.uploaded_at DESC';
     
     // Get total count for pagination
     const countQuery = baseQuery.replace(/SELECT f\.\*, u\.name as owner_name, u\.email as owner_email/, 'SELECT COUNT(*)');
