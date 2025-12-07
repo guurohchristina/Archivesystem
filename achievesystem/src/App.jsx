@@ -17,6 +17,7 @@ import ManageUsers from "./pages/ManageUsers.jsx";
 import ManageFiles from "./pages/ManageFiles.jsx";
 import SystemReports from "./pages/SystemReports.jsx";
 import MyFiles from "./pages/MyFiles.jsx";
+import SystemSetting from "./pages/SystemSettings.jsx";
 
 
 
@@ -45,6 +46,7 @@ function App() {
 <Route path="/system-reports" element={<SystemReports />} />
 <Route path="/my-files" element={<MyFiles />} />
 <Route path="/profile" element={<Profile />} />
+<Route path="/system-settings" element={<SystemSetting />} />
         
       </Routes>
       </AuthProvider>
