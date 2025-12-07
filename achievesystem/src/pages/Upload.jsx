@@ -1573,7 +1573,7 @@ const Upload = () => {
       }
 
       // Use absolute URL in development
-      const API_URL = 'https://improved-memory-xjpqw5rr799fvw5x-3000.app.github.dev' ;
+      const API_URL = 'http://localhost:3000' ;
     
       
       console.log('🌐 Making request to:', `${API_URL}/api/upload`);
