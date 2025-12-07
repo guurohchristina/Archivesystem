@@ -39,7 +39,7 @@ const SharedWithMe = () => {
       }
 
       // Use the new endpoint: /api/upload/public
-      const url = new URL(`${API_BASE}/api/upload/public`);
+      const url = new URL(`${API_BASE}/api/upload/public?page=1&limit=20`);
       url.searchParams.append('page', currentPage.toString());
       url.searchParams.append('limit', '20');
       if (search) {
