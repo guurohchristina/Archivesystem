@@ -1255,17 +1255,10 @@ export const getPublicFiles = async (req, res) => {
     const { page = 1, limit = 20, search = '', owner = '' } = req.query;
     const offset = (page - 1) * limit;
     
-    // Build base query
-    let baseQuery = `
-      SELECT f.*, u.name as owner_name, u.email as owner_email
-      FROM files f
-      LEFT JOIN users u ON f.user_id = u.id
-      WHERE f.is_public = true 
-      AND f.user_id != $1  -- Exclude current user's own files
-    `;
+
     
     // Add search conditions
-    const conditions = [];
+    const conditions = ['f.is_public = true', 'f.user_id != $1'];
     const params = [req.user.userId];
     let paramCount = 1;
     
@@ -1280,6 +1273,8 @@ export const getPublicFiles = async (req, res) => {
       conditions.push(`u.name ILIKE $${paramCount}`);
       params.push(`%${owner}%`);
     }
+    
+    /*
     
     if (conditions.length > 0) {
       baseQuery += ' AND ' + conditions.join(' AND ');
@@ -1299,7 +1294,40 @@ export const getPublicFiles = async (req, res) => {
     params.push(parseInt(limit), offset);
     
     // Execute query
-    const result = await query(paginatedQuery, params);
+    const result = await query(paginatedQuery, params);*/
+    
+    const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
+    
+    // COUNT query - NO ORDER BY in COUNT!
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM files f
+      LEFT JOIN users u ON f.user_id = u.id
+      ${whereClause}
+    `;
+    
+    console.log('Count query:', countQuery);
+    console.log('Count params:', params);
+    
+    const countResult = await query(countQuery, params);
+    const totalCount = parseInt(countResult.rows[0].total);
+    // MAIN query with ORDER BY and pagination
+    paramCount++;
+    const mainQuery = `
+      SELECT f.*, u.name as owner_name, u.email as owner_email
+      FROM files f
+      LEFT JOIN users u ON f.user_id = u.id
+      ${whereClause}
+      ORDER BY f.uploaded_at DESC
+      LIMIT $${paramCount} OFFSET $${paramCount + 1}
+    `;
+    
+    const mainParams = [...params, parseInt(limit), offset];
+    
+    console.log('Main query:', mainQuery);
+    console.log('Main params:', mainParams);
+    
+    const result = await query(mainQuery, mainParams);
     
     console.log(`✅ Found ${result.rows.length} public files (total: ${totalCount})`);
     
