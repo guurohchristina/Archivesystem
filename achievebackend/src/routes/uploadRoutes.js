@@ -830,16 +830,20 @@ router.get('/my-files', authenticate, getFiles); // Reuse getFiles with paginati
 router.get('/stats/summary', authenticate, getFileStats);
 router.get('/departments/list', authenticate, getDepartments);
 
-// Health check
-router.get('/health', (req, res) => {
-  res.json({ success: true, message: 'Upload routes working' });
-});
-
 
 // NEW ROUTES for public files functionality
 router.get('/public', authenticate, getPublicFiles);           // Get all public files
 router.get('/shared', authenticate, getSharedWithMe);         // Files shared with me
 router.put('/:id/visibility', authenticate, toggleFileVisibility);  // Toggle public/private
 router.get('/:id/visibility', authenticate, getFileVisibility);     // Check visibility status
+
+
+// Health check
+router.get('/health', (req, res) => {
+  res.json({ success: true, message: 'Upload routes working' });
+});
+
+
+
 
 export default router;
