@@ -1246,6 +1246,89 @@ export const getFiles = async (req, res) => {
   }
 };
 
+
+
+export const getPublicFiles = async (req, res) => {
+  try {
+    console.log('📂 GET /api/upload/public - Fetching public files');
+    
+    const { page = 1, limit = 20, search = '', owner = '' } = req.query;
+    const offset = (page - 1) * limit;
+    
+    // Build base query
+    let baseQuery = `
+      SELECT f.*, u.name as owner_name, u.email as owner_email
+      FROM files f
+      LEFT JOIN users u ON f.user_id = u.id
+      WHERE f.is_public = true 
+      AND f.user_id != $1  -- Exclude current user's own files
+    `;
+    
+    // Add search conditions
+    const conditions = [];
+    const params = [req.user.userId];
+    let paramCount = 1;
+    
+    if (search) {
+      paramCount++;
+      conditions.push(`(f.original_name ILIKE $${paramCount} OR f.description ILIKE $${paramCount})`);
+      params.push(`%${search}%`);
+    }
+    
+    if (owner) {
+      paramCount++;
+      conditions.push(`u.name ILIKE $${paramCount}`);
+      params.push(`%${owner}%`);
+    }
+    
+    if (conditions.length > 0) {
+      baseQuery += ' AND ' + conditions.join(' AND ');
+    }
+    
+    // Add ordering
+    baseQuery += ' ORDER BY f.created_at DESC';
+    
+    // Get total count for pagination
+    const countQuery = baseQuery.replace(/SELECT f\.\*, u\.name as owner_name, u\.email as owner_email/, 'SELECT COUNT(*)');
+    const countResult = await query(countQuery, params);
+    const totalCount = parseInt(countResult.rows[0].count);
+    
+    // Add pagination
+    paramCount++;
+    const paginatedQuery = baseQuery + ` LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
+    params.push(parseInt(limit), offset);
+    
+    // Execute query
+    const result = await query(paginatedQuery, params);
+    
+    console.log(`✅ Found ${result.rows.length} public files (total: ${totalCount})`);
+    
+    res.json({
+      success: true,
+      data: {
+        files: result.rows,
+       pagination: {
+          totalFiles: totalCount,
+          totalPages: Math.ceil(totalCount / limit),
+          currentPage: parseInt(page),
+          limit: parseInt(limit)
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching public files:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch public files',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+
+
+
 // Upload file
 export const uploadFile = async (req, res) => {
   try {
@@ -1264,7 +1347,7 @@ export const uploadFile = async (req, res) => {
     
     const { 
       description = '', 
-      is_public = 'false',
+      ispublic = 'false',
       document_type = '',
       document_date = new Date().toISOString().split('T')[0],
       department = '',
@@ -1273,6 +1356,9 @@ export const uploadFile = async (req, res) => {
     } = req.body;
     
     console.log('📝 Metadata:', { description, document_type, department });
+    
+    const isPublicBool = isPublic === 'true' || isPublic === true;
+    const publicSince = isPublicBool ? new Date().toISOString() : null;
     
     // Insert into database
     const result = await query(
@@ -1319,6 +1405,114 @@ export const uploadFile = async (req, res) => {
   }
 };
 
+export const toggleFileVisibility = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { is_public } = req.body;
+    
+    console.log(`🔄 Toggle visibility for file ${id}: is_public = ${is_public}`);
+    
+    // Validate input
+    if (typeof is_public !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        message: 'is_public must be a boolean value'
+      });
+    }
+    
+    // First check if file exists
+    const checkResult = await query(
+      'SELECT * FROM files WHERE id = $1 AND user_id = $2',
+      [id, req.user.userId]
+    );
+    
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found or you do not have permission'
+      });
+    }
+    
+    // Update visibility
+    const updateResult = await query(
+      `UPDATE files 
+       SET is_public = $1, 
+           public_since = CASE WHEN $1 = true THEN NOW() ELSE NULL END,
+           updated_at = NOW()
+       WHERE id = $2 AND user_id = $3
+       RETURNING *`,
+      [is_public, id, req.user.userId]
+    );
+    
+    console.log(`✅ File ${id} visibility updated to: ${is_public}`);
+    
+    res.json({
+      success: true,
+      message: is_public ? 'File is now public' : 'File is now private',
+      data: {
+        file: updateResult.rows[0]
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error toggling file visibility:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update file visibility',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// Get file visibility status - NEW FUNCTION
+export const getFileVisibility = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    console.log(`👁️ Get visibility for file ${id}`);
+    
+    const result = await query(
+      'SELECT id, is_public, public_since, user_id FROM files WHERE id = $1',
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found'
+      });
+    }
+    
+    const file = result.rows[0];
+    
+    // Check ownership
+    const isOwner = file.user_id === req.user.userId;
+    
+    res.json({
+      success: true,
+      data: {
+        id: file.id,
+        is_public: file.is_public,
+        public_since: file.public_since,
+        can_toggle: isOwner
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error getting file visibility:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get file visibility',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+    
+    
+    
+
+
+
 // Get single file details
 export const getFileDetails = async (req, res) => {
   try {
@@ -1354,7 +1548,7 @@ export const downloadFile = async (req, res) => {
   try {
     const { id } = req.params;
     
-    const result = await query(
+    /*const result = await query(
       'SELECT * FROM files WHERE id = $1 AND user_id = $2',
       [id, req.user.userId]
     );
@@ -1385,7 +1579,47 @@ export const downloadFile = async (req, res) => {
       message: 'Failed to download file'
     });
   }
+};*/
+
+const fileResult = await query('SELECT * FROM files WHERE id = $1', [id]);
+    
+    if (fileResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found'
+      });
+    }
+    
+    const file = fileResult.rows[0];
+    
+    // Check permissions: either owner OR file is public
+    if (file.user_id !== req.user.userId && !file.is_public) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied'
+      });
+    }
+    
+    const filePath = path.join(process.cwd(), file.filepath);
+    
+    if (!fs.existsSync(filePath)) {
+      console.log('❌ File not found on disk:', filePath);
+      return res.status(404).json({
+        success: false,
+        message: 'File not found on server'
+      });
+    }
+    
+    res.download(filePath, file.original_name);
+  } catch (error) {
+    console.error('Download error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to download file'
+    });
+  }
 };
+
 
 // Update file
 export const updateFile = async (req, res) => {
@@ -1398,6 +1632,9 @@ export const updateFile = async (req, res) => {
        SET description = $1, is_public = $2, document_type = $3, 
            department = $4, owner = $5, classification_level = $6,
            updated_at = CURRENT_TIMESTAMP
+           
+          public_since = CASE WHEN $2 = true AND public_since IS NULL THEN NOW() ELSE public_since END 
+           
        WHERE id = $7 AND user_id = $8
        RETURNING *`,
       [description, is_public, document_type, department, owner, classification_level, id, req.user.userId]
@@ -1523,8 +1760,44 @@ export const getDepartments = async (req, res) => {
   }
 };
 
+
+export const getSharedWithMe = async (req, res) => {
+  try {
+    console.log('📂 GET /api/upload/shared - Files shared with user:', req.user.userId);
+    
+    const result = await query(
+      `SELECT f.*, u.name as owner_name, u.email as owner_email
+       FROM files f
+       LEFT JOIN users u ON f.user_id = u.id
+       WHERE f.is_public = true 
+       AND f.user_id != $1
+       ORDER BY f.created_at DESC`,
+      [req.user.userId]
+    );
+    
+    console.log(`✅ Found ${result.rows.length} files shared with user ${req.user.userId}`);
+    
+    res.json({
+      success: true,
+      files: result.rows,
+      count: result.rows.length
+    });
+  } catch (error) {
+    console.error('❌ Error fetching shared files:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch shared files',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+
+
+
 // Default export for backward compatibility
 export default {
+  /*
   getFiles,
   uploadFile,
   getFileDetails,
@@ -1532,5 +1805,18 @@ export default {
   updateFile,
   deleteFile,
   getFileStats,
-  getDepartments
+  getDepartments*/
+  
+  getFiles,
+  getPublicFiles,
+  uploadFile,
+  toggleFileVisibility,
+  getFileVisibility,
+  getFileDetails,
+  downloadFile,
+  updateFile,
+  deleteFile,
+  getFileStats,
+  getDepartments,
+  getSharedWithMe
 };

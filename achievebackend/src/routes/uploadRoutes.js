@@ -806,7 +806,11 @@ import {
   updateFile,
   deleteFile,
   getFileStats,
-  getDepartments
+  getDepartments,
+  getPublicFiles,          // NEW
+  toggleFileVisibility,    // NEW
+  getFileVisibility,       // NEW
+  getSharedWithMe
 } from '../controllers/uploadController.js'; // Named imports
 import { authenticate } from '../middleware/authMiddleware.js';
 import  uploadMiddleware  from '../middleware/uploadMiddleware.js'; // Import multer middleware
@@ -830,5 +834,12 @@ router.get('/departments/list', authenticate, getDepartments);
 router.get('/health', (req, res) => {
   res.json({ success: true, message: 'Upload routes working' });
 });
+
+
+// NEW ROUTES for public files functionality
+router.get('/public', authenticate, getPublicFiles);           // Get all public files
+router.get('/shared', authenticate, getSharedWithMe);         // Files shared with me
+router.put('/:id/visibility', authenticate, toggleFileVisibility);  // Toggle public/private
+router.get('/:id/visibility', authenticate, getFileVisibility);     // Check visibility status
 
 export default router;

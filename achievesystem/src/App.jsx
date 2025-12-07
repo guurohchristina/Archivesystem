@@ -18,6 +18,7 @@ import ManageFiles from "./pages/ManageFiles.jsx";
 import SystemReports from "./pages/SystemReports.jsx";
 import MyFiles from "./pages/MyFiles.jsx";
 import SystemSetting from "./pages/SystemSettings.jsx";
+import SharedwithMe from "./pages/SharedwithMe.jsx";
 
 
 
@@ -47,6 +48,7 @@ function App() {
 <Route path="/my-files" element={<MyFiles />} />
 <Route path="/profile" element={<Profile />} />
 <Route path="/system-settings" element={<SystemSetting />} />
+<Route path="/shared-files" element={<SharedwithMe />} />
         
       </Routes>
       </AuthProvider>
