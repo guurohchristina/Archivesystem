@@ -817,7 +817,7 @@ import  uploadMiddleware  from '../middleware/uploadMiddleware.js'; // Import mu
 
 const router = express.Router();
 
-router.get('/public', authenticate, getPublicFiles);           // Get all public files
+
 
 // =========== BASIC ROUTES ===========
 router.get('/', authenticate, getFiles);
@@ -834,7 +834,7 @@ router.get('/departments/list', authenticate, getDepartments);
 
 
 // NEW ROUTES for public files functionality
-
+router.get('/public', authenticate, getPublicFiles);           // Get all public files
 router.get('/shared', authenticate, getSharedWithMe);         // Files shared with me
 router.put('/:id/visibility', authenticate, toggleFileVisibility);  // Toggle public/private
 router.get('/:id/visibility', authenticate, getFileVisibility);     // Check visibility status
