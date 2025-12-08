@@ -1347,7 +1347,7 @@ export const getPublicFiles = async (req, res) => {
 
 
 // Get all public files - SIMPLE AND RELIABLE VERSION
-export const getPublicFiles = async (req, res) => {
+/*export const getPublicFiles = async (req, res) => {
   try {
     console.log('📂 GET /api/upload/public - Simple reliable version');
     
@@ -1453,6 +1453,197 @@ export const getPublicFiles = async (req, res) => {
           files: fallbackResult.rows,
           pagination: {
             totalFiles: fallbackResult.rows.length,
+            totalPages: 1,
+            currentPage: 1,
+            limit: 20
+          }
+        }
+      });
+      
+    } catch (fallbackError) {
+      console.error('❌ Fallback also failed:', fallbackError.message);
+      res.status(500).json({
+        success: false,
+        message: 'Database query failed',
+        error: 'Internal server error'
+      });
+    }
+  }
+};*/
+
+
+
+// Get all public files - FIXED FOR YOUR TABLE STRUCTURE
+export const getPublicFiles = async (req, res) => {
+  try {
+    console.log('📂 GET /api/upload/public - Fixed for your table structure');
+    
+    // Parse parameters with defaults
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const offset = (page - 1) * limit;
+    const search = req.query.search || '';
+    const ownerFilter = req.query.owner || '';
+    
+    console.log('Parameters:', { page, limit, offset, search, ownerFilter });
+    
+    // Build query - Use files.owner column directly since you already store owner name
+    let baseQuery = `
+      FROM files f
+      WHERE f.is_public = true 
+      AND f.user_id != $1
+    `;
+    
+    let params = [req.user.userId];
+    let paramCounter = 1;
+    
+    // Add search condition
+    if (search) {
+      paramCounter++;
+      baseQuery += ` AND (f.original_name ILIKE $${paramCounter} OR f.description ILIKE $${paramCounter})`;
+      params.push(`%${search}%`);
+    }
+    
+    // Add owner filter - uses the "owner" column in files table
+    if (ownerFilter) {
+      paramCounter++;
+      baseQuery += ` AND f.owner ILIKE $${paramCounter}`;
+      params.push(`%${ownerFilter}%`);
+    }
+    
+    // COUNT query
+    const countQuery = `SELECT COUNT(*) as total ${baseQuery}`;
+    console.log('Count query:', countQuery);
+    
+    const countResult = await query(countQuery, params);
+    const totalCount = parseInt(countResult.rows[0].total);
+    
+    // MAIN query - Select all columns plus owner info
+    paramCounter++;
+    const limitParam = paramCounter;
+    paramCounter++;
+    const offsetParam = paramCounter;
+    
+    const mainQuery = `
+      SELECT 
+        f.id,
+        f.filename,
+        f.filepath,
+        f.filetype,
+        f.original_name,
+        f.file_size,
+        f.user_id,
+        f.description,
+        f.is_public,
+        f.document_type,
+        f.document_date,
+        f.department,
+        f.owner as owner_name,  -- This is already stored in files.owner
+        f.classification_level,
+        f.uploaded_at,
+        f.updated_at,
+        f.public_since,
+        -- Try to get email from users table if it exists
+        COALESCE(u.email, 'No email available') as owner_email
+      ${baseQuery}
+      LEFT JOIN users u ON f.user_id = u.id  -- Optional join for email only
+      ORDER BY f.uploaded_at DESC
+      LIMIT $${limitParam} OFFSET $${offsetParam}
+    `;
+    
+    const mainParams = [...params, limit, offset];
+    
+    console.log('Main query:', mainQuery);
+    
+    const result = await query(mainQuery, mainParams);
+    
+    console.log(`✅ Success! Found ${result.rows.length} files`);
+    
+    // Format the response for frontend
+    const formattedFiles = result.rows.map(file => ({
+      id: file.id,
+      original_name: file.original_name,
+      filename: file.filename,
+      description: file.description,
+      file_size: file.file_size,
+      file_type: file.filetype,  // Note: your column is "filetype" not "file_type"
+      user_id: file.user_id,
+      owner_name: file.owner_name,  // From files.owner column
+      owner_email: file.owner_email, // From users.email via JOIN
+      created_at: file.uploaded_at,  // Frontend expects "created_at"
+      uploaded_at: file.uploaded_at,
+      public_since: file.public_since,
+      is_public: file.is_public,
+      document_type: file.document_type,
+      department: file.department,
+      classification_level: file.classification_level
+    }));
+    
+    console.log('First file formatted:', formattedFiles[0]);
+    
+    res.json({
+      success: true,
+      data: {
+        files: formattedFiles,
+        pagination: {
+          totalFiles: totalCount,
+          totalPages: Math.ceil(totalCount / limit),
+          currentPage: page,
+          limit: limit
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error in getPublicFiles:', error.message);
+    
+    // Fallback without JOIN
+    try {
+      console.log('🔄 Trying fallback without JOIN...');
+      
+      const fallbackResult = await query(
+        `SELECT 
+          id,
+          filename,
+          original_name,
+          description,
+          file_size,
+          filetype,
+          user_id,
+          owner as owner_name,
+          uploaded_at,
+          public_since,
+          is_public
+         FROM files 
+         WHERE is_public = true 
+         AND user_id != $1
+         ORDER BY uploaded_at DESC
+         LIMIT 20`,
+        [req.user.userId]
+      );
+      
+      const fallbackFiles = fallbackResult.rows.map(file => ({
+        id: file.id,
+        original_name: file.original_name,
+        filename: file.filename,
+        description: file.description,
+        file_size: file.file_size,
+        file_type: file.filetype,
+        user_id: file.user_id,
+        owner_name: file.owner_name,
+        owner_email: 'No email available',
+        created_at: file.uploaded_at,
+        uploaded_at: file.uploaded_at,
+        public_since: file.public_since,
+        is_public: file.is_public
+      }));
+      
+      res.json({
+        success: true,
+        data: {
+          files: fallbackFiles,
+          pagination: {
+            totalFiles: fallbackFiles.length,
             totalPages: 1,
             currentPage: 1,
             limit: 20
