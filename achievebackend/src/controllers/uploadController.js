@@ -1770,6 +1770,23 @@ export const uploadFile = async (req, res) => {
     const uploadedFile = result.rows[0];
     console.log('✅ File uploaded successfully:', uploadedFile.id);
     
+    const formattedFile = {
+          id: uploadedFile.id,
+          filename: uploadedFile.filename,
+          original_name: uploadedFile.original_name,
+          file_size: uploadedFile.file_size,
+          file_type: uploadedFile.filetype,
+          is_public: uploadedFile.is_public,
+          uploaded_at: uploadedFile.uploaded_at,
+          // Add other fields your frontend might need
+          description: uploadedFile.description,
+          document_type: uploadedFile.document_type,
+          department: uploadedFile.department,
+          classification_level: uploadedFile.classification_level
+        };
+        uploadedFiles.push(formattedFile);
+        console.log(`✅ File saved: ${uploadedFile.original_name} (ID: ${uploadedFile.id})`);
+    
 
 
 } catch (fileError) {
@@ -1914,39 +1931,6 @@ export const getFileVisibility = async (req, res) => {
 };
     
     
-    
-
-
-
-// Get single file details
-export const getFileDetails = async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    const result = await query(
-      'SELECT * FROM files WHERE id = $1 AND user_id = $2',
-      [id, req.user.userId]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'File not found'
-      });
-    }
-    
-    res.json({
-      success: true,
-      file: result.rows[0]
-    });
-  } catch (error) {
-    console.error('Get file error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get file'
-    });
-  }
-};
 
 // Download file
 export const downloadFile = async (req, res) => {
