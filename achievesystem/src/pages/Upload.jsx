@@ -1541,15 +1541,7 @@ const Upload = () => {
     
     formData.append('is_public', isPublic.toString());
     
-    console.log('📤 Upload data:', {
-      files: files.map(f => f.name),
-      description,
-      is_public: isPublic,
-      document_type: documentType,
-      document_date: documentDate,
-      department,
-      classification_level: classificationLevel
-    });
+    
 
     console.log('📤 === FRONTEND UPLOAD DEBUG START ===');
     console.log('Selected file:', selectedFile.name, selectedFile.size, 'bytes');
