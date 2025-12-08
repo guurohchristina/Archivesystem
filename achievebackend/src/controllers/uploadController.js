@@ -1751,11 +1751,11 @@ export const uploadFile = async (req, res) => {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
        RETURNING *`,
       [
-        req.file.filename,
-        `uploads/${req.file.filename}`,
-        req.file.mimetype,
-        req.file.originalname,
-        req.file.size,
+      file.filename,
+        `uploads/${file.filename}`,
+        file.mimetype,
+        file.originalname,
+        file.size,
         req.user.userId,
         description,
         is_public === 'true',
