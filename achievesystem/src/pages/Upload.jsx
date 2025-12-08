@@ -1530,7 +1530,7 @@ const Upload = () => {
 
     // Create FormData
     const formData = new FormData();
-    formData.append('files', selectedFile);
+    formData.append('file', selectedFile);
     formData.append('description', fileDescription);
     formData.append('isPublic', isPublic.toString());
     formData.append('document_type', documentType);
