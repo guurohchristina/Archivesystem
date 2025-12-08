@@ -8,5 +8,7 @@ const storage = multer.diskStorage({
   },
 });
 
+export const uploadMultiple = upload.array('files', 10);
+
 const upload = multer({ storage });
 export default upload;

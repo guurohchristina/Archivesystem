@@ -798,6 +798,7 @@ export default router;*/
 
 // routes/uploadRoutes.js - UPDATED
 import express from 'express';
+import { uploadMultiple } from '../middleware/uploadMiddleware.js';
 import { 
   getFiles, 
   uploadFile, 
@@ -822,6 +823,13 @@ router.get('/public', authenticate, getPublicFiles);           // Get all public
 // =========== BASIC ROUTES ===========
 router.get('/', authenticate, getFiles);
 router.post('/', authenticate, uploadMiddleware.single('file'), uploadFile);
+
+router.post('/', 
+  authMiddleware, 
+  uploadMultiple, 
+  uploadFiles
+);
+
 router.get('/:id', authenticate, getFileDetails);
 router.get('/:id/download', authenticate, downloadFile);
 router.put('/:id', authenticate, updateFile);
