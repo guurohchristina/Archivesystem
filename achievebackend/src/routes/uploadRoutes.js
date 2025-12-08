@@ -822,7 +822,7 @@ const router = express.Router();
 router.get('/public', authenticate, getPublicFiles);           // Get all public files
 // =========== BASIC ROUTES ===========
 router.get('/', authenticate, getFiles);
-router.post('/', authenticate, uploadMiddleware.single('file'), uploadFile);
+router.post('/', authenticate, uploadMiddleware.array('files', 10), uploadFile);
 
 
 router.get('/:id', authenticate, getFileDetails);

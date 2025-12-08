@@ -1718,6 +1718,13 @@ export const uploadFile = async (req, res) => {
       });
     }
     
+    const uploadedFiles = [];
+    const errors = [];
+    
+    // Process each file
+    for (const file of req.files) {
+      try {
+    
     const { 
       description = '', 
       is_public = 'false',
@@ -1761,6 +1768,29 @@ export const uploadFile = async (req, res) => {
     const uploadedFile = result.rows[0];
     console.log('✅ File uploaded successfully:', uploadedFile.id);
     
+
+
+} catch (fileError) {
+        console.error(`❌ Error uploading file ${file.originalname}:`, fileError);
+        errors.push({
+          filename: file.originalname,
+          error: fileError.message
+        });
+      }
+    }
+    
+    if (uploadedFiles.length === 0) {
+      return res.status(500).json({
+        success: false,
+        message: 'All files failed to upload',
+        errors: errors
+      });
+    }
+    
+    const successMessage = uploadedFiles.length === 1 
+      ? '1 file uploaded successfully' 
+      : `${uploadedFiles.length} files uploaded successfully`;
+    
     res.status(201).json({
       success: true,
       message: 'File uploaded successfully',
@@ -1776,7 +1806,7 @@ export const uploadFile = async (req, res) => {
       details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
-};
+}
 
 export const toggleFileVisibility = async (req, res) => {
   try {

@@ -1422,7 +1422,7 @@ const Upload = () => {
   const navigate = useNavigate();
   
   // File state
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState("");
@@ -1472,7 +1472,7 @@ const Upload = () => {
       : '/api/upload');
   }, []);
 
-  const handleFileSelect = (e) => {
+ /* const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
       // Check file size (max 50MB)
@@ -1483,7 +1483,49 @@ const Upload = () => {
       }
       
       setSelectedFile(file);
-      setUploadError("");
+      setUploadError("");*/
+      
+      
+      const handleFileSelect = (e) => {
+  const files = Array.from(e.target.files); // Convert FileList to array
+  
+  if (files.length === 0) return;
+  
+  // Validate each file
+  const validFiles = files.filter(file => {
+    // Check file size (max 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      alert(`File "${file.name}" is too large (max 50MB)`);
+      return false;
+    }
+    
+    // Check file type
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain',
+      'image/jpeg',
+      'image/png',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+    
+    if (!allowedTypes.includes(file.type)) {
+      alert(`File "${file.name}" has an invalid type. Allowed: PDF, Word, Excel, Text, Images.`);
+      return false;
+    }
+    
+    return true;
+  });
+  
+  setSelectedFiles(prev => [...prev, ...validFiles]);
+  setUploadError("");
+};
+      
+      
+      
+      
       
       // Auto-set some metadata based on filename
       const fileName = file.name.toLowerCase();
@@ -1510,15 +1552,15 @@ const Upload = () => {
         setOwner(user.name);
       }
     }
-  };
+  
 
   const handleUpload = async (e) => {
     e.preventDefault();
     
-    if (!selectedFile) {
-      setUploadError("Please select a file to upload");
-      return;
-    }
+    if (selectedFiles.length === 0) { // Changed from selectedFile
+    setUploadError("Please select at least one file to upload");
+    return;
+  }
 
     // Reset states
     setUploading(true);
@@ -1530,7 +1572,10 @@ const Upload = () => {
 
     // Create FormData
     const formData = new FormData();
-    formData.append('file', selectedFile);
+    selectedFiles.forEach((file, index) => {
+    formData.append('files', file); // Important: 'files' not 'file'
+  });
+    /*formData.append('file', selectedFile);*/
     formData.append('description', fileDescription);
     formData.append('isPublic', isPublic.toString());
     formData.append('document_type', documentType);
@@ -1548,10 +1593,15 @@ const Upload = () => {
     console.log('File type:', selectedFile.type);
     
     // Show FormData contents
+    /*
     console.log('FormData entries:');
     for (let [key, value] of formData.entries()) {
       console.log(`  ${key}:`, value instanceof File ? `[File: ${value.name}]` : value);
-    }
+    }*/
+    
+    for (let [key, value] of formData.entries()) {
+    console.log(`${key}:`, value instanceof File ? `[File: ${value.name}]` : value);
+  }
 
     // Simulate progress
     const progressInterval = setInterval(() => {
@@ -1680,7 +1730,7 @@ const Upload = () => {
   };
 
   const resetForm = () => {
-    setSelectedFile(null);
+    setSelectedFiles([]);
     setFileDescription("");
     setIsPublic(false);
     setDocumentType("");
@@ -1698,6 +1748,18 @@ const Upload = () => {
       fileInputRef.current.value = "";
     }
   };
+
+const removeFile = (index) => {
+  setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+};
+
+const clearAllFiles = () => {
+  setSelectedFiles([]);
+  if (fileInputRef.current) {
+    fileInputRef.current.value = "";
+  }
+};  
+  
 
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
@@ -1975,61 +2037,97 @@ const Upload = () => {
               style={{ display: 'none' }}
             />
             
-            {selectedFile ? (
-              <div className="file-selected" style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'space-between',
-                background: '#fff',
-                padding: '15px',
-                borderRadius: '6px',
-                border: '1px solid #ddd'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <div className="file-icon" style={{ fontSize: '40px' }}>
-                    {selectedFile.type.startsWith('image/') ? '🖼️' : 
-                     selectedFile.type.includes('pdf') ? '📄' :
-                     selectedFile.type.includes('video') ? '🎬' :
-                     selectedFile.type.includes('audio') ? '🎵' : 
-                     selectedFile.type.includes('spreadsheet') ? '📊' :
-                     selectedFile.type.includes('presentation') ? '📽️' : '📁'}
-                  </div>
-                  <div className="file-details">
-                    <h4 style={{ margin: '0 0 5px 0' }}>{selectedFile.name}</h4>
-                    <p style={{ margin: '2px 0', fontSize: '14px', color: '#666' }}>Size: {formatFileSize(selectedFile.size)}</p>
-                    <p style={{ margin: '2px 0', fontSize: '14px', color: '#666' }}>Type: {selectedFile.type || "Unknown"}</p>
-                  </div>
-                </div>
-                <button 
-                  type="button" 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedFile(null);
-                  }}
-                  className="remove-file-btn"
-                  style={{ 
-                    background: '#dc3545', 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '50%', 
-                    width: '30px', 
-                    height: '30px',
-                    cursor: 'pointer',
-                    fontSize: '16px'
-                  }}
-                >
-                  ✕
-                </button>
+            
+            
+            
+            {selectedFiles.length > 0 ? (
+  <div className="files-selected" style={{ 
+    marginTop: '20px'
+  }}>
+    <h4>Selected Files ({selectedFiles.length}):</h4>
+    <div style={{ 
+      maxHeight: '200px', 
+      overflowY: 'auto',
+      border: '1px solid #ddd',
+      borderRadius: '6px',
+      padding: '10px',
+      background: '#fff'
+    }}>
+      {selectedFiles.map((file, index) => (
+        <div key={index} style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '8px',
+          borderBottom: index < selectedFiles.length - 1 ? '1px solid #eee' : 'none'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '20px' }}>
+              {file.type.startsWith('image/') ? '🖼️' : 
+               file.type.includes('pdf') ? '📄' :
+               file.type.includes('spreadsheet') ? '📊' :
+               file.type.includes('word') ? '📝' : '📎'}
+            </span>
+            <div>
+              <div style={{ fontWeight: '500' }}>{file.name}</div>
+              <div style={{ fontSize: '12px', color: '#666' }}>
+                {formatFileSize(file.size)} • {file.type.split('/')[1]?.toUpperCase() || 'FILE'}
               </div>
-            ) : (
-              <div className="file-placeholder">
-                <div className="upload-icon" style={{ fontSize: '48px', marginBottom: '10px' }}>📤</div>
-                <p style={{ fontSize: '18px', margin: '10px 0' }}>Click to select a file</p>
-                <small style={{ color: '#666', display: 'block' }}>Max file size: 50MB</small>
-                <small style={{ color: '#666' }}>Drag & drop supported</small>
-              </div>
-            )}
+            </div>
           </div>
+          <button
+            type="button"
+            onClick={() => removeFile(index)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#ff4444',
+              cursor: 'pointer',
+              fontSize: '20px',
+              padding: '0 5px'
+            }}
+            title="Remove this file"
+          >
+            ×
+          </button>
+        </div>
+      ))}
+    </div>
+    <button
+      type="button"
+      onClick={clearAllFiles}
+      style={{
+        marginTop: '10px',
+        padding: '8px 12px',
+        backgroundColor: '#ff4444',
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        fontSize: '14px'
+      }}
+    >
+      Clear All Files
+    </button>
+  </div>
+) : (
+  <div className="no-files" style={{ textAlign: 'center', color: '#666' }}>
+    <div style={{ fontSize: '48px', marginBottom: '10px' }}>📁</div>
+    <p>Click here or drag and drop files to upload</p>
+    <p style={{ fontSize: '14px' }}>
+      Supports multiple files (PDF, Word, Excel, Images, Text)
+    </p>
+    <p style={{ fontSize: '12px', color: '#999' }}>
+      Max 50MB per file
+    </p>
+  </div>
+)}
+</div>
+
+
+          
+          
+          
           
           <div className="file-types-info" style={{ marginTop: '10px', textAlign: 'center' }}>
             <small style={{ color: '#666' }}>Supported formats: PDF, Word, Excel, PowerPoint, Images, Videos, Audio, Text</small>
@@ -2368,6 +2466,6 @@ const Upload = () => {
       `}</style>
     </div>
   );
-};
+
 
 export default Upload;
