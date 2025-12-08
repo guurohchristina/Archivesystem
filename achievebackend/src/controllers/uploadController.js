@@ -1833,12 +1833,7 @@ export const uploadFile = async (req, res) => {
     
     
     
-    res.status(201).json({
-      success: true,
-      message: 'File uploaded successfully',
-      file: uploadedFile,
-      downloadUrl: `/uploads/${req.file.filename}`
-    });
+    res.status(201).json(response);
     
   } catch (error) {
     console.error('❌ Upload error:', error);
