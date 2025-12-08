@@ -1252,8 +1252,16 @@ export const getPublicFiles = async (req, res) => {
   try {
     console.log('📂 GET /api/upload/public - Fetching public files');
     
-    const { page = 1, limit = 20, search = '', owner = '' } = req.query;
-    const offset = (page - 1) * limit;
+    // Parse and validate query parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const search = req.query.search || '';
+    const owner = req.query.owner || '';
+    
+    // Calculate offset safely
+    const offset = Math.max(0, (page - 1) * limit);
+    
+    console.log('Query params:', { page, limit, offset, search, owner });
     
 
     
@@ -1274,29 +1282,10 @@ export const getPublicFiles = async (req, res) => {
       params.push(`%${owner}%`);
     }
     
-    /*
+  
     
-    if (conditions.length > 0) {
-      baseQuery += ' AND ' + conditions.join(' AND ');
-    }
-    
-    // Add ordering
-    baseQuery += ' ORDER BY f.uploaded_at DESC';
-    
-    // Get total count for pagination
-    const countQuery = baseQuery.replace(/SELECT f\.\*, u\.name as owner_name, u\.email as owner_email/, 'SELECT COUNT(*)');
-    const countResult = await query(countQuery, params);
-    const totalCount = parseInt(countResult.rows[0].count);
-    
-    // Add pagination
-    paramCount++;
-    const paginatedQuery = baseQuery + ` LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
-    params.push(parseInt(limit), offset);
-    
-    // Execute query
-    const result = await query(paginatedQuery, params);*/
-    
-    const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
+   /* const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';*/
+   const whereClause = 'WHERE ' + conditions.join(' AND ');
     
     // COUNT query - NO ORDER BY in COUNT!
     const countQuery = `
@@ -1319,13 +1308,14 @@ export const getPublicFiles = async (req, res) => {
       LEFT JOIN users u ON f.user_id = u.id
       ${whereClause}
       ORDER BY f.uploaded_at DESC
-      LIMIT $${paramCount} OFFSET $${paramCount + 1}
+      LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}
     `;
     
-    const mainParams = [...params, parseInt(limit), offset];
+    const mainParams = [...params, parseInt(limit), parseInt(offset)];
     
     console.log('Main query:', mainQuery);
     console.log('Main params:', mainParams);
+    console.log('Param types:', mainParams.map(p => `${p} (${typeof p})`));
     
     const result = await query(mainQuery, mainParams);
     
@@ -1335,11 +1325,11 @@ export const getPublicFiles = async (req, res) => {
       success: true,
       data: {
         files: result.rows,
-       pagination: {
+        pagination: {
           totalFiles: totalCount,
           totalPages: Math.ceil(totalCount / limit),
-          currentPage: parseInt(page),
-          limit: parseInt(limit)
+          currentPage: page,
+          limit: limit
         }
       }
     });
