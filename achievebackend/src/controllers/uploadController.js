@@ -1730,8 +1730,8 @@ export const uploadFile = async (req, res) => {
     
     console.log('📝 Metadata:', { description, document_type, department });
     
-    const isPublicBool = isPublic === 'true' || isPublic === true;
-    const publicSince = isPublicBool ? new Date().toISOString() : null;
+    /*const isPublicBool = isPublic === 'true' || isPublic === true;
+    const publicSince = isPublicBool ? new Date().toISOString() : null;*/
     
     // Insert into database
     const result = await query(
