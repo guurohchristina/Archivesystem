@@ -1720,7 +1720,7 @@ export const uploadFile = async (req, res) => {
     
     const { 
       description = '', 
-      ispublic = 'false',
+      is_public = 'false',
       document_type = '',
       document_date = new Date().toISOString().split('T')[0],
       department = '',
