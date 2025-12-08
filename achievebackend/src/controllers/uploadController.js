@@ -1710,7 +1710,7 @@ export const uploadFile = async (req, res) => {
     console.log('Body:', req.body);
     console.log('User:', req.user);
     
-    if (!req.file) {
+    if (!req.files || req.files.length === 0) {
       console.log('❌ No file uploaded');
       return res.status(400).json({
         success: false,
@@ -1721,9 +1721,7 @@ export const uploadFile = async (req, res) => {
     const uploadedFiles = [];
     const errors = [];
     
-    // Process each file
-    for (const file of req.files) {
-      try {
+    
     
     const { 
       description = '', 
@@ -1737,6 +1735,10 @@ export const uploadFile = async (req, res) => {
     
     console.log('📝 Metadata:', { description, document_type, department });
     
+    
+    for (const file of req.files) {
+      try {
+        console.log(`📄 Processing file: ${file.originalname} (${file.size} bytes)`);
     /*const isPublicBool = isPublic === 'true' || isPublic === true;
     const publicSince = isPublicBool ? new Date().toISOString() : null;*/
     
