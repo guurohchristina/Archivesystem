@@ -39,15 +39,30 @@ const SharedWithMe = () => {
       }
 
       // Use the new endpoint: /api/upload/public
+      /*
       const url = new URL(`${API_BASE}/api/upload/public`);
       url.searchParams.append('page', currentPage.toString());
       url.searchParams.append('limit', '20');
       if (search) {
         url.searchParams.append('search', search);
-      }
-      if (filterOwner) {
+      }*/
+      
+      //Build URL correctly - NO DUPLICATE PARAMS
+    const params = new URLSearchParams();
+    params.append('page', currentPage.toString());
+    params.append('limit', '20');
+    if (search) params.append('search', search);
+    if (filterOwner) params.append('owner', filterOwner);
+    
+    // Remove any duplicate params
+    const url = `${API_BASE}/api/upload/public?${params.toString()}`;
+      
+      
+      
+      
+     /* if (filterOwner) {
         url.searchParams.append('owner', filterOwner);
-      }
+      }*/
 
       console.log("🌐 Fetching public files from:", url.toString());
 
