@@ -1956,7 +1956,35 @@ export const getFileVisibility = async (req, res) => {
 
 
 
-
+// Get single file details
+export const getFileDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await query(
+      'SELECT * FROM files WHERE id = $1 AND user_id = $2',
+      [id, req.user.userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      file: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Get file error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get file'
+    });
+  }
+};
 
 
     
