@@ -893,21 +893,19 @@ const SharedWithMe = () => {
                   <tr key={file.id} style={{ 
                     borderBottom: '1px solid #e0e0e0'
                   }}>
-                    <td style={{ padding: '12px', fontWeight: '500' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '18px' }}>
-                          {(file.file_type || file.filetype || '').includes('image') ? '🖼️' :
-                           (file.file_type || file.filetype || '').includes('pdf') ? '📄' :
-                           (file.file_type || file.filetype || '').includes('word') || 
-                           (file.file_type || file.filetype || '').includes('document') ? '📝' :
-                           (file.file_type || file.filetype || '').includes('spreadsheet') || 
-                           (file.file_type || file.filetype || '').includes('excel') ? '📊' :
+    <td style={{ padding: '12px', fontWeight: '500' }}>
+     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+         <span style={{ fontSize: '18px' }}>        {(file.file_type || file.filetype || '').includes('image') ? '🖼️' :     (file.file_type || file.filetype || '').includes('pdf') ? '📄' :
+        (file.file_type || file.filetype || '').includes('word') || 
+        (file.file_type || file.filetype || '').includes('document') ? '📝' :
+        (file.file_type || file.filetype || '').includes('spreadsheet') || 
+             (file.file_type || file.filetype || '').includes('excel') ? '📊' :
                            '📎'}
-                        </span>
-                        {file.original_name || file.filename || 'Unknown'}
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                        Type: {file.file_type || file.filetype || 'Unknown'}
+           </span>
+           {file.original_name || file.filename || 'Unknown'}
+            </div>
+              <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+          Type: {file.file_type || file.filetype || 'Unknown'}
                       </div>
                     </td>
                     <td style={{ padding: '12px', maxWidth: '300px' }}>
@@ -923,13 +921,17 @@ const SharedWithMe = () => {
                       </div>
                     </td>
                     <td style={{ padding: '12px' }}>
-                      <div style={{ fontWeight: '500' }}>
-                        {file.owner_name || file.owner || 'Unknown'}
-                      </div>
-                      {file.owner_email && file.owner_email !== 'No email available' && (
-                        <div style={{ fontSize: '12px', color: '#666' }}>{file.owner_email}</div>
-                      )}
-                    </td>
+  <div style={{ fontWeight: '500' }}>
+    {file.owner_name || file.owner || 'Unknown'}
+  </div>
+  {file.owner_email && file.owner_email !== 'No email available' ? (
+    <div style={{ fontSize: '12px', color: '#666' }}>{file.owner_email}</div>
+  ) : (
+    <div style={{ fontSize: '12px', color: '#999', fontStyle: 'italic' }}>
+      Email not available
+    </div>
+  )}
+</td>
                     <td style={{ padding: '12px' }}>{formatFileSize(file.file_size)}</td>
                     <td style={{ padding: '12px', fontSize: '14px' }}>
                       {formatDate(file.public_since || file.created_at || file.uploaded_at)}

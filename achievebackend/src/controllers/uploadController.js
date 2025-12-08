@@ -1472,8 +1472,6 @@ export const getPublicFiles = async (req, res) => {
 };*/
 
 
-
-// Get all public files - FIXED FOR YOUR TABLE STRUCTURE
 export const getPublicFiles = async (req, res) => {
   try {
     console.log('📂 GET /api/upload/public - Fixed for your table structure');
@@ -1487,32 +1485,34 @@ export const getPublicFiles = async (req, res) => {
     
     console.log('Parameters:', { page, limit, offset, search, ownerFilter });
     
-    // Build query - Use files.owner column directly since you already store owner name
-    let baseQuery = `
-      FROM files f
-      WHERE f.is_public = true 
-      AND f.user_id != $1
-    `;
-    
+    // Build WHERE conditions separately
+    let whereConditions = ['f.is_public = true', 'f.user_id != $1'];
     let params = [req.user.userId];
     let paramCounter = 1;
     
     // Add search condition
     if (search) {
       paramCounter++;
-      baseQuery += ` AND (f.original_name ILIKE $${paramCounter} OR f.description ILIKE $${paramCounter})`;
+      whereConditions.push(`(f.original_name ILIKE $${paramCounter} OR f.description ILIKE $${paramCounter})`);
       params.push(`%${search}%`);
     }
     
     // Add owner filter - uses the "owner" column in files table
     if (ownerFilter) {
       paramCounter++;
-      baseQuery += ` AND f.owner ILIKE $${paramCounter}`;
+      whereConditions.push(`f.owner ILIKE $${paramCounter}`);
       params.push(`%${ownerFilter}%`);
     }
     
+    // Build WHERE clause
+    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+    
     // COUNT query
-    const countQuery = `SELECT COUNT(*) as total ${baseQuery}`;
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM files f
+      ${whereClause}
+    `;
     console.log('Count query:', countQuery);
     
     const countResult = await query(countQuery, params);
@@ -1538,15 +1538,15 @@ export const getPublicFiles = async (req, res) => {
         f.document_type,
         f.document_date,
         f.department,
-        f.owner as owner_name,  -- This is already stored in files.owner
+        f.owner as owner_name,
         f.classification_level,
         f.uploaded_at,
         f.updated_at,
         f.public_since,
-        -- Try to get email from users table if it exists
         COALESCE(u.email, 'No email available') as owner_email
-      ${baseQuery}
-      LEFT JOIN users u ON f.user_id = u.id  -- Optional join for email only
+      FROM files f
+      LEFT JOIN users u ON f.user_id = u.id
+      ${whereClause}
       ORDER BY f.uploaded_at DESC
       LIMIT $${limitParam} OFFSET $${offsetParam}
     `;
@@ -1558,6 +1558,7 @@ export const getPublicFiles = async (req, res) => {
     const result = await query(mainQuery, mainParams);
     
     console.log(`✅ Success! Found ${result.rows.length} files`);
+    console.log('First file raw:', result.rows[0]);
     
     // Format the response for frontend
     const formattedFiles = result.rows.map(file => ({
@@ -1566,15 +1567,18 @@ export const getPublicFiles = async (req, res) => {
       filename: file.filename,
       description: file.description,
       file_size: file.file_size,
-      file_type: file.filetype,  // Note: your column is "filetype" not "file_type"
+      file_type: file.filetype,
+      filepath: file.filepath,
       user_id: file.user_id,
-      owner_name: file.owner_name,  // From files.owner column
-      owner_email: file.owner_email, // From users.email via JOIN
-      created_at: file.uploaded_at,  // Frontend expects "created_at"
+      owner_name: file.owner_name,
+      owner_email: file.owner_email,
+      created_at: file.uploaded_at,
       uploaded_at: file.uploaded_at,
+      updated_at: file.updated_at,
       public_since: file.public_since,
       is_public: file.is_public,
       document_type: file.document_type,
+      document_date: file.document_date,
       department: file.department,
       classification_level: file.classification_level
     }));
@@ -1596,31 +1600,58 @@ export const getPublicFiles = async (req, res) => {
     
   } catch (error) {
     console.error('❌ Error in getPublicFiles:', error.message);
+    console.error('Full error:', error);
     
-    // Fallback without JOIN
+    // Fallback without JOIN (simpler query)
     try {
       console.log('🔄 Trying fallback without JOIN...');
       
-      const fallbackResult = await query(
-        `SELECT 
+      // Build fallback WHERE conditions
+      let fallbackConditions = ['is_public = true', 'user_id != $1'];
+      let fallbackParams = [req.user.userId];
+      let fallbackParamCounter = 1;
+      
+      if (search) {
+        fallbackParamCounter++;
+        fallbackConditions.push(`(original_name ILIKE $${fallbackParamCounter} OR description ILIKE $${fallbackParamCounter})`);
+        fallbackParams.push(`%${search}%`);
+      }
+      
+      if (ownerFilter) {
+        fallbackParamCounter++;
+        fallbackConditions.push(`owner ILIKE $${fallbackParamCounter}`);
+        fallbackParams.push(`%${ownerFilter}%`);
+      }
+      
+      const fallbackWhereClause = fallbackConditions.length > 0 ? `WHERE ${fallbackConditions.join(' AND ')}` : '';
+      
+      const fallbackQuery = `
+        SELECT 
           id,
           filename,
+          filepath,
+          filetype,
           original_name,
           description,
           file_size,
-          filetype,
           user_id,
           owner as owner_name,
           uploaded_at,
           public_since,
-          is_public
-         FROM files 
-         WHERE is_public = true 
-         AND user_id != $1
-         ORDER BY uploaded_at DESC
-         LIMIT 20`,
-        [req.user.userId]
-      );
+          is_public,
+          document_type,
+          document_date,
+          department,
+          classification_level
+        FROM files 
+        ${fallbackWhereClause}
+        ORDER BY uploaded_at DESC
+        LIMIT $${fallbackParams.length + 1} OFFSET $${fallbackParams.length + 2}
+      `;
+      
+      const fallbackMainParams = [...fallbackParams, limit, offset];
+      
+      const fallbackResult = await query(fallbackQuery, fallbackMainParams);
       
       const fallbackFiles = fallbackResult.rows.map(file => ({
         id: file.id,
@@ -1629,13 +1660,18 @@ export const getPublicFiles = async (req, res) => {
         description: file.description,
         file_size: file.file_size,
         file_type: file.filetype,
+        filepath: file.filepath,
         user_id: file.user_id,
         owner_name: file.owner_name,
         owner_email: 'No email available',
         created_at: file.uploaded_at,
         uploaded_at: file.uploaded_at,
         public_since: file.public_since,
-        is_public: file.is_public
+        is_public: file.is_public,
+        document_type: file.document_type,
+        document_date: file.document_date,
+        department: file.department,
+        classification_level: file.classification_level
       }));
       
       res.json({
@@ -1644,9 +1680,9 @@ export const getPublicFiles = async (req, res) => {
           files: fallbackFiles,
           pagination: {
             totalFiles: fallbackFiles.length,
-            totalPages: 1,
-            currentPage: 1,
-            limit: 20
+            totalPages: Math.ceil(fallbackFiles.length / limit),
+            currentPage: page,
+            limit: limit
           }
         }
       });
@@ -1656,11 +1692,14 @@ export const getPublicFiles = async (req, res) => {
       res.status(500).json({
         success: false,
         message: 'Database query failed',
-        error: 'Internal server error'
+        error: error.message
       });
     }
   }
 };
+
+
+
 
 
 // Upload file
