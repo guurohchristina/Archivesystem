@@ -1247,7 +1247,7 @@ export const getFiles = async (req, res) => {
 };
 
 
-
+/*
 export const getPublicFiles = async (req, res) => {
   try {
     console.log('📂 GET /api/upload/public - Fetching public files');
@@ -1284,7 +1284,7 @@ export const getPublicFiles = async (req, res) => {
     
   
     
-   /* const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';*/
+  
    const whereClause = 'WHERE ' + conditions.join(' AND ');
     
     // COUNT query - NO ORDER BY in COUNT!
@@ -1342,9 +1342,134 @@ export const getPublicFiles = async (req, res) => {
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
+};*/
+
+
+
+// Get all public files - SIMPLE AND RELIABLE VERSION
+export const getPublicFiles = async (req, res) => {
+  try {
+    console.log('📂 GET /api/upload/public - Simple reliable version');
+    
+    // Parse parameters with defaults
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const offset = (page - 1) * limit;
+    const search = req.query.search || '';
+    const owner = req.query.owner || '';
+    
+    console.log('Parameters:', { page, limit, offset, search, owner });
+    
+    // Start building queries
+    let baseQuery = `
+      FROM files f
+      LEFT JOIN users u ON f.user_id = u.id
+      WHERE f.is_public = true 
+      AND f.user_id != $1
+    `;
+    
+    let params = [req.user.userId];
+    let paramCounter = 1;
+    
+    // Add search condition
+    if (search) {
+      paramCounter++;
+      baseQuery += ` AND (f.original_name ILIKE $${paramCounter} OR f.description ILIKE $${paramCounter})`;
+      params.push(`%${search}%`);
+    }
+    
+    // Add owner condition
+    if (owner) {
+      paramCounter++;
+      baseQuery += ` AND u.name ILIKE $${paramCounter}`;
+      params.push(`%${owner}%`);
+    }
+    
+    // COUNT query
+    const countQuery = `SELECT COUNT(*) as total ${baseQuery}`;
+    console.log('Count query:', countQuery);
+    console.log('Count params:', params);
+    
+    const countResult = await query(countQuery, params);
+    const totalCount = parseInt(countResult.rows[0].total);
+    
+    // MAIN query
+    paramCounter++;
+    const limitParam = paramCounter;
+    paramCounter++;
+    const offsetParam = paramCounter;
+    
+    const mainQuery = `
+      SELECT f.*, u.name as owner_name, u.email as owner_email 
+      ${baseQuery}
+      ORDER BY f.uploaded_at DESC
+      LIMIT $${limitParam} OFFSET $${offsetParam}
+    `;
+    
+    const mainParams = [...params, limit, offset];
+    
+    console.log('Main query:', mainQuery);
+    console.log('Main params:', mainParams);
+    console.log('Total params needed:', paramCounter);
+    console.log('Params provided:', mainParams.length);
+    
+    const result = await query(mainQuery, mainParams);
+    
+    console.log(`✅ Success! Found ${result.rows.length} files`);
+    
+    res.json({
+      success: true,
+      data: {
+        files: result.rows,
+        pagination: {
+          totalFiles: totalCount,
+          totalPages: Math.ceil(totalCount / limit),
+          currentPage: page,
+          limit: limit
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error in getPublicFiles:', error.message);
+    
+    // Ultra simple fallback
+    try {
+      console.log('🔄 Trying ultra-simple fallback...');
+      
+      const fallbackResult = await query(
+        `SELECT f.*, u.name as owner_name, u.email as owner_email
+         FROM files f
+         LEFT JOIN users u ON f.user_id = u.id
+         WHERE f.is_public = true AND f.user_id != $1
+         ORDER BY f.uploaded_at DESC
+         LIMIT 20`,
+        [req.user.userId]
+      );
+      
+      res.json({
+        success: true,
+        data: {
+          files: fallbackResult.rows,
+          pagination: {
+            totalFiles: fallbackResult.rows.length,
+            totalPages: 1,
+            currentPage: 1,
+            limit: 20
+          }
+        }
+      });
+      
+    } catch (fallbackError) {
+      console.error('❌ Fallback also failed:', fallbackError.message);
+      res.status(500).json({
+        success: false,
+        message: 'Database query failed',
+        error: 'Internal server error'
+      });
+    }
+  }
 };
-
-
 
 
 // Upload file
