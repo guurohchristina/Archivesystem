@@ -414,7 +414,7 @@ const Dashboard = () => {
         .dashboard-container {
           display: flex;
           min-height: 100vh;
-          margin-top:20px;
+          margin-top:100px;
           background-color: #f8f9fa;
         }
 
