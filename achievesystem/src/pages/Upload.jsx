@@ -1532,7 +1532,7 @@ const Upload = () => {
     const formData = new FormData();
     formData.append('file', selectedFile);
     formData.append('description', fileDescription);
-    formData.append('is_Public', is_Public.toString());
+    formData.append('isPublic', isPublic.toString());
     formData.append('document_type', documentType);
     formData.append('document_date', documentDate);
     formData.append('department', department);
