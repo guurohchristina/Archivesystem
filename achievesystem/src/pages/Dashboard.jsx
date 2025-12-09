@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext, useRef } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useCategoryCounts } from '../hooks/useCategoryCounts';
 import {
   Upload,
   Folder,
@@ -25,7 +26,7 @@ import {
   Trash2
 } from "lucide-react";
 
-import { useCategoryCounts } from '../hooks/useCategoryCounts';
+
 
 const Dashboard = () => {
   const { user, logout } = useContext(AuthContext);
