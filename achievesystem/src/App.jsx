@@ -36,7 +36,6 @@ function App() {
 
           <Route path="/dashboard" element={<Dashboard />} />
           
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           
           
           <Route path="/profile" element={<Profile />} />
