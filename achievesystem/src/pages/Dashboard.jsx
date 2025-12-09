@@ -77,6 +77,7 @@ export default Dashboard;*/
 
 
 import { useState, useEffect, useContext, useRef } from "react";
+import "./Dashboard.css";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
