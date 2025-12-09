@@ -2405,5 +2405,5 @@ export default {
   getFileStats,
   getDepartments,
   getSharedWithMe,
-  getCategoryCounts
+  
 };

@@ -811,8 +811,8 @@ import {
   getPublicFiles,          // NEW
   toggleFileVisibility,    // NEW
   getFileVisibility,       // NEW
-  getSharedWithMe,
-  getCategoryCounts
+  getSharedWithMe
+  
 } from '../controllers/uploadController.js'; // Named imports
 import { authenticate } from '../middleware/authMiddleware.js';
 import  uploadMiddleware  from '../middleware/uploadMiddleware.js'; // Import multer middleware
