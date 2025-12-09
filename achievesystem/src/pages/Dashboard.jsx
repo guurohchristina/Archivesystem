@@ -298,7 +298,88 @@ const Dashboard = () => {
         />
       )}
       
-      {/* Categories Section */}
+     
+
+      {/* Sidebar */}
+      <aside 
+        ref={sidebarRef}
+        style={{
+          ...styles.sidebar,
+          width: getSidebarWidth(),
+          transform: getSidebarTransform(),
+          transition: 'transform 0.3s ease, width 0.3s ease',
+          boxShadow: isMobileView && isMobileMenuOpen ? '2px 0 10px rgba(0,0,0,0.1)' : 'none'
+        }}
+      >
+        {/* Toggle button - Only show on desktop */}
+        {!isMobileView && (
+          <button 
+            style={styles.sidebarToggle}
+            onClick={toggleSidebar}
+          >
+            {sidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          </button>
+        )}
+
+        {/* Logo */}
+        <div style={{
+          ...styles.sidebarLogo,
+          padding: sidebarCollapsed && !isMobileView ? '24px 8px' : '24px',
+          fontSize: sidebarCollapsed && !isMobileView ? '18px' : '24px',
+          textAlign: sidebarCollapsed && !isMobileView ? 'center' : 'left'
+        }}>
+          {sidebarCollapsed && !isMobileView ? "AD" : "ArchiveDrive"}
+        </div>
+
+        {/* Search - Only shown when expanded */}
+        {(!sidebarCollapsed || isMobileView) && (
+          <div style={styles.sidebarSearch}>
+            <Search size={18} />
+            <input 
+              type="text" 
+              placeholder="Search in files..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={styles.searchInput}
+            />
+          </div>
+        )}
+
+        {/* Main Navigation */}
+        <nav style={styles.sidebarNav}>
+          {navItems.map((item) => (
+            <a
+              key={item.id}
+              href={item.path}
+              onClick={(e) => {
+                e.preventDefault();
+                navigate(item.path);
+                setActiveNav(item.id);
+                if (isMobileView) {
+                  setIsMobileMenuOpen(false);
+                }
+              }}
+              style={{
+                ...styles.navItem,
+                backgroundColor: activeNav === item.id ? '#e8f0fe' : 'transparent',
+                color: activeNav === item.id ? '#4285F4' : '#5f6368',
+                fontWeight: activeNav === item.id ? '500' : 'normal',
+                justifyContent: (!sidebarCollapsed || isMobileView) ? 'flex-start' : 'center'
+              }}
+              title={sidebarCollapsed && !isMobileView ? item.label : ""}
+            >
+              <span style={styles.navIcon}>{item.icon}</span>
+              {(!sidebarCollapsed || isMobileView) && (
+                <span style={styles.navLabel}>{item.label}</span>
+              )}
+            </a>
+          ))}
+        </nav>
+        
+        
+        
+        
+         {/* Categories Section */}
       {(!sidebarCollapsed || isMobileView) && (
         <div style={styles.sidebarSection}>
           <div style={styles.sectionHeader}>
@@ -389,82 +470,6 @@ const Dashboard = () => {
           </div>
         </div>
       )}
-
-      {/* Sidebar */}
-      <aside 
-        ref={sidebarRef}
-        style={{
-          ...styles.sidebar,
-          width: getSidebarWidth(),
-          transform: getSidebarTransform(),
-          transition: 'transform 0.3s ease, width 0.3s ease',
-          boxShadow: isMobileView && isMobileMenuOpen ? '2px 0 10px rgba(0,0,0,0.1)' : 'none'
-        }}
-      >
-        {/* Toggle button - Only show on desktop */}
-        {!isMobileView && (
-          <button 
-            style={styles.sidebarToggle}
-            onClick={toggleSidebar}
-          >
-            {sidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-          </button>
-        )}
-
-        {/* Logo */}
-        <div style={{
-          ...styles.sidebarLogo,
-          padding: sidebarCollapsed && !isMobileView ? '24px 8px' : '24px',
-          fontSize: sidebarCollapsed && !isMobileView ? '18px' : '24px',
-          textAlign: sidebarCollapsed && !isMobileView ? 'center' : 'left'
-        }}>
-          {sidebarCollapsed && !isMobileView ? "AD" : "ArchiveDrive"}
-        </div>
-
-        {/* Search - Only shown when expanded */}
-        {(!sidebarCollapsed || isMobileView) && (
-          <div style={styles.sidebarSearch}>
-            <Search size={18} />
-            <input 
-              type="text" 
-              placeholder="Search in files..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={styles.searchInput}
-            />
-          </div>
-        )}
-
-        {/* Main Navigation */}
-        <nav style={styles.sidebarNav}>
-          {navItems.map((item) => (
-            <a
-              key={item.id}
-              href={item.path}
-              onClick={(e) => {
-                e.preventDefault();
-                navigate(item.path);
-                setActiveNav(item.id);
-                if (isMobileView) {
-                  setIsMobileMenuOpen(false);
-                }
-              }}
-              style={{
-                ...styles.navItem,
-                backgroundColor: activeNav === item.id ? '#e8f0fe' : 'transparent',
-                color: activeNav === item.id ? '#4285F4' : '#5f6368',
-                fontWeight: activeNav === item.id ? '500' : 'normal',
-                justifyContent: (!sidebarCollapsed || isMobileView) ? 'flex-start' : 'center'
-              }}
-              title={sidebarCollapsed && !isMobileView ? item.label : ""}
-            >
-              <span style={styles.navIcon}>{item.icon}</span>
-              {(!sidebarCollapsed || isMobileView) && (
-                <span style={styles.navLabel}>{item.label}</span>
-              )}
-            </a>
-          ))}
-        </nav>
 
         {/* Categories - Only show when expanded */}
         
