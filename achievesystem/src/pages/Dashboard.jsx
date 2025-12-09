@@ -282,8 +282,8 @@ const Dashboard = () => {
         Sidebar Width: {getSidebarWidth()}
       </div>
 
-      {/* Mobile Overlay - Only show when mobile menu is open */}
-     {/*isMobileView && isMobileMenuOpen && (
+      { /*Mobile Overlay - Only show when mobile menu is open */}
+     {isMobileView && isMobileMenuOpen && (
         <div 
           style={{
             ...styles.mobileOverlay,
@@ -294,10 +294,10 @@ const Dashboard = () => {
             setIsMobileMenuOpen(false);
           }}
         />
-      )*/}
+      )}
       
       {/* Categories Section */}
-      {(!sidebarCollapsed || isMobileView) && (
+      {/*(!sidebarCollapsed || isMobileView) && (
         <div style={styles.sidebarSection}>
           <div style={styles.sectionHeader}>
             <h3 style={styles.sectionTitle}>Categories</h3>
@@ -342,7 +342,7 @@ const Dashboard = () => {
                 ))}
               
               {/* Empty state */}
-              {totalFiles === 0 && !categoriesLoading && (
+              {/*totalFiles === 0 && !categoriesLoading && (
                 <div style={styles.emptyState}>
                   <span style={{ fontSize: '24px' }}>📁</span>
                   <span style={styles.emptyText}>No files uploaded yet</span>
@@ -354,7 +354,7 @@ const Dashboard = () => {
       )}
 
       {/* Storage Section */}
-      {(!sidebarCollapsed || isMobileView) && (
+      {/*(!sidebarCollapsed || isMobileView) && (
         <div style={styles.storageSection}>
           <div style={styles.storageHeader}>
             <span style={styles.storageLabel}>Storage</span>
@@ -385,7 +385,7 @@ const Dashboard = () => {
             </button>
           </div>
         </div>
-      )}
+      )*/}
 
       {/* Sidebar */}
       <aside 

@@ -843,8 +843,8 @@ router.get('/shared', authenticate, getSharedWithMe);         // Files shared wi
 router.put('/:id/visibility', authenticate, toggleFileVisibility);  // Toggle public/private
 router.get('/:id/visibility', authenticate, getFileVisibility);     // Check visibility status
 
-router.get('/categories/counts', authenticate, getCategoryCounts);  // Add this line
-
+/*router.get('/categories/counts', authenticate, getCategoryCounts);  // Add this line
+*/
 
 // Health check
 router.get('/health', (req, res) => {
