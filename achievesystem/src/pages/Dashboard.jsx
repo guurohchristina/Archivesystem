@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext, useRef } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { useNavigate, useLocation } from "react-router-dom";
-/*import {useCategoryCounts} from "../hooks/useCategoryCounts";*/
+import {useCategoryCounts} from "../hooks/useCategoryCounts";
 import {
   Upload,
   Folder,
@@ -33,7 +33,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-/*  const { categoryCounts, categorySizes, loading: categoriesLoading, refetch: refetchCategories } = useCategoryCounts();*/
+ const { categoryCounts, categorySizes, loading: categoriesLoading, refetch: refetchCategories } = useCategoryCounts();
   
   
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -97,7 +97,7 @@ const Dashboard = () => {
   ];
   
   
-  /*
+  
  const getCategoryItems = () => {
     return [
       { 
@@ -188,7 +188,7 @@ const Dashboard = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  */
+  
   
   
   
@@ -277,13 +277,14 @@ const Dashboard = () => {
         fontSize: '12px',
         zIndex: 9999
       }}>
+        
         Mobile: {isMobileView ? 'Yes' : 'No'}<br/>
         Menu Open: {isMobileMenuOpen ? 'Yes' : 'No'}<br/>
         Sidebar Width: {getSidebarWidth()}
       </div>
 
       { /*Mobile Overlay - Only show when mobile menu is open */}
-     {isMobileView && isMobileMenuOpen && (
+     {/*isMobileView && isMobileMenuOpen && (
         <div 
           style={{
             ...styles.mobileOverlay,
@@ -294,16 +295,17 @@ const Dashboard = () => {
             setIsMobileMenuOpen(false);
           }}
         />
-      )}
+      )}*/}
       
       {/* Categories Section */}
-      {/*(!sidebarCollapsed || isMobileView) && (
+      {(!sidebarCollapsed || isMobileView) && (
         <div style={styles.sidebarSection}>
           <div style={styles.sectionHeader}>
             <h3 style={styles.sectionTitle}>Categories</h3>
             <span style={styles.totalFilesBadge}>
               {totalFiles} {totalFiles === 1 ? 'file' : 'files'}
             </span>
+          
           </div>
           
           {categoriesLoading ? (
@@ -342,7 +344,7 @@ const Dashboard = () => {
                 ))}
               
               {/* Empty state */}
-              {/*totalFiles === 0 && !categoriesLoading && (
+              {totalFiles === 0 && !categoriesLoading && (
                 <div style={styles.emptyState}>
                   <span style={{ fontSize: '24px' }}>📁</span>
                   <span style={styles.emptyText}>No files uploaded yet</span>
@@ -354,7 +356,7 @@ const Dashboard = () => {
       )}
 
       {/* Storage Section */}
-      {/*(!sidebarCollapsed || isMobileView) && (
+      {(!sidebarCollapsed || isMobileView) && (
         <div style={styles.storageSection}>
           <div style={styles.storageHeader}>
             <span style={styles.storageLabel}>Storage</span>
@@ -385,7 +387,7 @@ const Dashboard = () => {
             </button>
           </div>
         </div>
-      )*/}
+      )}
 
       {/* Sidebar */}
       <aside 

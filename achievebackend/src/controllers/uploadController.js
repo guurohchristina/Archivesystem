@@ -1986,7 +1986,7 @@ export const getFileDetails = async (req, res) => {
 // In uploadControllers.js - Add this function with your other controllers
 
 // Get advanced category counts with database query
-/*
+
 export const getCategoryCounts = async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -2117,7 +2117,7 @@ export const getCategoryCounts = async (req, res) => {
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-};*/
+};
 
 
 
@@ -2405,5 +2405,6 @@ export default {
   getFileStats,
   getDepartments,
   getSharedWithMe,
+  getCategoryCounts
   
 };
