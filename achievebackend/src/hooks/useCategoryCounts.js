@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 
 const API_BASE = 'http://localhost:3000';
 
- const useCategoryCounts = () => {
+export const useCategoryCounts1 = () => {
   const [categoryData, setCategoryData] = useState({
     counts: {
       documents: 0,
@@ -88,6 +88,3 @@ const API_BASE = 'http://localhost:3000';
     refetch: fetchCategoryCounts
   };
 };
-
-
-export default useCategoryCounts;
