@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext, useRef } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { useNavigate, useLocation } from "react-router-dom";
-import {useCategoryCounts1} from '../hooks/useCategoryCounts.js';
+import {useCategoryCounts} from '../hooks/useCategoryCounts.jsx';
 import {
   Upload,
   Folder,
