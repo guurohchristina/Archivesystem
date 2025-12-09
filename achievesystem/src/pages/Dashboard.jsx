@@ -1,4 +1,4 @@
-/*import { useState, useEffect, useContext, useRef } from "react";
+import { useState, useEffect, useContext, useRef } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { useNavigate, useLocation } from "react-router-dom";
 import {useCategoryCounts} from "../hooks/useCategoryCounts";
@@ -265,8 +265,8 @@ const Dashboard = () => {
 
   return (
     <div style={styles.dashboardContainer}>
-      {/* Debug info */
-      /*
+      {/* Debug info */}
+      
       <div style={{
         position: 'fixed',
         top: '10px',
@@ -284,8 +284,8 @@ const Dashboard = () => {
         Sidebar Width: {getSidebarWidth()}
       </div>
 
-      { /*Mobile Overlay - Only show when mobile menu is open }*/
-      /*
+      { /*Mobile Overlay - Only show when mobile menu is open*/ }
+      
      {isMobileView && isMobileMenuOpen && (
         <div 
           style={{
@@ -301,8 +301,8 @@ const Dashboard = () => {
       
      
 
-      {/* Sidebar */
-      /*
+      {/* Sidebar */}
+      
       <aside 
         ref={sidebarRef}
         style={{
@@ -313,8 +313,8 @@ const Dashboard = () => {
           boxShadow: isMobileView && isMobileMenuOpen ? '2px 0 10px rgba(0,0,0,0.1)' : 'none'
         }}
       >
-        {/* Toggle button - Only show on desktop 
-        /*
+        {/* Toggle button - Only show on desktop */}
+        
         {!isMobileView && (
           <button 
             style={styles.sidebarToggle}
@@ -324,8 +324,8 @@ const Dashboard = () => {
           </button>
         )}
 
-        {/* Logo */
-        /*
+        {/* Logo */}
+        
         <div style={{
           ...styles.sidebarLogo,
           padding: sidebarCollapsed && !isMobileView ? '24px 8px' : '24px',
@@ -335,8 +335,8 @@ const Dashboard = () => {
           {sidebarCollapsed && !isMobileView ? "AD" : "ArchiveDrive"}
         </div>
 
-        {/* Search - Only shown when expanded */
-        /*
+        {/* Search - Only shown when expanded */}
+        
         {(!sidebarCollapsed || isMobileView) && (
           <div style={styles.sidebarSearch}>
             <Search size={18} />
@@ -350,8 +350,8 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Main Navigation */
-        /*
+        {/* Main Navigation */}
+        
         <nav style={styles.sidebarNav}>
           {navItems.map((item) => (
             <a
@@ -385,8 +385,8 @@ const Dashboard = () => {
         
         
         
-         {/* Categories Section */
-         /*
+         {/* Categories Section */}
+         
       {(!sidebarCollapsed || isMobileView) && (
         <div style={styles.sidebarSection}>
           <div style={styles.sectionHeader}>
@@ -432,8 +432,8 @@ const Dashboard = () => {
                   </div>
                 ))}
               
-              {/* Empty state */
-              /*
+              {/* Empty state */}
+              
               {totalFiles === 0 && !categoriesLoading && (
                 <div style={styles.emptyState}>
                   <span style={{ fontSize: '24px' }}>📁</span>
@@ -445,8 +445,8 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Storage Section */
-      /*
+      {/* Storage Section */}
+      
       {(!sidebarCollapsed || isMobileView) && (
         <div style={styles.storageSection}>
           <div style={styles.storageHeader}>
@@ -485,8 +485,8 @@ const Dashboard = () => {
         
         
 
-        {/* User Section */
-        /*
+        {/* User Section */}
+        
         <div style={styles.userSection}>
           {(!sidebarCollapsed || isMobileView) && (
             <div style={styles.userInfo}>
@@ -525,15 +525,15 @@ const Dashboard = () => {
         </div>
       </aside>
 
-      {/* Main Content */
-      /*
+      {/* Main Content */}
+      
       <main style={{
         ...styles.mainContent,
         marginLeft: getMainContentMargin(),
         transition: 'margin-left 0.3s ease'
       }}>
-        {/* Top Bar *
-        /*
+        {/* Top Bar */}
+        
         <div style={styles.topBar}>
           <button 
             style={{
@@ -577,8 +577,8 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Files Content */
-        /*
+        {/* Files Content */}
+        
         <div style={styles.filesContent}>
           <div style={styles.filesHeader}>
             <h1 style={styles.filesTitle}>My Files</h1>
@@ -587,8 +587,8 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Files Grid/List */
-          /*
+          {/* Files Grid/List */}
+          
           <div style={{
             ...styles.filesContainer,
             display: viewMode === 'grid' ? 'grid' : 'flex',
@@ -637,8 +637,9 @@ const Dashboard = () => {
                 
                 <div style={styles.fileActions}>
                   <button 
-                    onClick={() => {/* Handle star */
-                    /*
+                    onClick={() => {/* Handle star */}
+                    }
+                    
                     style={{
                       ...styles.actionBtn,
                       color: file.starred ? '#FFD700' : '#5f6368'
@@ -648,8 +649,9 @@ const Dashboard = () => {
                     <Star size={16} fill={file.starred ? "#FFD700" : "none"} />
                   </button>
                   <button 
-                    onClick={() => {/* Handle share */
-                    /*
+                    onClick={() => {/* Handle share */}
+                    }
+                    
                     style={{
                       ...styles.actionBtn,
                       color: file.shared ? '#4285F4' : '#5f6368'
@@ -665,8 +667,8 @@ const Dashboard = () => {
         </div>
       </main>
 
-      {/* Add some debug CSS */
-      /*
+      {/* Add some debug CSS */}
+      
       <style>{`
         @media (max-width: 1024px) {
           .sidebar {
@@ -1244,9 +1246,9 @@ const catstyles = { ...existingStyles, ...categoryStyles };*/
     100% { transform: rotate(360deg); }
   }
 `}</style>*/
-/*
 
-export default Dashboard;*/
+
+export default Dashboard;
 
 
 
@@ -2060,468 +2062,3 @@ export default Dashboard;*/
 
 
 
-import { useState, useEffect, useContext, useRef } from "react";
-import { AuthContext } from "../context/AuthContext.jsx";
-import { useNavigate, useLocation, Routes, Route } from "react-router-dom";
-import { useCategoryCounts } from "../hooks/useCategoryCounts";
-import {
-  Upload,
-  Folder,
-  Users,
-  Search,
-  Menu,
-  ChevronLeft,
-  ChevronRight,
-  User,
-  Settings,
-  LogOut
-} from "lucide-react";
-
-const Dashboard = () => {
-  const { user, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-  console.log("🚀 Dashboard rendering...");
-  console.log("📍 Current path:", location.pathname);
-  console.log("👤 User:", user);
-  
-  const { categoryCounts, categorySizes, loading: categoriesLoading, refetch: refetchCategories } = useCategoryCounts();
-  
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [activeNav, setActiveNav] = useState("my-files");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobileView, setIsMobileView] = useState(false);
-  const sidebarRef = useRef(null);
-
-  // Check if mobile view on mount and resize
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobileView(window.innerWidth < 1024);
-      if (window.innerWidth >= 1024) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Set active nav based on current route
-  useEffect(() => {
-    const path = location.pathname;
-    console.log("🔄 Setting active nav for path:", path);
-    
-    if (path.includes("/upload")) {
-      setActiveNav("upload");
-    } else if (path.includes("/shared")) {
-      setActiveNav("shared");
-    } else {
-      setActiveNav("my-files");
-    }
-  }, [location]);
-
-  // Navigation items
-  const navItems = [
-    { id: "my-files", label: "My Files", icon: <Folder size={20} />, path: "/dashboard/my-files" },
-    { id: "upload", label: "Upload", icon: <Upload size={20} />, path: "/dashboard/upload" },
-    { id: "shared", label: "Shared", icon: <Users size={20} />, path: "/dashboard/shared" },
-  ];
-
-  const userItems = [
-    { id: "profile", label: "Profile", icon: <User size={20} />, action: () => navigate("/profile") },
-    { id: "settings", label: "Settings", icon: <Settings size={20} />, action: () => navigate("/settings") },
-    { id: "logout", label: "Logout", icon: <LogOut size={20} />, action: logout },
-  ];
-
-  // Get category items from hook data
-  const getCategoryItems = () => {
-    return [
-      { 
-        id: "documents", 
-        label: "Documents", 
-        icon: "📄", 
-        count: categoryCounts?.documents || 0, 
-        size: categorySizes?.documents || 0,
-        color: "#4285F4",
-        description: "PDFs, Word docs, Text files"
-      },
-      { 
-        id: "images", 
-        label: "Images", 
-        icon: "🖼️", 
-        count: categoryCounts?.images || 0, 
-        size: categorySizes?.images || 0,
-        color: "#EA4335",
-        description: "JPG, PNG, GIF, SVG"
-      },
-      // ... other categories
-    ];
-  };
-
-  // Calculate totals
-  const totalFiles = categoryCounts?.total || 0;
-  const totalStorageUsed = categorySizes?.total || 0;
-
-  // Format storage
-  const formatStorage = (bytes) => {
-    if (!bytes || bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  // Toggle sidebar
-  const toggleSidebar = () => {
-    console.log("🍔 Toggle sidebar clicked");
-    if (isMobileView) {
-      setIsMobileMenuOpen(!isMobileMenuOpen);
-    } else {
-      setSidebarCollapsed(!sidebarCollapsed);
-    }
-  };
-
-  // Get page title based on route
-  const getPageTitle = () => {
-    const path = location.pathname;
-    console.log("📄 Getting page title for path:", path);
-    
-    if (path.includes("/upload")) return "Upload Files";
-    if (path.includes("/shared")) return "Shared Files";
-    return "My Files";
-  };
-
-  // Render content based on active navigation
-  const renderContent = () => {
-    console.log("🎨 Rendering content for:", activeNav);
-    
-    switch (activeNav) {
-      case "upload":
-        return (
-          <div style={styles.uploadContent}>
-            <h1>Upload Page</h1>
-            <p>This is the upload page content.</p>
-          </div>
-        );
-      case "shared":
-        return (
-          <div style={styles.sharedContent}>
-            <h1>Shared Page</h1>
-            <p>This is the shared page content.</p>
-          </div>
-        );
-      default: // my-files
-        return (
-          <div style={styles.myFilesContent}>
-            <h1>My Files Page</h1>
-            <p>This is the my files page content.</p>
-          </div>
-        );
-    }
-  };
-
-  return (
-    <div style={styles.dashboardContainer}>
-      {/* Debug Info */}
-      <div style={{
-        position: 'fixed',
-        top: '10px',
-        right: '10px',
-        background: 'rgba(0,0,0,0.8)',
-        color: 'white',
-        padding: '10px',
-        borderRadius: '5px',
-        fontSize: '12px',
-        zIndex: 9999,
-        display: 'none' // Set to 'block' to see debug info
-      }}>
-        <div>Path: {location.pathname}</div>
-        <div>Active Nav: {activeNav}</div>
-        <div>Mobile: {isMobileView ? 'Yes' : 'No'}</div>
-        <div>Menu Open: {isMobileMenuOpen ? 'Yes' : 'No'}</div>
-      </div>
-
-      {/* Mobile Overlay */}
-      {isMobileView && isMobileMenuOpen && (
-        <div 
-          style={styles.mobileOverlay}
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside 
-        ref={sidebarRef}
-        style={{
-          ...styles.sidebar,
-          width: isMobileView ? "280px" : sidebarCollapsed ? "64px" : "280px",
-          transform: isMobileView ? (isMobileMenuOpen ? "translateX(0)" : "translateX(-100%)") : "none",
-          transition: 'transform 0.3s ease, width 0.3s ease',
-        }}
-      >
-        {/* Logo */}
-        <div style={styles.sidebarLogo}>
-          {sidebarCollapsed && !isMobileView ? "AD" : "ArchiveDrive"}
-        </div>
-
-        {/* Main Navigation */}
-        <nav style={styles.sidebarNav}>
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                console.log("📱 Navigating to:", item.path);
-                navigate(item.path);
-                if (isMobileView) {
-                  setIsMobileMenuOpen(false);
-                }
-              }}
-              style={{
-                ...styles.navItem,
-                backgroundColor: activeNav === item.id ? '#e8f0fe' : 'transparent',
-                color: activeNav === item.id ? '#4285F4' : '#5f6368',
-                fontWeight: activeNav === item.id ? '500' : 'normal',
-              }}
-            >
-              <span style={styles.navIcon}>{item.icon}</span>
-              {(!sidebarCollapsed || isMobileView) && (
-                <span style={styles.navLabel}>{item.label}</span>
-              )}
-            </button>
-          ))}
-        </nav>
-
-        {/* User Section */}
-        <div style={styles.userSection}>
-          <div style={styles.userInfo}>
-            <div style={styles.userAvatar}>
-              {user?.name?.charAt(0) || "U"}
-            </div>
-            <div style={styles.userDetails}>
-              <div style={styles.userName}>{user?.name || "User"}</div>
-              <div style={styles.userEmail}>{user?.email || "user@example.com"}</div>
-            </div>
-          </div>
-          
-          <div style={styles.userActions}>
-            {userItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  item.action();
-                  if (isMobileView) setIsMobileMenuOpen(false);
-                }}
-                style={styles.userAction}
-              >
-                <span style={styles.actionIcon}>{item.icon}</span>
-                <span style={styles.actionLabel}>{item.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main style={{
-        ...styles.mainContent,
-        marginLeft: isMobileView ? "0" : sidebarCollapsed ? "64px" : "280px",
-        transition: 'margin-left 0.3s ease'
-      }}>
-        {/* Top Bar */}
-        <div style={styles.topBar}>
-          <button 
-            style={styles.mobileMenuBtn}
-            onClick={toggleSidebar}
-          >
-            <Menu size={24} />
-          </button>
-          
-          <div style={styles.breadcrumb}>
-            <span style={styles.breadcrumbActive}>{getPageTitle()}</span>
-          </div>
-        </div>
-
-        {/* Page Content */}
-        <div style={styles.pageContent}>
-          {renderContent()}
-        </div>
-      </main>
-    </div>
-  );
-};
-
-// Styles
-const styles = {
-  dashboardContainer: {
-    display: 'flex',
-    minHeight: '100vh',
-    backgroundColor: '#f8f9fa',
-    position: 'relative',
-  },
-  mobileOverlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    zIndex: 99,
-  },
-  sidebar: {
-    position: 'fixed',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    backgroundColor: 'white',
-    zIndex: 100,
-    overflowY: 'auto',
-    display: 'flex',
-    flexDirection: 'column',
-    borderRight: '1px solid #e0e0e0',
-  },
-  sidebarLogo: {
-    padding: '24px',
-    fontWeight: 'bold',
-    fontSize: '20px',
-    color: '#4285F4',
-    textAlign: 'center',
-  },
-  sidebarNav: {
-    padding: '16px',
-    flex: 1,
-  },
-  navItem: {
-    display: 'flex',
-    alignItems: 'center',
-    padding: '12px 16px',
-    marginBottom: '8px',
-    border: 'none',
-    borderRadius: '8px',
-    background: 'none',
-    cursor: 'pointer',
-    width: '100%',
-    fontSize: '14px',
-    transition: 'all 0.2s',
-  },
-  navIcon: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  navLabel: {
-    marginLeft: '12px',
-  },
-  mainContent: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  topBar: {
-    display: 'flex',
-    alignItems: 'center',
-    padding: '16px 24px',
-    backgroundColor: 'white',
-    borderBottom: '1px solid #e0e0e0',
-    minHeight: '64px',
-  },
-  mobileMenuBtn: {
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    padding: '8px',
-    marginRight: '16px',
-    borderRadius: '4px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    '&:hover': {
-      backgroundColor: '#f8f9fa',
-    },
-  },
-  breadcrumb: {
-    flex: 1,
-  },
-  breadcrumbActive: {
-    fontSize: '18px',
-    fontWeight: '500',
-    color: '#202124',
-  },
-  pageContent: {
-    flex: 1,
-    padding: '24px',
-    overflowY: 'auto',
-  },
-  userSection: {
-    padding: '16px',
-    borderTop: '1px solid #e0e0e0',
-  },
-  userInfo: {
-    display: 'flex',
-    alignItems: 'center',
-    marginBottom: '16px',
-  },
-  userAvatar: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    backgroundColor: '#4285F4',
-    color: 'white',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontWeight: 'bold',
-    marginRight: '12px',
-  },
-  userDetails: {
-    flex: 1,
-  },
-  userName: {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#202124',
-  },
-  userEmail: {
-    fontSize: '12px',
-    color: '#5f6368',
-  },
-  userActions: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  userAction: {
-    display: 'flex',
-    alignItems: 'center',
-    padding: '8px',
-    background: 'none',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s',
-    width: '100%',
-    textAlign: 'left',
-    '&:hover': {
-      backgroundColor: '#f8f9fa',
-    },
-  },
-  actionIcon: {
-    display: 'flex',
-    alignItems: 'center',
-    marginRight: '12px',
-  },
-  actionLabel: {
-    fontSize: '14px',
-  },
-  uploadContent: {
-    padding: '20px',
-  },
-  sharedContent: {
-    padding: '20px',
-  },
-  myFilesContent: {
-    padding: '20px',
-  },
-};
-
-export default Dashboard;
