@@ -97,7 +97,7 @@ const Dashboard = () => {
   ];
   
   
-  
+  /*
  const getCategoryItems = () => {
     return [
       { 
@@ -188,7 +188,7 @@ const Dashboard = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  
+  */
   
   
   
