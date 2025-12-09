@@ -467,9 +467,12 @@ const Dashboard = () => {
         </nav>
 
         {/* Categories - Only show when expanded */}
-        {(!sidebarCollapsed || isMobileView) && (
+        
+        {/*(!sidebarCollapsed || isMobileView) && (
           <div style={styles.sidebarSection}>
             <h3 style={styles.sectionTitle}>Categories</h3>
+            
+            
             <div style={styles.categoriesList}>
               {categoryItems.map((item) => (
                 <div key={item.id} style={styles.categoryItem}>
@@ -483,9 +486,10 @@ const Dashboard = () => {
             </div>
           </div>
         )}
+        
 
         {/* Storage - Only show when expanded */}
-        {(!sidebarCollapsed || isMobileView) && (
+        {/*(!sidebarCollapsed || isMobileView) && (
           <div style={styles.storageSection}>
             <div style={styles.storageInfo}>
               <div style={styles.storageLabel}>Storage</div>
@@ -495,7 +499,11 @@ const Dashboard = () => {
               <div style={{...styles.storageProgress, width: '31%'}} />
             </div>
           </div>
-        )}
+        )}*/}
+        
+        
+        
+        
 
         {/* User Section */}
         <div style={styles.userSection}>
