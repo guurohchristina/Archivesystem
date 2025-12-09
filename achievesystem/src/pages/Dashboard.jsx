@@ -1269,9 +1269,9 @@ import {
 } from "lucide-react";
 
 // Import your page components
-import UploadPage from "./pages/Upload.jsx";
-import SharedPage from "./pages/Shared.jsx";
-import MyFilesPage from "./pages/MyFiles.jsx";
+import UploadPage from "./Upload.jsx";
+import SharedPage from "./SharedwithMe.jsx";
+import MyFilesPage from "./MyFiles.jsx";
 
 const Dashboard = () => {
   const { user, logout } = useContext(AuthContext);
