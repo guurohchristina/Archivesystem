@@ -33,7 +33,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const { categoryCounts, categorySizes, loading: categoriesLoading, refetch: refetchCategories } = useCategoryCounts();
+/*  const { categoryCounts, categorySizes, loading: categoriesLoading, refetch: refetchCategories } = useCategoryCounts();*/
   
   
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -1090,7 +1090,7 @@ const styles = {
   }
 };
 
-
+/*
 const categoryStyles = {
   sectionHeader: {
     display: 'flex',
@@ -1238,6 +1238,6 @@ const catstyles = { ...existingStyles, ...categoryStyles };
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
-`}</style>
+`}</style>*/
 
 export default Dashboard;
