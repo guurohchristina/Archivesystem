@@ -283,8 +283,9 @@ const Dashboard = () => {
         Sidebar Width: {getSidebarWidth()}
       </div>
 
-      { /*Mobile Overlay - Only show when mobile menu is open */}
-     {/*isMobileView && isMobileMenuOpen && (
+      { /*Mobile Overlay - Only show when mobile menu is open }*/}
+      
+     {isMobileView && isMobileMenuOpen && (
         <div 
           style={{
             ...styles.mobileOverlay,
@@ -295,7 +296,7 @@ const Dashboard = () => {
             setIsMobileMenuOpen(false);
           }}
         />
-      )}*/}
+      )}
       
       {/* Categories Section */}
       {(!sidebarCollapsed || isMobileView) && (
