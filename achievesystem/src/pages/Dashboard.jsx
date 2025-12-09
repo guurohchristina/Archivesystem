@@ -1090,6 +1090,12 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center'
   },
+};
+  
+  
+  
+  
+  const categoryStyles ={
 
 
   sectionHeader: {
@@ -1231,7 +1237,8 @@ const styles = {
 };
 
 // Merge with your existing styles
-const catstyles = { ...existingStyles, ...categoryStyles };
+/*
+const catstyles = { ...existingStyles, ...categoryStyles };*/
 
 /*
 <style>{`
