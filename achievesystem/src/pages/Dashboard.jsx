@@ -1092,7 +1092,7 @@ const styles = {
   }
 };
 
-/*
+
 const categoryStyles = {
   sectionHeader: {
     display: 'flex',
@@ -1235,6 +1235,7 @@ const categoryStyles = {
 // Merge with your existing styles
 const catstyles = { ...existingStyles, ...categoryStyles };
 
+/*
 <style>{`
   @keyframes spin {
     0% { transform: rotate(0deg); }
