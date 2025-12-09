@@ -486,7 +486,7 @@ const styles = {
   dashboardContainer: {
     display: 'flex',
     minHeight: '100vh',
-    margin-top:200px;
+    margin-top:'200px',
     backgroundColor: '#f8f9fa',
     position: 'relative'
   },
