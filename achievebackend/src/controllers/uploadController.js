@@ -1982,6 +1982,149 @@ export const getFileDetails = async (req, res) => {
 };
 
 
+
+// In uploadControllers.js - Add this function with your other controllers
+
+// Get advanced category counts with database query
+export const getCategoryCounts = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    console.log('📊 Getting advanced category counts for user:', userId);
+    
+    // Query to get counts by file type groups with file sizes
+    const queryText = `
+      WITH categorized AS (
+        SELECT 
+          id,
+          filetype,
+          file_size,
+          CASE 
+            WHEN filetype ILIKE '%pdf%' OR 
+                 filetype ILIKE '%doc%' OR 
+                 filetype ILIKE '%text%' OR 
+                 filetype ILIKE '%txt%' OR
+                 filetype ILIKE '%msword%' OR
+                 filetype ILIKE '%officedocument.wordprocessingml%' THEN 'documents'
+            WHEN filetype ILIKE '%image%' OR 
+                 filetype ILIKE '%jpg%' OR 
+                 filetype ILIKE '%jpeg%' OR 
+                 filetype ILIKE '%png%' OR 
+                 filetype ILIKE '%gif%' OR
+                 filetype ILIKE '%webp%' OR
+                 filetype ILIKE '%svg%' THEN 'images'
+            WHEN filetype ILIKE '%video%' OR 
+                 filetype ILIKE '%mp4%' OR 
+                 filetype ILIKE '%mov%' OR 
+                 filetype ILIKE '%avi%' OR
+                 filetype ILIKE '%mpeg%' OR
+                 filetype ILIKE '%quicktime%' THEN 'videos'
+            WHEN filetype ILIKE '%audio%' OR 
+                 filetype ILIKE '%mp3%' OR 
+                 filetype ILIKE '%wav%' OR 
+                 filetype ILIKE '%m4a%' OR
+                 filetype ILIKE '%aac%' OR
+                 filetype ILIKE '%ogg%' THEN 'audio'
+            WHEN filetype ILIKE '%zip%' OR 
+                 filetype ILIKE '%rar%' OR 
+                 filetype ILIKE '%7z%' OR 
+                 filetype ILIKE '%tar%' OR
+                 filetype ILIKE '%gzip%' OR
+                 filetype ILIKE '%compressed%' THEN 'archives'
+            WHEN filetype ILIKE '%sheet%' OR 
+                 filetype ILIKE '%excel%' OR 
+                 filetype ILIKE '%csv%' OR 
+                 filetype ILIKE '%xls%' OR
+                 filetype ILIKE '%spreadsheet%' OR
+                 filetype ILIKE '%officedocument.spreadsheetml%' THEN 'spreadsheets'
+            WHEN filetype ILIKE '%presentation%' OR 
+                 filetype ILIKE '%powerpoint%' OR 
+                 filetype ILIKE '%ppt%' OR
+                 filetype ILIKE '%officedocument.presentationml%' THEN 'presentations'
+            ELSE 'others'
+          END as category
+        FROM files 
+        WHERE user_id = $1
+      )
+      SELECT 
+        category,
+        COUNT(*) as count,
+        COALESCE(SUM(file_size), 0) as total_size
+      FROM categorized
+      GROUP BY category
+      ORDER BY count DESC;
+    `;
+    
+    const result = await query(queryText, [userId]);
+    
+    // Initialize default categories
+    const categoryCounts = {
+      documents: 0,
+      images: 0,
+      videos: 0,
+      audio: 0,
+      archives: 0,
+      spreadsheets: 0,
+      presentations: 0,
+      others: 0,
+      total: 0
+    };
+    
+    const categorySizes = {
+      documents: 0,
+      images: 0,
+      videos: 0,
+      audio: 0,
+      archives: 0,
+      spreadsheets: 0,
+      presentations: 0,
+      others: 0,
+      total: 0
+    };
+    
+    // Process results
+    result.rows.forEach(row => {
+      const category = row.category;
+      const count = parseInt(row.count) || 0;
+      const size = parseInt(row.total_size) || 0;
+      
+      if (categoryCounts.hasOwnProperty(category)) {
+        categoryCounts[category] = count;
+        categorySizes[category] = size;
+      }
+      categoryCounts.total += count;
+      categorySizes.total += size;
+    });
+    
+    console.log('✅ Advanced category counts:', categoryCounts);
+    console.log('📦 Category sizes:', categorySizes);
+    
+    res.json({
+      success: true,
+      data: {
+        categoryCounts,
+        categorySizes,
+        totalFiles: categoryCounts.total,
+        totalSize: categorySizes.total
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error getting advanced category counts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get category counts',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+
+
+
+
+
+
+
     
     
 
@@ -2260,5 +2403,6 @@ export default {
   deleteFile,
   getFileStats,
   getDepartments,
-  getSharedWithMe
+  getSharedWithMe,
+  getCategoryCounts
 };

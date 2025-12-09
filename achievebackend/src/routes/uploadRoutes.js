@@ -811,7 +811,8 @@ import {
   getPublicFiles,          // NEW
   toggleFileVisibility,    // NEW
   getFileVisibility,       // NEW
-  getSharedWithMe
+  getSharedWithMe,
+  getCategoryCounts
 } from '../controllers/uploadController.js'; // Named imports
 import { authenticate } from '../middleware/authMiddleware.js';
 import  uploadMiddleware  from '../middleware/uploadMiddleware.js'; // Import multer middleware
@@ -841,6 +842,8 @@ router.get('/departments/list', authenticate, getDepartments);
 router.get('/shared', authenticate, getSharedWithMe);         // Files shared with me
 router.put('/:id/visibility', authenticate, toggleFileVisibility);  // Toggle public/private
 router.get('/:id/visibility', authenticate, getFileVisibility);     // Check visibility status
+
+router.get('/categories/counts', authenticate, getCategoryCounts);  // Add this line
 
 
 // Health check

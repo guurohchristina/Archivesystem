@@ -25,10 +25,16 @@ import {
   Trash2
 } from "lucide-react";
 
+import { useCategoryCounts } from '../hooks/useCategoryCounts';
+
 const Dashboard = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
+  
+  const { categoryCounts, categorySizes, loading: categoriesLoading, refetch: refetchCategories } = useCategoryCounts();
+  
+  
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeNav, setActiveNav] = useState("my-files");
   const [viewMode, setViewMode] = useState("grid");
@@ -47,6 +53,10 @@ const Dashboard = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+  
+  
+  
+  
 
   // Sample files data
   const [files, setFiles] = useState([
@@ -84,6 +94,105 @@ const Dashboard = () => {
     { id: "settings", label: "Settings", icon: <Settings size={20} />, action: () => navigate("/settings") },
     { id: "logout", label: "Logout", icon: <LogOut size={20} />, action: logout },
   ];
+  
+  
+  
+ const getCategoryItems = () => {
+    return [
+      { 
+        id: "documents", 
+        label: "Documents", 
+        icon: "📄", 
+        count: categoryCounts.documents || 0, 
+        size: categorySizes.documents || 0,
+        color: "#4285F4",
+        description: "PDFs, Word docs, Text files"
+      },
+      { 
+        id: "images", 
+        label: "Images", 
+        icon: "🖼️", 
+        count: categoryCounts.images || 0, 
+        size: categorySizes.images || 0,
+        color: "#EA4335",
+        description: "JPG, PNG, GIF, SVG"
+      },
+      { 
+        id: "videos", 
+        label: "Videos", 
+        icon: "🎬", 
+        count: categoryCounts.videos || 0, 
+        size: categorySizes.videos || 0,
+        color: "#34A853",
+        description: "MP4, MOV, AVI"
+      },
+      { 
+        id: "audio", 
+        label: "Audio", 
+        icon: "🎵", 
+        count: categoryCounts.audio || 0, 
+        size: categorySizes.audio || 0,
+        color: "#FBBC05",
+        description: "MP3, WAV, AAC"
+      },
+      { 
+        id: "archives", 
+        label: "Archives", 
+        icon: "📦", 
+        count: categoryCounts.archives || 0, 
+        size: categorySizes.archives || 0,
+        color: "#8E44AD",
+        description: "ZIP, RAR, 7Z"
+      },
+      { 
+        id: "spreadsheets", 
+        label: "Spreadsheets", 
+        icon: "📊", 
+        count: categoryCounts.spreadsheets || 0, 
+        size: categorySizes.spreadsheets || 0,
+        color: "#0F9D58",
+      description: "Excel, CSV, Sheets"
+      },
+      { 
+        id: "presentations", 
+        label: "Presentations", 
+        icon: "📽️", 
+        count: categoryCounts.presentations || 0, 
+        size: categorySizes.presentations || 0,
+        color: "#DB4437",
+        description: "PowerPoint, Slides"
+      },
+      { 
+        id: "others", 
+        label: "Others", 
+        icon: "📎", 
+        count: categoryCounts.others || 0, 
+        size: categorySizes.others || 0,
+        color: "#5F6368",
+        description: "Other file types"
+      }
+    ];
+  };
+
+  // Calculate totals
+  const totalFiles = categoryCounts.total || 0;
+  const totalStorageUsed = categorySizes.total || 0;
+
+  // Format storage
+  const formatStorage = (bytes) => {
+    if (!bytes || bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  
+  
+  
+  
+  
+  
 
   // Toggle sidebar function
   const toggleSidebar = () => {
@@ -173,7 +282,7 @@ const Dashboard = () => {
       </div>
 
       {/* Mobile Overlay - Only show when mobile menu is open */}
-      {isMobileView && isMobileMenuOpen && (
+     {/*isMobileView && isMobileMenuOpen && (
         <div 
           style={{
             ...styles.mobileOverlay,
@@ -184,6 +293,97 @@ const Dashboard = () => {
             setIsMobileMenuOpen(false);
           }}
         />
+      )*/}
+      
+      {/* Categories Section */}
+      {(!sidebarCollapsed || isMobileView) && (
+        <div style={styles.sidebarSection}>
+          <div style={styles.sectionHeader}>
+            <h3 style={styles.sectionTitle}>Categories</h3>
+            <span style={styles.totalFilesBadge}>
+              {totalFiles} {totalFiles === 1 ? 'file' : 'files'}
+            </span>
+          </div>
+          
+          {categoriesLoading ? (
+            <div style={styles.loadingState}>
+              <div style={styles.spinner}></div>
+              <span>Loading categories...</span>
+            </div>
+          ) : (
+            <div style={styles.categoriesList}>
+              {getCategoryItems()
+                .filter(cat => cat.count > 0)
+                .map((item) => (
+                  <div 
+                    key={item.id}
+                    style={styles.categoryItem}
+                    onClick={() => console.log(`Filter by ${item.label}`)}
+                    title={`${item.description}\nFiles: ${item.count}\nSize: ${formatStorage(item.size)}`}
+                  >
+                    <span style={{...styles.categoryIcon, color: item.color}}>
+                      {item.icon}
+                    </span>
+                    <div style={styles.categoryDetails}>
+                      <span style={styles.categoryLabel}>{item.label}</span>
+                    <span style={styles.categoryFileCount}>
+                        {item.count} {item.count === 1 ? 'file' : 'files'}
+                      </span>
+                    </div>
+                    <span style={{
+                      ...styles.categoryBadge,
+                      backgroundColor: `${item.color}20`,
+                      color: item.color
+                    }}>
+                      {item.count}
+                    </span>
+                  </div>
+                ))}
+              
+              {/* Empty state */}
+              {totalFiles === 0 && !categoriesLoading && (
+                <div style={styles.emptyState}>
+                  <span style={{ fontSize: '24px' }}>📁</span>
+                  <span style={styles.emptyText}>No files uploaded yet</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Storage Section */}
+      {(!sidebarCollapsed || isMobileView) && (
+        <div style={styles.storageSection}>
+          <div style={styles.storageHeader}>
+            <span style={styles.storageLabel}>Storage</span>
+            <span style={styles.storageValue}>
+              {formatStorage(totalStorageUsed)} used
+            </span>
+          </div>
+          <div style={styles.storageBar}>
+            <div 
+              style={{
+                ...styles.storageFill,
+                width: `${Math.min((totalStorageUsed / (15 * 1024 * 1024 * 1024)) * 100, 100)}%`,
+                backgroundColor: totalStorageUsed > (10 * 1024 * 1024 * 1024) ? '#EA4335' : 
+                totalStorageUsed > (5 * 1024 * 1024 * 1024) ? '#FBBC05' : '#34A853'
+              }}
+            />
+          </div>
+          <div style={styles.storageFooter}>
+            <span style={styles.storagePercentage}>
+              {((totalStorageUsed / (15 * 1024 * 1024 * 1024)) * 100).toFixed(1)}% of 15 GB
+            </span>
+            <button 
+              onClick={refetchCategories}
+              style={styles.refreshButton}
+              title="Refresh data"
+            >
+              ↻
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Sidebar */}
@@ -888,5 +1088,154 @@ const styles = {
     justifyContent: 'center'
   }
 };
+
+
+const categoryStyles = {
+  sectionHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '12px'
+  },
+  totalFilesBadge: {
+    fontSize: '11px',
+    color: '#5f6368',
+    backgroundColor: '#f1f3f4',
+    padding: '2px 8px',
+    borderRadius: '12px',
+    fontWeight: '500'
+  },
+  loadingState: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '20px',
+    gap: '8px',
+    color: '#5f6368',
+    fontSize: '12px'
+  },
+  spinner: {
+    width: '20px',
+    height: '20px',
+    border: '2px solid #f3f3f3',
+    borderTop: '2px solid #4285F4',
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite'
+  },
+  categoryItem: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '10px 12px',
+    margin: '4px 0',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    backgroundColor: 'white',
+    border: '1px solid #e0e0e0'
+  },
+  categoryIcon: {
+    fontSize: '20px',
+    marginRight: '12px',
+    width: '24px',
+  textAlign: 'center'
+  },
+  categoryDetails: {
+    flex: 1,
+    minWidth: 0
+  },
+  categoryLabel: {
+    fontSize: '13px',
+    fontWeight: '500',
+    color: '#202124',
+    display: 'block',
+    marginBottom: '2px'
+  },
+  categoryFileCount: {
+    fontSize: '11px',
+    color: '#5f6368',
+    display: 'block'
+  },
+  categoryBadge: {
+    fontSize: '11px',
+    fontWeight: '600',
+    padding: '2px 8px',
+    borderRadius: '10px',
+    minWidth: '24px',
+    textAlign: 'center'
+  },
+  emptyState: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '20px',
+    color: '#5f6368',
+    fontSize: '13px',
+    textAlign: 'center',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+    border: '1px dashed #e0e0e0'
+  },
+  emptyText: {
+    marginTop: '8px',
+    fontSize: '12px'
+  },
+  storageHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '8px'
+  },
+  storageLabel: {
+    fontSize: '13px',
+    fontWeight: '500',
+    color: '#202124'
+  },
+  storageValue: {
+    fontSize: '12px',
+    color: '#5f6368'
+  },
+  storageBar: {
+    height: '6px',
+    backgroundColor: '#e0e0e0',
+    borderRadius: '3px',
+    overflow: 'hidden',
+    marginBottom: '4px'
+  },
+  storageFill: {
+    height: '100%',
+    borderRadius: '3px',
+    transition: 'width 0.3s ease'
+  },
+  storageFooter: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  storagePercentage: {
+    fontSize: '11px',
+    color: '#5f6368'
+  },
+  refreshButton: {
+    background: 'none',
+    border: 'none',
+    color: '#4285F4',
+    fontSize: '12px',
+    cursor: 'pointer',
+    padding: '2px 6px',
+    borderRadius: '4px',
+    transition: 'background-color 0.2s'
+  }
+};
+
+// Merge with your existing styles
+const styles = { ...existingStyles, ...categoryStyles };
+<style>{`
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`}</style>
 
 export default Dashboard;
