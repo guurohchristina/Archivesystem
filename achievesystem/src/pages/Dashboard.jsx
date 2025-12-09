@@ -1089,11 +1089,9 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center'
-  }
-};
+  },
 
 
-const categoryStyles = {
   sectionHeader: {
     display: 'flex',
     justifyContent: 'space-between',
