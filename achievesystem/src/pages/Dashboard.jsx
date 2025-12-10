@@ -87,7 +87,7 @@ const Dashboard = () => {
   const navItems = [
     { id: "upload", label: "Upload", icon: <Upload size={20} />, path: "/upload" },
     { id: "my-files", label: "My Files", icon: <Folder size={20} />, path: "/my-files" },
-    { id: "shared", label: "Shared", icon: <Users size={20} />, path: "/shared-files" },
+    { id: "shared", label: "Shared", icon: <Users size={20} />, path: "/shared" },
   ];
   
   
@@ -269,7 +269,7 @@ const Dashboard = () => {
     switch (activeNav) {
       case "upload":
         return <UploadContent />;
-      case "shared-files":
+      case "shared":
         return <SharedContent />;
       case "my-files":
       default:
@@ -281,7 +281,7 @@ const Dashboard = () => {
     switch (activeNav) {
       case "upload":
         return "Upload Files";
-      case "shared-files":
+      case "shared":
         return "Shared Files";
       default:
         return "My Files";

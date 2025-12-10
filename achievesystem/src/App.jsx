@@ -10,9 +10,9 @@ import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 
-/*
+
 import Profile from "./pages/Profile.jsx";
-import Upload from "./pages/Upload.jsx";*/
+import Upload from "./pages/Upload.jsx";
 
 
 import ManageUsers from "./pages/ManageUsers.jsx";
@@ -20,10 +20,10 @@ import ManageFiles from "./pages/ManageFiles.jsx";
 import SystemReports from "./pages/SystemReports.jsx";
 
 
-/*
+
 import MyFiles from "./pages/MyFiles.jsx";
 import SystemSetting from "./pages/SystemSettings.jsx";
-import SharedwithMe from "./pages/SharedwithMe.jsx";*/
+import SharedwithMe from "./pages/SharedwithMe.jsx";
 
 
 
@@ -46,7 +46,7 @@ function App() {
          
          
           
-          {/*<Route path="/profile" element={<Profile />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/upload" element={<Upload />} />
 
 
@@ -59,7 +59,7 @@ function App() {
 <Route path="/my-files" element={<MyFiles />} />
 <Route path="/profile" element={<Profile />} />
 <Route path="/system-settings" element={<SystemSetting />} />
-<Route path="/shared-files" element={<SharedwithMe />} />*/}
+<Route path="/shared-files" element={<SharedwithMe />} />
         
       </Routes>
       </AuthProvider>
@@ -69,7 +69,11 @@ function App() {
 
 export default App;
 
-/*
+
+
+
+
+{/*
 import React, { useContext } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthContext } from "./context/AuthContext.jsx";
@@ -96,7 +100,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           
-          {/* Public routes - only accessible when NOT logged in 
+          {/* Public routes - only accessible when NOT logged in *
           <Route path="/login" element={
             <PublicRoute>
               <Login />
@@ -108,7 +112,7 @@ function App() {
             </PublicRoute>
           } />
 
-          {/* Protected routes - only accessible when logged in 
+          {/* Protected routes - only accessible*
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Dashboard />
@@ -128,6 +132,7 @@ function App() {
       </AuthProvider>
     </BrowserRouter>
   );
-}
 
-export default App;*/
+
+export default App;
+}*/}
