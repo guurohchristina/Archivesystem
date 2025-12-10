@@ -9,16 +9,21 @@ import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+
+/*
 import Profile from "./pages/Profile.jsx";
-import Upload from "./pages/Upload.jsx";
+import Upload from "./pages/Upload.jsx";*/
 
 
 import ManageUsers from "./pages/ManageUsers.jsx";
 import ManageFiles from "./pages/ManageFiles.jsx";
 import SystemReports from "./pages/SystemReports.jsx";
+
+
+/*
 import MyFiles from "./pages/MyFiles.jsx";
 import SystemSetting from "./pages/SystemSettings.jsx";
-import SharedwithMe from "./pages/SharedwithMe.jsx";
+import SharedwithMe from "./pages/SharedwithMe.jsx";*/
 
 
 
@@ -35,10 +40,13 @@ function App() {
           <Route path="/register" element={<Register />} />
 
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/" element={<Dashboard />} />
           
           
+         
+         
           
-          <Route path="/profile" element={<Profile />} />
+          {/*<Route path="/profile" element={<Profile />} />
           <Route path="/upload" element={<Upload />} />
 
 
@@ -51,7 +59,7 @@ function App() {
 <Route path="/my-files" element={<MyFiles />} />
 <Route path="/profile" element={<Profile />} />
 <Route path="/system-settings" element={<SystemSetting />} />
-<Route path="/shared-files" element={<SharedwithMe />} />
+<Route path="/shared-files" element={<SharedwithMe />} />*/}
         
       </Routes>
       </AuthProvider>
