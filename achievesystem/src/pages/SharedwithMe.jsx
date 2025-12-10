@@ -1,508 +1,3 @@
-
-/*import { useState, useEffect, useContext } from "react";
-import { AuthContext } from "../context/AuthContext.jsx";
-
-const SharedWithMe = () => {
-  const { user } = useContext(AuthContext);
-  const [publicFiles, setPublicFiles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalFiles, setTotalFiles] = useState(0);
-  const [filterOwner, setFilterOwner] = useState("");
-  const [fileOwners, setFileOwners] = useState([]);
-  const [error, setError] = useState("");
-
-  const API_BASE = 'http://localhost:3000';
-
-  useEffect(() => {
-    if (user) {
-      fetchPublicFiles();
-    }
-  }, [user, currentPage, search, filterOwner]);
-
-  useEffect(() => {
-    // Extract unique owners from files
-    const owners = [...new Set(publicFiles.map(file => file.owner_name || file.user_name))].filter(Boolean);
-    setFileOwners(owners);
-  }, [publicFiles]);
-
-  const fetchPublicFiles = async () => {
-    setLoading(true);
-    setError("");
-    
-    try {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        throw new Error('No authentication token found. Please log in.');
-      }
-
-      // Use the new endpoint: /api/upload/public
-      /*
-      const url = new URL(`${API_BASE}/api/upload/public`);
-      url.searchParams.append('page', currentPage.toString());
-      url.searchParams.append('limit', '20');
-      if (search) {
-        url.searchParams.append('search', search);
-      }*/
-      
-/*
-    const params = new URLSearchParams();
-    params.append('page', currentPage.toString());
-    params.append('limit', '20');
-    if (search) params.append('search', search);
-    if (filterOwner) params.append('owner', filterOwner);
-    
-    // Remove any duplicate params
-    const url = `${API_BASE}/api/upload/public?${params.toString()}`;
-      
-      
-      
-      
-     /* if (filterOwner) {
-        url.searchParams.append('owner', filterOwner);
-      }*/
-/*
-      console.log("🌐 Fetching public files from:", url.toString());
-
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      console.log("📨 Response status:", response.status);
-
-      if (response.status === 401) {
-        throw new Error('Authentication failed. Please log in again.');
-      } else if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Error details:", errorText);
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      console.log("📦 Public files API Response:", result);
-
-      if (result.success) {
-        setPublicFiles(result.data?.files || []);
-        setTotalPages(result.data?.pagination?.totalPages || 1);
-        setTotalFiles(result.data?.pagination?.totalFiles || 0);
-      } else {
-        throw new Error(result.message || 'Failed to load public files');
-      }
-
-    } catch (error) {
-      console.error("❌ Error in fetchPublicFiles:", error);
-      setError(error.message || 'Failed to load shared files. Please try again.');
-      setPublicFiles([]);
-      setTotalPages(1);
-      setTotalFiles(0);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const makeFilePrivate = async (fileId) => {
-    if (!window.confirm('Are you sure you want to make this file private? It will be removed from the public shared list.')) {
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem('token');
-      
-      // Use the new endpoint: /api/upload/:id/visibility
-      const response = await fetch(`${API_BASE}/api/upload/${fileId}/visibility`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ is_public: false })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP ${response.status}`);
-      }
-
-      const result = await response.json();
-      
-      if (result.success) {
-        alert('File set to private successfully');
-        fetchPublicFiles(); // Refresh the list
-      } else {
-        throw new Error(result.message || 'Failed to update file visibility');
-      }
-    } catch (error) {
-      console.error('Error making file private:', error);
-      alert(`Failed to update file: ${error.message}`);
-    }
-  };
-
-  const downloadFile = async (fileId, fileName) => {
-    try {
-      const token = localStorage.getItem('token');
-      
-      // Use the existing download endpoint
-      const response = await fetch(`${API_BASE}/api/upload/${fileId}/download`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      } else {
-        throw new Error('Failed to download file');
-      }
-    } catch (error) {
-      console.error('Error downloading file:', error);
-      alert('Failed to download file. Please try again.');
-    }
-  };
-
-  const formatFileSize = (bytes) => {
-    if (!bytes || bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "Unknown";
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch (error) {
-      return "Invalid date";
-    }
-  };
-
-  const handleRetry = () => {
-    fetchPublicFiles();
-  };
-
-  const isFileOwner = (file) => {
-    return file.user_id === user?.id || file.owner_id === user?.id;
-  };
-
-  return (
-    <div className="page" style={{ padding: '20px' }}>
-      <div className="page-header" style={{ marginBottom: '30px' }}>
-        <h1>Public Files Shared With Me</h1>
-        <p style={{ color: '#666', marginTop: '5px' }}>
-          Browse files shared publicly by other users in the archive
-        </p>
-      </div>
-
-  
-      {error && (
-        <div style={{ 
-          backgroundColor: '#fee', 
-          border: '1px solid #f99', 
-          borderRadius: '8px', 
-          padding: '15px', 
-          marginBottom: '20px' 
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-            <span style={{ marginRight: '10px', fontSize: '20px' }}>⚠️</span>
-            <h3 style={{ margin: 0, color: '#900' }}>Error</h3>
-          </div>
-          <p style={{ margin: '0 0 15px 0' }}>{error}</p>
-          <button 
-            onClick={handleRetry}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#4CAF50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
-            Try Again
-          </button>
-        </div>
-      )}
-
-      
-      <div className="controls-section" style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: '20px',
-        flexWrap: 'wrap',
-        gap: '15px'
-      }}>
-        <div className="stats" style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-          <div className="stat-item" style={{ 
-            backgroundColor: '#e3f2fd', 
-            padding: '10px 15px', 
-            borderRadius: '6px',
-            minWidth: '120px'
-          }}>
-            <div style={{ fontSize: '12px', color: '#1565c0', fontWeight: '500' }}>Total Public Files</div>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#0d47a1' }}>
-              {loading ? '...' : totalFiles}
-            </div>
-          </div>
-        </div>
-
-        <div className="filters" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <input
-            type="text"
-            placeholder="Search files..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{
-              padding: '10px',
-              width: '200px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              fontSize: '14px'
-            }}
-          />
-          
-          <select
-            value={filterOwner}
-            onChange={(e) => setFilterOwner(e.target.value)}
-            style={{
-              padding: '10px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              fontSize: '14px',
-              minWidth: '150px'
-            }}
-          >
-            <option value="">All Owners</option>
-            {fileOwners.map((owner, index) => (
-              <option key={index} value={owner}>{owner}</option>
-            ))}
-          </select>
-          
-          <button
-            onClick={() => { setSearch(''); setFilterOwner(''); }}
-            style={{
-              padding: '10px 15px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            Clear Filters
-          </button>
-        </div>
-      </div>
-
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px', fontSize: '18px', color: '#666' }}>
-          <div style={{ 
-            border: '4px solid #f3f3f3',
-            borderTop: '4px solid #3498db',
-            borderRadius: '50%',
-            width: '40px',
-            height: '40px',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 20px'
-          }}></div>
-          <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-          Loading public files...
-        </div>
-      ) : publicFiles.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 20px', color: '#666' }}>
-          <div style={{ fontSize: '48px', marginBottom: '20px' }}>📂</div>
-          <h3>No public files available</h3>
-          <p>
-            {search || filterOwner 
-              ? 'No files match your filters. Try different search terms.' 
-              : 'No users have shared files publicly yet.'}
-          </p>
-        </div>
-      ) : (
-        <>
-          
-          <div className="files-table-container" style={{ 
-            overflowX: 'auto', 
-            marginBottom: '20px',
-            borderRadius: '8px',
-            border: '1px solid #e0e0e0'
-          }}>
-            <table className="files-table" style={{ 
-              width: '100%', 
-              borderCollapse: 'collapse',
-              backgroundColor: 'white'
-            }}>
-              <thead>
-                <tr style={{ backgroundColor: '#f8f9fa' }}>
-                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Filename</th>
-                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Description</th>
-                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Owner</th>
-                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Size</th>
-                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Shared On</th>
-                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6', width: '180px' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {publicFiles.map((file) => (
-                  <tr key={file.id} style={{ 
-                    borderBottom: '1px solid #e0e0e0'
-                  }}>
-                    <td style={{ padding: '12px', fontWeight: '500' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '18px' }}>
-                          {file.file_type?.includes('image') ? '🖼️' :
-                           file.file_type?.includes('pdf') ? '📄' :
-                           file.file_type?.includes('word') || file.file_type?.includes('document') ? '📝' :
-                           file.file_type?.includes('spreadsheet') || file.file_type?.includes('excel') ? '📊' :
-                           '📎'}
-                        </span>
-                        {file.original_name || file.filename || file.name}
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                        Type: {file.file_type || 'Unknown'}
-                      </div>
-                    </td>
-                    <td style={{ padding: '12px', maxWidth: '300px' }}>
-                      <div style={{ 
-                        fontSize: '14px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical'
-                      }}>
-                        {file.description || 'No description'}
-                      </div>
-                    </td>
-                    <td style={{ padding: '12px' }}>
-                      <div style={{ fontWeight: '500' }}>{file.owner_name || file.user_name || 'Unknown'}</div>
-                      {file.owner_email && (
-                        <div style={{ fontSize: '12px', color: '#666' }}>{file.owner_email}</div>
-                      )}
-                    </td>
-                    <td style={{ padding: '12px' }}>{formatFileSize(file.file_size)}</td>
-                    <td style={{ padding: '12px', fontSize: '14px' }}>{formatDate(file.public_since || file.created_at)}</td>
-                    <td style={{ padding: '12px' }}>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                        <button
-                          onClick={() => downloadFile(file.id, file.original_name || file.filename)}
-                          style={{
-                            padding: '6px 12px',
-                            backgroundColor: '#007bff',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '13px'
-                          }}
-                          title="Download file"
-                        >
-                          Download
-                        </button>
-                        
-                        {isFileOwner(file) && (
-                          <button
-                            onClick={() => makeFilePrivate(file.id)}
-                            style={{
-                              padding: '6px 12px',
-                              backgroundColor: '#dc3545',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
-                              fontSize: '13px'
-                            }}
-                            title="Make this file private (only you can access it)"
-                          >
-                            Make Private
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-      
-          {totalPages > 1 && (
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center', 
-              gap: '20px', 
-              marginTop: '30px' 
-            }}>
-              <button 
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: currentPage === 1 ? '#e9ecef' : '#007bff',
-                  color: currentPage === 1 ? '#adb5bd' : 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                  fontWeight: '500'
-                }}
-              >
-                ← Previous
-              </button>
-              
-              <span style={{ fontWeight: 'bold', fontSize: '15px' }}>
-                Page {currentPage} of {totalPages}
-              </span>
-              
-              <button 
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: currentPage === totalPages ? '#e9ecef' : '#007bff',
-                  color: currentPage === totalPages ? '#adb5bd' : 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                  fontWeight: '500'
-                }}
-              >
-                Next →
-              </button>
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  );
-};
-
-export default SharedWithMe;*/
-
-
-
-
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 
@@ -517,6 +12,7 @@ const SharedWithMe = () => {
   const [filterOwner, setFilterOwner] = useState("");
   const [fileOwners, setFileOwners] = useState([]);
   const [error, setError] = useState("");
+  const [viewMode, setViewMode] = useState("grid");
 
   const API_BASE = 'http://localhost:3000';
 
@@ -527,7 +23,6 @@ const SharedWithMe = () => {
   }, [user, currentPage, search, filterOwner]);
 
   useEffect(() => {
-    // Extract unique owners from files - check multiple possible fields
     const owners = [...new Set(publicFiles.map(file => 
       file.owner_name || file.owner || file.user_name || 'Unknown'
     ))].filter(Boolean);
@@ -542,10 +37,9 @@ const SharedWithMe = () => {
       const token = localStorage.getItem('token');
       
       if (!token) {
-        throw new Error('No authentication token found. Please log in.');
+        throw new Error('Please log in to view shared files');
       }
 
-      // Build URL correctly
       const params = new URLSearchParams();
       params.append('page', currentPage.toString());
       params.append('limit', '20');
@@ -553,8 +47,6 @@ const SharedWithMe = () => {
       if (filterOwner) params.append('owner', filterOwner);
       
       const url = `${API_BASE}/api/upload/public?${params.toString()}`;
-      
-      console.log("🌐 Fetching from:", url);
 
       const response = await fetch(url, {
         headers: {
@@ -563,43 +55,25 @@ const SharedWithMe = () => {
         }
       });
 
-      console.log("📨 Response status:", response.status);
-
       if (response.status === 401) {
-        throw new Error('Authentication failed. Please log in again.');
+        throw new Error('Please log in again');
       } else if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Error details:", errorText);
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`Failed to load files: ${response.statusText}`);
       }
 
       const result = await response.json();
       
-      // DEBUG: Log full response
-      console.log("📦 FULL API RESPONSE:", JSON.stringify(result, null, 2));
-      
       if (result.success) {
-        // Debug the data structure
-        console.log("🔍 Checking data structure:");
-        console.log("- Has data property?", 'data' in result);
-        console.log("- Has files array?", result.data?.files ? 'Yes, length: ' + result.data.files.length : 'No');
-        
-        if (result.data?.files && result.data.files.length > 0) {
-          const firstFile = result.data.files[0];
-          console.log("📄 First file object:", firstFile);
-          console.log("🔑 First file keys:", Object.keys(firstFile));
-        }
-        
         setPublicFiles(result.data?.files || []);
         setTotalPages(result.data?.pagination?.totalPages || 1);
         setTotalFiles(result.data?.pagination?.totalFiles || 0);
       } else {
-        throw new Error(result.message || 'Failed to load public files');
+        throw new Error(result.message || 'Failed to load shared files');
       }
 
     } catch (error) {
-      console.error("❌ Error in fetchPublicFiles:", error);
-      setError(error.message || 'Failed to load shared files. Please try again.');
+      console.error("Error loading shared files:", error);
+      setError(error.message);
       setPublicFiles([]);
       setTotalPages(1);
       setTotalFiles(0);
@@ -609,7 +83,7 @@ const SharedWithMe = () => {
   };
 
   const makeFilePrivate = async (fileId) => {
-    if (!window.confirm('Are you sure you want to make this file private? It will be removed from the public shared list.')) {
+    if (!window.confirm('Are you sure you want to make this file private?')) {
       return;
     }
 
@@ -626,21 +100,20 @@ const SharedWithMe = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP ${response.status}`);
+        throw new Error('Failed to update file');
       }
 
       const result = await response.json();
       
       if (result.success) {
-        alert('File set to private successfully');
+        alert('✓ File is now private');
         fetchPublicFiles();
       } else {
-        throw new Error(result.message || 'Failed to update file visibility');
+        throw new Error(result.message);
       }
     } catch (error) {
-      console.error('Error making file private:', error);
-      alert(`Failed to update file: ${error.message}`);
+      console.error('Error:', error);
+      alert(`Failed: ${error.message}`);
     }
   };
 
@@ -665,11 +138,11 @@ const SharedWithMe = () => {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } else {
-        throw new Error('Failed to download file');
+        throw new Error('Download failed');
       }
     } catch (error) {
-      console.error('Error downloading file:', error);
-      alert('Failed to download file. Please try again.');
+      console.error('Download error:', error);
+      alert('Failed to download. Please try again.');
     }
   };
 
@@ -682,119 +155,157 @@ const SharedWithMe = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "Unknown";
+    if (!dateString) return "Recently";
     try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffTime = Math.abs(now - date);
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) return "Today";
+      if (diffDays === 1) return "Yesterday";
+      if (diffDays < 7) return `${diffDays} days ago`;
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+      
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric"
       });
     } catch (error) {
-      return "Invalid date";
+      return "Unknown date";
     }
   };
 
-  const handleRetry = () => {
-    fetchPublicFiles();
+  const getFileIcon = (file) => {
+    const fileType = (file.file_type || file.filetype || '').toLowerCase();
+    const fileName = (file.original_name || '').toLowerCase();
+    
+    if (fileType.includes('image') || /\.(jpg|jpeg|png|gif|bmp)$/i.test(fileName)) return "🖼️";
+    if (fileType.includes('pdf') || fileName.includes('.pdf')) return "📄";
+    if (fileType.includes('word') || fileType.includes('document') || /\.(doc|docx)$/i.test(fileName)) return "📝";
+    if (fileType.includes('excel') || fileType.includes('spreadsheet') || /\.(xls|xlsx|csv)$/i.test(fileName)) return "📊";
+    if (fileType.includes('video') || /\.(mp4|mov|avi|mkv)$/i.test(fileName)) return "🎬";
+    if (fileType.includes('audio') || /\.(mp3|wav|aac)$/i.test(fileName)) return "🎵";
+    if (fileType.includes('archive') || fileType.includes('compressed') || /\.(zip|rar|7z)$/i.test(fileName)) return "📦";
+    return "📎";
+  };
+
+  const getClassificationColor = (level) => {
+    const colors = {
+      "Top Secret": "#dc2626",
+      "Secret": "#ea580c",
+      "Confidential": "#ca8a04",
+      "Unclassified": "#16a34a",
+      "Public": "#3b82f6",
+    };
+    return colors[level] || "#6b7280";
   };
 
   const isFileOwner = (file) => {
-    // Check multiple possible user ID fields
     const fileUserId = file.user_id || file.userId;
     const currentUserId = user?.id || user?.userId;
-    
     return fileUserId === currentUserId;
   };
 
+  // Calculate total storage used by shared files
+  const totalStorageUsed = publicFiles.reduce((sum, file) => sum + parseInt(file.file_size || 0), 0);
+  const formatTotalStorage = (bytes) => {
+    if (!bytes || bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  // Filter files based on search
+  const filteredFiles = publicFiles.filter(file => 
+    (file.original_name || '').toLowerCase().includes(search.toLowerCase()) ||
+    (file.description || '').toLowerCase().includes(search.toLowerCase()) ||
+    (file.owner_name || file.owner || '').toLowerCase().includes(search.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <div style={styles.loadingContainer}>
+        <div style={styles.spinner}></div>
+        <p style={styles.loadingText}>Loading shared files...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={styles.errorContainer}>
+        <div style={styles.errorIcon}>⚠️</div>
+        <h3 style={styles.errorTitle}>Error Loading Files</h3>
+        <p style={styles.errorMessage}>{error}</p>
+        <button 
+          onClick={fetchPublicFiles}
+          style={styles.retryButton}
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="page" style={{ padding: '20px' }}>
-      <div className="page-header" style={{ marginBottom: '30px' }}>
-        <h1>Public Files Shared With Me</h1>
-        <p style={{ color: '#666', marginTop: '5px' }}>
-          Browse files shared publicly by other users in the archive
-        </p>
+    <div style={styles.pageContainer}>
+      {/* Header */}
+      <div style={styles.header}>
+        <div style={styles.headerLeft}>
+          <h1 style={styles.title}>Shared With Me</h1>
+          <div style={styles.filesStats}>
+            <span>{publicFiles.length} shared files • {formatTotalStorage(totalStorageUsed)} total</span>
+          </div>
+        </div>
+        
+        <div style={styles.headerRight}>
+          <div style={styles.viewControls}>
+            <button 
+              style={{
+                ...styles.viewBtn,
+                backgroundColor: viewMode === 'grid' ? 'white' : 'transparent',
+                color: viewMode === 'grid' ? '#4285F4' : '#5f6368',
+              }}
+              onClick={() => setViewMode('grid')}
+              title="Grid view"
+            >
+              <span style={{ fontSize: '18px' }}>◼️◼️</span>
+            </button>
+            <button 
+              style={{
+                ...styles.viewBtn,
+                backgroundColor: viewMode === 'list' ? 'white' : 'transparent',
+                color: viewMode === 'list' ? '#4285F4' : '#5f6368',
+              }}
+              onClick={() => setViewMode('list')}
+              title="List view"
+            >
+              <span style={{ fontSize: '18px' }}>☰</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Error Display */}
-      {error && (
-        <div style={{ 
-          backgroundColor: '#fee', 
-          border: '1px solid #f99', 
-          borderRadius: '8px', 
-          padding: '15px', 
-          marginBottom: '20px' 
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-            <span style={{ marginRight: '10px', fontSize: '20px' }}>⚠️</span>
-            <h3 style={{ margin: 0, color: '#900' }}>Error</h3>
-          </div>
-          <p style={{ margin: '0 0 15px 0' }}>{error}</p>
-          <button 
-            onClick={handleRetry}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#4CAF50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
-            Try Again
-          </button>
-        </div>
-      )}
-
-      {/* Controls Section */}
-      <div className="controls-section" style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: '20px',
-        flexWrap: 'wrap',
-        gap: '15px'
-      }}>
-        <div className="stats" style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-          <div className="stat-item" style={{ 
-            backgroundColor: '#e3f2fd', 
-            padding: '10px 15px', 
-            borderRadius: '6px',
-            minWidth: '120px'
-          }}>
-            <div style={{ fontSize: '12px', color: '#1565c0', fontWeight: '500' }}>Total Public Files</div>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#0d47a1' }}>
-              {loading ? '...' : totalFiles}
-            </div>
-          </div>
-        </div>
-
-        <div className="filters" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+      {/* Search and Filters */}
+      <div style={styles.searchSection}>
+        <div style={styles.searchContainer}>
+          <span style={styles.searchIcon}>🔍</span>
           <input
             type="text"
-            placeholder="Search files..."
+            placeholder="Search shared files..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{
-              padding: '10px',
-              width: '200px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              fontSize: '14px'
-            }}
+            style={styles.searchInput}
           />
-          
+        </div>
+        
+        <div style={styles.filterContainer}>
           <select
             value={filterOwner}
             onChange={(e) => setFilterOwner(e.target.value)}
-            style={{
-              padding: '10px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              fontSize: '14px',
-              minWidth: '150px'
-            }}
+            style={styles.filterSelect}
           >
             <option value="">All Owners</option>
             {fileOwners.map((owner, index) => (
@@ -802,232 +313,519 @@ const SharedWithMe = () => {
             ))}
           </select>
           
-          <button
-            onClick={() => { setSearch(''); setFilterOwner(''); }}
-            style={{
-              padding: '10px 15px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            Clear Filters
-          </button>
-          
-          <button
-            onClick={() => {
-              console.log("🔍 DEBUG: Current publicFiles data:", publicFiles);
-              if (publicFiles.length > 0) {
-                console.log("📄 First file full data:", publicFiles[0]);
-                alert(`Debug: ${publicFiles.length} files loaded. Check console.`);
-              }
-            }}
-            style={{
-              padding: '10px 15px',
-              backgroundColor: '#17a2b8',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            Debug
-          </button>
+          {(search || filterOwner) && (
+            <button
+              onClick={() => { setSearch(''); setFilterOwner(''); }}
+              style={styles.clearFilterButton}
+            >
+              Clear Filters
+            </button>
+          )}
         </div>
       </div>
 
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px', fontSize: '18px', color: '#666' }}>
-          <div style={{ 
-            border: '4px solid #f3f3f3',
-            borderTop: '4px solid #3498db',
-            borderRadius: '50%',
-            width: '40px',
-            height: '40px',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 20px'
-          }}></div>
-          <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-          Loading public files...
-        </div>
-      ) : publicFiles.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 20px', color: '#666' }}>
-          <div style={{ fontSize: '48px', marginBottom: '20px' }}>📂</div>
-          <h3>No public files available</h3>
-          <p>
-            {search || filterOwner 
-              ? 'No files match your filters. Try different search terms.' 
-              : 'No users have shared files publicly yet.'}
-          </p>
-        </div>
-      ) : (
-        <>
-          {/* Files Table */}
-          <div className="files-table-container" style={{ 
-            overflowX: 'auto', 
-            marginBottom: '20px',
-            borderRadius: '8px',
-            border: '1px solid #e0e0e0'
-          }}>
-            <table className="files-table" style={{ 
-              width: '100%', 
-              borderCollapse: 'collapse',
-              backgroundColor: 'white'
-            }}>
-              <thead>
-                <tr style={{ backgroundColor: '#f8f9fa' }}>
-                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Filename</th>
-                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Description</th>
-                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Owner</th>
-                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Size</th>
-                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Shared On</th>
-                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6', width: '180px' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {publicFiles.map((file) => (
-                  <tr key={file.id} style={{ 
-                    borderBottom: '1px solid #e0e0e0'
-                  }}>
-    <td style={{ padding: '12px', fontWeight: '500' }}>
-     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-         <span style={{ fontSize: '18px' }}>        {(file.file_type || file.filetype || '').includes('image') ? '🖼️' :     (file.file_type || file.filetype || '').includes('pdf') ? '📄' :
-        (file.file_type || file.filetype || '').includes('word') || 
-        (file.file_type || file.filetype || '').includes('document') ? '📝' :
-        (file.file_type || file.filetype || '').includes('spreadsheet') || 
-             (file.file_type || file.filetype || '').includes('excel') ? '📊' :
-                           '📎'}
-           </span>
-           {file.original_name || file.filename || 'Unknown'}
-            </div>
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-          Type: {file.file_type || file.filetype || 'Unknown'}
-                      </div>
-                    </td>
-                    <td style={{ padding: '12px', maxWidth: '300px' }}>
-                      <div style={{ 
-                        fontSize: '14px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical'
-                      }}>
-                        {file.description || 'No description'}
-                      </div>
-                    </td>
-                    <td style={{ padding: '12px' }}>
-  <div style={{ fontWeight: '500' }}>
-    {file.owner_name || file.owner || 'Unknown'}
-  </div>
-  {file.owner_email && file.owner_email !== 'No email available' ? (
-    <div style={{ fontSize: '12px', color: '#666' }}>{file.owner_email}</div>
-  ) : (
-    <div style={{ fontSize: '12px', color: '#999', fontStyle: 'italic' }}>
-      Email not available
-    </div>
-  )}
-</td>
-                    <td style={{ padding: '12px' }}>{formatFileSize(file.file_size)}</td>
-                    <td style={{ padding: '12px', fontSize: '14px' }}>
-                      {formatDate(file.public_since || file.created_at || file.uploaded_at)}
-                    </td>
-                    <td style={{ padding: '12px' }}>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                        <button
-                          onClick={() => downloadFile(file.id, file.original_name || file.filename)}
-                          style={{
-                            padding: '6px 12px',
-                            backgroundColor: '#007bff',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '13px'
-                          }}
-                          title="Download file"
-                        >
-                          Download
-                        </button>
-                        
-                        {isFileOwner(file) && (
-                          <button
-                            onClick={() => makeFilePrivate(file.id)}
-                            style={{
-                              padding: '6px 12px',
-                              backgroundColor: '#dc3545',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
-                              fontSize: '13px'
-                            }}
-                            title="Make this file private (only you can access it)"
-                          >
-                            Make Private
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Files Grid/List */}
+      <div style={{
+        ...styles.filesContainer,
+        display: viewMode === 'grid' ? 'grid' : 'block',
+        gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(220px, 1fr))' : 'none',
+        overflowX: viewMode === 'list' ? 'hidden' : 'visible'
+      }}>
+        {publicFiles.length === 0 ? (
+          <div style={styles.emptyState}>
+            <span style={{ fontSize: '48px' }}>📂</span>
+            <h3 style={styles.emptyTitle}>
+              No shared files available
+            </h3>
+            <p style={styles.emptyText}>
+              {search || filterOwner 
+                ? "No files match your filters." 
+                : "No users have shared files publicly yet."}
+            </p>
           </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center', 
-              gap: '20px', 
-              marginTop: '30px' 
+        ) : (
+          publicFiles.map((file) => (
+            <div key={file.id} style={{
+              ...styles.fileItem,
+              flexDirection: viewMode === 'grid' ? 'column' : 'row',
+              alignItems: viewMode === 'grid' ? 'stretch' : 'center',
+              minHeight: viewMode === 'grid' ? '200px' : 'auto',
+              padding: viewMode === 'grid' ? '16px' : '12px 16px',
+              width: viewMode === 'list' ? '100%' : 'auto',
+              maxWidth: viewMode === 'list' ? '100%' : 'none',
+              boxSizing: 'border-box'
             }}>
-              <button 
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: currentPage === 1 ? '#e9ecef' : '#007bff',
-                  color: currentPage === 1 ? '#adb5bd' : 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                  fontWeight: '500'
-                }}
-              >
-                ← Previous
-              </button>
+              <div style={{
+                ...styles.fileIconContainer,
+                marginRight: viewMode === 'grid' ? '0' : '16px',
+                marginBottom: viewMode === 'grid' ? '12px' : '0',
+              }}>
+                <span style={styles.fileTypeIcon}>{getFileIcon(file)}</span>
+                <span style={styles.fileShared}>
+                  🔗
+                </span>
+              </div>
               
-              <span style={{ fontWeight: 'bold', fontSize: '15px' }}>
-                Page {currentPage} of {totalPages}
-              </span>
-              
-              <button 
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: currentPage === totalPages ? '#e9ecef' : '#007bff',
-                  color: currentPage === totalPages ? '#adb5bd' : 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                  fontWeight: '500'
+              <div style={{
+                ...styles.fileInfo,
+                flex: viewMode === 'list' ? 1 : 'none',
+                minWidth: 0,
+                overflow: 'hidden'
+              }}>
+                <h3 style={{
+                  ...styles.fileName,
+                  whiteSpace: viewMode === 'list' ? 'nowrap' : 'normal',
+                  overflow: viewMode === 'list' ? 'hidden' : 'visible',
+                  textOverflow: viewMode === 'list' ? 'ellipsis' : 'clip'
                 }}>
-                Next →
-              </button>
+                  {file.original_name || file.filename || 'Unknown File'}
+                </h3>
+                
+                <div style={{
+                  ...styles.fileMeta,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: viewMode === 'list' ? '12px' : '6px',
+                  flexWrap: viewMode === 'grid' ? 'wrap' : 'nowrap'
+                }}>
+                  <span style={{
+                    ...styles.fileTypeBadge,
+                    background: viewMode === 'list' ? 'none' : '#f1f3f4',
+                    padding: viewMode === 'list' ? '0' : '3px 8px',
+                    fontSize: viewMode === 'grid' ? '11px' : '12px'
+                  }}>
+                    {file.file_type?.toUpperCase() || 'FILE'}
+                  </span>
+                  <span style={styles.fileSize}>{formatFileSize(file.file_size)}</span>
+                  <span style={styles.fileDate}>
+                    {formatDate(file.public_since || file.created_at || file.uploaded_at)}
+                  </span>
+                </div>
+                
+                {/* File details */}
+                <div style={styles.fileDetails}>
+                  <span style={styles.fileOwner}>
+                    By: {file.owner_name || file.owner || 'Unknown'}
+                  </span>
+                  {file.owner_email && file.owner_email !== 'No email available' && (
+                    <span style={styles.fileEmail}>
+                      • {file.owner_email}
+                    </span>
+                  )}
+                </div>
+                
+                {/* Description */}
+                {file.description && (
+                  <div style={{
+                    ...styles.fileDescription,
+                    display: viewMode === 'grid' ? 'none' : 'block'
+                  }}>
+                    {file.description}
+                  </div>
+                )}
+              </div>
+              
+              <div style={{
+                ...styles.fileActions,
+                flexDirection: viewMode === 'grid' ? 'row' : 'row',
+                gap: viewMode === 'grid' ? '6px' : '8px',
+                marginTop: viewMode === 'grid' ? 'auto' : '0',
+                marginLeft: viewMode === 'list' ? '12px' : '0'
+              }}>
+                <button 
+                  onClick={() => downloadFile(file.id, file.original_name || file.filename)}
+                  style={{
+                    ...styles.actionBtn,
+                    width: viewMode === 'grid' ? '32px' : '36px',
+                    height: viewMode === 'grid' ? '32px' : '36px',
+                    fontSize: viewMode === 'grid' ? '14px' : '16px'
+                  }}
+                  title="Download"
+                >
+                  ⬇️
+                </button>
+                
+                {isFileOwner(file) && (
+                  <button 
+                    onClick={() => makeFilePrivate(file.id)}
+                    style={{
+                      ...styles.actionBtn,
+                      color: '#ea4335',
+                      width: viewMode === 'grid' ? '32px' : '36px',
+                      height: viewMode === 'grid' ? '32px' : '36px',
+                      fontSize: viewMode === 'grid' ? '14px' : '16px'
+                    }}
+                    title="Make Private"
+                  >
+                    🔒
+                  </button>
+                )}
+              </div>
             </div>
+          ))
+        )}
+      </div>
+
+      {/* Pagination and Footer */}
+      <div style={styles.footer}>
+        <div style={styles.footerStats}>
+          Showing {publicFiles.length} of {totalFiles} shared files
+          {search && (
+            <span style={styles.filteredText}> • Filtered</span>
           )}
-        </>
-      )}
+        </div>
+        
+        {totalPages > 1 && (
+          <div style={styles.pagination}>
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              style={styles.paginationButton}
+            >
+              ← Previous
+            </button>
+            
+            <span style={styles.paginationInfo}>
+              Page {currentPage} of {totalPages}
+            </span>
+            
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              style={styles.paginationButton}
+            >
+              Next →
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
+};
+
+const styles = {
+  pageContainer: {
+    flex: 1,
+    padding: '20px',
+    overflowX: 'hidden',
+    maxWidth: '100%',
+    backgroundColor: '#f8f9fa',
+  },
+  loadingContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 'calc(100vh - 200px)',
+  },
+  spinner: {
+    border: '4px solid rgba(0, 0, 0, 0.1)',
+    borderLeftColor: '#4285F4',
+    borderRadius: '50%',
+    width: '40px',
+    height: '40px',
+    animation: 'spin 1s linear infinite',
+  },
+  loadingText: {
+    marginTop: '16px',
+    color: '#5f6368',
+    fontSize: '14px',
+  },
+  errorContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 'calc(100vh - 200px)',
+    textAlign: 'center',
+  },
+  errorIcon: {
+    fontSize: '48px',
+    marginBottom: '16px',
+  },
+  errorTitle: {
+    margin: '0 0 8px 0',
+    color: '#202124',
+  },
+  errorMessage: {
+    color: '#5f6368',
+    marginBottom: '24px',
+    maxWidth: '400px',
+  },
+  retryButton: {
+    backgroundColor: '#4285F4',
+    color: 'white',
+    border: 'none',
+    padding: '10px 24px',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontWeight: '500',
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: '20px',
+    flexWrap: 'wrap',
+    gap: '16px',
+  },
+  headerLeft: {
+    flex: 1,
+    minWidth: '200px',
+  },
+  headerRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    flexWrap: 'wrap',
+  },
+  title: {
+    fontSize: '24px',
+    fontWeight: '600',
+    color: '#202124',
+    margin: '0 0 4px 0',
+  },
+  filesStats: {
+    fontSize: '14px',
+    color: '#5f6368',
+  },
+  viewControls: {
+    display: 'flex',
+    gap: '4px',
+    backgroundColor: '#f8f9fa',
+    padding: '4px',
+    borderRadius: '8px',
+  },
+  viewBtn: {
+    width: '36px',
+    height: '36px',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s',
+  },
+  searchSection: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '20px',
+    flexWrap: 'wrap',
+    gap: '12px',
+  },
+  searchContainer: {
+    flex: 1,
+    minWidth: '200px',
+    position: 'relative',
+    maxWidth: '400px',
+  },
+  searchIcon: {
+    position: 'absolute',
+    left: '12px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    color: '#5f6368',
+    fontSize: '16px',
+  },
+  searchInput: {
+    width: '100%',
+    padding: '12px 12px 12px 40px',
+    border: '1px solid #dadce0',
+    borderRadius: '8px',
+    fontSize: '14px',
+    backgroundColor: 'white',
+    outline: 'none',
+    transition: 'border-color 0.2s',
+  },
+  filterContainer: {
+    display: 'flex',
+    gap: '8px',
+    alignItems: 'center',
+  },
+  filterSelect: {
+    padding: '10px 12px',
+    border: '1px solid #dadce0',
+    borderRadius: '8px',
+    fontSize: '14px',
+    backgroundColor: 'white',
+    minWidth: '150px',
+  },
+  clearFilterButton: {
+    padding: '10px 16px',
+    backgroundColor: '#f1f3f4',
+    color: '#202124',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '500',
+  },
+  filesContainer: {
+    gap: '16px',
+    marginBottom: '20px',
+  },
+  fileItem: {
+    backgroundColor: 'white',
+    borderRadius: '12px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+    transition: 'all 0.2s',
+    display: 'flex',
+    '&:hover': {
+      boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+    },
+  },
+  fileIconContainer: {
+    position: 'relative',
+    flexShrink: 0,
+  },
+  fileTypeIcon: {
+    fontSize: '32px',
+    display: 'block',
+  },
+  fileShared: {
+    position: 'absolute',
+    top: '-4px',
+    right: '-4px',
+    fontSize: '12px',
+    backgroundColor: '#4285F4',
+    color: 'white',
+    borderRadius: '50%',
+    width: '16px',
+    height: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fileInfo: {
+    flex: 1,
+    overflow: 'hidden',
+  },
+  fileName: {
+    fontSize: '14px',
+    fontWeight: '500',
+    color: '#202124',
+    margin: '0 0 6px 0',
+  },
+  fileMeta: {
+    fontSize: '12px',
+    color: '#5f6368',
+    marginBottom: '4px',
+  },
+  fileTypeBadge: {
+    fontSize: '11px',
+    color: '#5f6368',
+    borderRadius: '4px',
+    fontWeight: '500',
+  },
+  fileSize: {
+    fontSize: '12px',
+  },
+  fileDate: {
+    fontSize: '12px',
+  },
+  fileDetails: {
+    fontSize: '12px',
+    color: '#5f6368',
+    marginTop: '2px',
+  },
+  fileOwner: {
+    fontWeight: '500',
+  },
+  fileEmail: {
+    fontSize: '11px',
+    color: '#80868b',
+  },
+  fileDescription: {
+    fontSize: '12px',
+    color: '#5f6368',
+    marginTop: '6px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+  },
+  fileActions: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  actionBtn: {
+    backgroundColor: 'transparent',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s',
+    color: '#5f6368',
+    '&:hover': {
+      backgroundColor: '#f1f3f4',
+    },
+  },
+  emptyState: {
+    gridColumn: '1 / -1',
+    textAlign: 'center',
+    padding: '60px 20px',
+    backgroundColor: 'white',
+    borderRadius: '12px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+  },
+  emptyTitle: {
+    fontSize: '18px',
+    fontWeight: '500',
+    color: '#202124',
+    margin: '16px 0 8px 0',
+  },
+  emptyText: {
+    fontSize: '14px',
+    color: '#5f6368',
+    marginBottom: '24px',
+    maxWidth: '300px',
+    margin: '0 auto 24px',
+  },
+  footer: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: '16px',
+    borderTop: '1px solid #dadce0',
+  },
+  footerStats: {
+    fontSize: '14px',
+    color: '#5f6368',
+  },
+  filteredText: {
+    color: '#4285F4',
+    fontWeight: '500',
+  },
+  pagination: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+  },
+  paginationButton: {
+    padding: '8px 16px',
+    backgroundColor: '#4285F4',
+    color: 'white',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontWeight: '500',
+    fontSize: '14px',
+    '&:disabled': {
+      backgroundColor: '#f1f3f4',
+      color: '#9aa0a6',
+      cursor: 'not-allowed',
+    },
+  },
+  paginationInfo: {
+    fontSize: '14px',
+    color: '#5f6368',
+    fontWeight: '500',
+  },
 };
 
 export default SharedWithMe;
