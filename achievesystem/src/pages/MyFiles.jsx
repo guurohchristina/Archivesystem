@@ -8,112 +8,42 @@ const MyFiles = () => {
   const navigate = useNavigate();
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState("grid");
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const API_BASE = 'http://localhost:3000';
+  // Demo files data
+  const demoFiles = [
+    { id: 1, name: "Annual Report 2024.pdf", type: "pdf", size: "2.4 MB", date: "Today", starred: true, shared: false },
+    { id: 2, name: "Project Proposal.docx", type: "doc", size: "1.8 MB", date: "Yesterday", starred: false, shared: true },
+    { id: 3, name: "Team Meeting.mp4", type: "video", size: "45.2 MB", date: "2 days ago", starred: true, shared: false },
+    { id: 4, name: "Company Logo.png", type: "image", size: "3.1 MB", date: "Nov 12", starred: false, shared: false },
+    { id: 5, name: "Financial Data.xlsx", type: "spreadsheet", size: "5.7 MB", date: "Nov 10", starred: false, shared: true },
+    { id: 6, name: "Design Assets.zip", type: "archive", size: "125.4 MB", date: "Nov 5", starred: true, shared: false },
+  ];
 
   useEffect(() => {
-    fetchUserFiles();
+    // Use demo data for now
+    setFiles(demoFiles);
+    setLoading(false);
   }, []);
-
-  const fetchUserFiles = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const token = localStorage.getItem("token");
-      
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
-
-      const response = await fetch(`${API_BASE}/api/upload`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-      });
-
-      const result = await response.json();
-      console.log("API Response:", result);
-
-      if (result.success) {
-        setFiles(result.files || []);
-      } else {
-        throw new Error(result.message || "Failed to load files");
-      }
-    } catch (error) {
-      console.error("Error fetching files:", error);
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Filter files based on search term
   const filteredFiles = files.filter(file => 
-    file.original_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    file.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    file.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDelete = async (fileId, fileName) => {
+  const handleDelete = (fileId, fileName) => {
     if (!window.confirm(`Are you sure you want to delete "${fileName}"?`)) {
       return;
     }
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE}/api/upload/${fileId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        alert("File deleted successfully");
-        fetchUserFiles();
-      } else {
-        alert(result.message || "Failed to delete file");
-      }
-    } catch (error) {
-      console.error("Error deleting file:", error);
-      alert("Error deleting file. Please try again.");
-    }
+    setFiles(files.filter(f => f.id !== fileId));
+    alert("File deleted successfully");
   };
 
-  const handleDownload = async (fileId, fileName) => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE}/api/upload/${fileId}/download`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      } else {
-        const result = await response.json();
-        alert(result.message || "Failed to download file");
-      }
-    } catch (error) {
-      console.error("Error downloading file:", error);
-      alert("Error downloading file. Please try again.");
-    }
+  const handleDownload = (fileId, fileName) => {
+    alert(`Downloading ${fileName}`);
   };
 
   const handleShareOpen = (file) => {
@@ -126,147 +56,77 @@ const MyFiles = () => {
     setSelectedFile(null);
   };
 
-  const formatFileSize = (bytes) => {
-    if (!bytes) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  const getFileIcon = (type) => {
+    const icons = {
+      pdf: "📄",
+      doc: "📝",
+      video: "🎬",
+      image: "🖼️",
+      spreadsheet: "📊",
+      archive: "📦",
+    };
+    return icons[type] || "📎";
   };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  const getFileIcon = (fileType) => {
-    if (!fileType) return "📄";
-    if (fileType.includes("pdf")) return "📕";
-    if (fileType.includes("word") || fileType.includes("document")) return "📘";
-    if (fileType.includes("spreadsheet") || fileType.includes("excel")) return "📊";
-    if (fileType.includes("text")) return "📃";
-    if (fileType.includes("image")) return "🖼️";
-    if (fileType.includes("video")) return "🎬";
-    if (fileType.includes("audio")) return "🎵";
-    if (fileType.includes("zip") || fileType.includes("archive")) return "📦";
-    return "📄";
-  };
-
-  // Add console logs for debugging
-  console.log("MyFiles component rendering...");
-  console.log("Loading:", loading);
-  console.log("Error:", error);
-  console.log("Files count:", files.length);
-  console.log("Filtered files count:", filteredFiles.length);
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '60px 20px',
-        textAlign: 'center',
-      }}>
-        <div style={{
-          width: '40px',
-          height: '40px',
-          border: '3px solid #f3f3f3',
-          borderTop: '3px solid #4285F4',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite',
-          marginBottom: '20px'
-        }}></div>
-        <p style={{ fontSize: '16px', color: '#5f6368' }}>Loading your files...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '40px 20px',
-        backgroundColor: '#fef2f2',
-        border: '1px solid #fecaca',
-        borderRadius: '12px',
-        textAlign: 'center',
-        margin: '20px',
-      }}>
-        <div style={{ fontSize: '48px', color: '#dc2626', marginBottom: '16px' }}>⚠️</div>
-        <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#991b1b', margin: '0 0 8px 0' }}>Error Loading Files</h3>
-        <p style={{ fontSize: '14px', color: '#b91c1c', margin: '0 0 20px 0', maxWidth: '400px' }}>{error}</p>
-        <button 
-          onClick={fetchUserFiles}
-          style={{
-            backgroundColor: '#dc2626',
-            color: 'white',
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '8px',
-            fontSize: '14px',
-            fontWeight: '500',
-            cursor: 'pointer',
-          }}
-        >
-          Try Again
-        </button>
+      <div style={styles.loadingContainer}>
+        <div style={styles.spinner}></div>
+        <p style={styles.loadingText}>Loading your files...</p>
       </div>
     );
   }
 
   return (
     <div style={styles.pageContainer}>
-      {/* Debug info - remove in production */}
-      <div style={{
-        position: 'fixed',
-        top: '60px',
-        right: '10px',
-        background: 'rgba(0,0,0,0.8)',
-        color: 'white',
-        padding: '10px',
-        borderRadius: '5px',
-        fontSize: '12px',
-        zIndex: 9999,
-      }}>
-        Files: {files.length} | Filtered: {filteredFiles.length}
-      </div>
-
       {/* Header */}
       <div style={styles.header}>
-        <div>
+        <div style={styles.headerLeft}>
           <h1 style={styles.title}>My Files</h1>
-          <p style={styles.subtitle}>
-            {files.length} files • {formatFileSize(files.reduce((sum, file) => sum + parseInt(file.file_size || 0), 0))} used
-          </p>
+          <div style={styles.filesStats}>
+            <span>{files.length} files • 4.7 GB used</span>
+          </div>
         </div>
-        <div style={styles.headerControls}>
-          <button
-            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-            style={styles.viewToggleButton}
-          >
-            {viewMode === 'grid' ? '📋 List View' : '📊 Grid View'}
-          </button>
+        
+        <div style={styles.headerRight}>
+          <div style={styles.viewControls}>
+            <button 
+              style={{
+                ...styles.viewBtn,
+                backgroundColor: viewMode === 'grid' ? 'white' : 'transparent',
+                color: viewMode === 'grid' ? '#4285F4' : '#5f6368',
+              }}
+              onClick={() => setViewMode('grid')}
+              title="Grid view"
+            >
+              <span style={{ fontSize: '18px' }}>◼️◼️</span>
+            </button>
+            <button 
+              style={{
+                ...styles.viewBtn,
+                backgroundColor: viewMode === 'list' ? 'white' : 'transparent',
+                color: viewMode === 'list' ? '#4285F4' : '#5f6368',
+              }}
+              onClick={() => setViewMode('list')}
+              title="List view"
+            >
+              <span style={{ fontSize: '18px' }}>☰</span>
+            </button>
+          </div>
+          
           <button
             onClick={() => navigate("/upload")}
             style={styles.uploadButton}
           >
-            📤 Upload New File
+            <span style={{ marginRight: '8px' }}>📤</span>
+            Upload New File
           </button>
         </div>
       </div>
 
       {/* Search */}
-      <div style={styles.searchContainer}>
-        <div style={styles.searchBox}>
+      <div style={styles.searchSection}>
+        <div style={styles.searchContainer}>
           <span style={styles.searchIcon}>🔍</span>
           <input
             type="text"
@@ -281,15 +141,15 @@ const MyFiles = () => {
       {/* Files Grid/List */}
       <div style={{
         ...styles.filesContainer,
-        display: viewMode === 'grid' ? 'grid' : 'flex',
-        flexDirection: viewMode === 'list' ? 'column' : 'row',
-        gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(280px, 1fr))' : 'none'
+        display: viewMode === 'grid' ? 'grid' : 'block',
+        gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(220px, 1fr))' : 'none',
+        overflowX: viewMode === 'list' ? 'hidden' : 'visible'
       }}>
         {filteredFiles.length === 0 ? (
           <div style={styles.emptyState}>
-            <div style={styles.emptyIcon}>📁</div>
+            <span style={{ fontSize: '48px' }}>📁</span>
             <h3 style={styles.emptyTitle}>No files found</h3>
-            <p style={styles.emptyMessage}>
+            <p style={styles.emptyText}>
               {searchTerm ? "No files match your search." : "You haven't uploaded any files yet."}
             </p>
             <button
@@ -302,59 +162,131 @@ const MyFiles = () => {
         ) : (
           filteredFiles.map((file) => (
             <div key={file.id} style={{
-              ...styles.fileCard,
+              ...styles.fileItem,
               flexDirection: viewMode === 'grid' ? 'column' : 'row',
-              alignItems: viewMode === 'grid' ? 'stretch' : 'center'
+              alignItems: viewMode === 'grid' ? 'stretch' : 'center',
+              minHeight: viewMode === 'grid' ? '200px' : 'auto',
+              padding: viewMode === 'grid' ? '16px' : '12px 16px',
+              width: viewMode === 'list' ? '100%' : 'auto',
+              maxWidth: viewMode === 'list' ? '100%' : 'none',
+              boxSizing: 'border-box'
             }}>
-              <div style={styles.fileIcon}>
-                <span style={styles.fileTypeIcon}>{getFileIcon(file.filetype)}</span>
-                <div style={styles.fileBadge}>
-                  {file.is_public ? "Public" : "Private"}
-                </div>
+              <div style={{
+                ...styles.fileIconContainer,
+                marginRight: viewMode === 'grid' ? '0' : '16px',
+                marginBottom: viewMode === 'grid' ? '12px' : '0',
+              }}>
+                <span style={styles.fileTypeIcon}>{getFileIcon(file.type)}</span>
+                {file.starred && (
+                  <span style={styles.fileStar}>
+                    ⭐
+                  </span>
+                )}
+                {file.shared && (
+                  <span style={styles.fileShared}>
+                    🔗
+                  </span>
+                )}
               </div>
               
-              <div style={styles.fileInfo}>
-                <h3 style={styles.fileName} title={file.original_name}>
-                  {file.original_name}
+              <div style={{
+                ...styles.fileInfo,
+                flex: viewMode === 'list' ? 1 : 'none',
+                minWidth: 0,
+                overflow: 'hidden'
+              }}>
+                <h3 style={{
+                  ...styles.fileName,
+                  whiteSpace: viewMode === 'list' ? 'nowrap' : 'normal',
+                  overflow: viewMode === 'list' ? 'hidden' : 'visible',
+                  textOverflow: viewMode === 'list' ? 'ellipsis' : 'clip'
+                }}>
+                  {file.name}
                 </h3>
-                <div style={styles.fileMeta}>
-                  <span style={styles.fileSize}>{formatFileSize(file.file_size)}</span>
-                  <span style={styles.fileDate}>{formatDate(file.uploaded_at)}</span>
+                <div style={{
+                  ...styles.fileMeta,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: viewMode === 'list' ? '12px' : '6px',
+                  flexWrap: viewMode === 'grid' ? 'wrap' : 'nowrap'
+                }}>
+                  <span style={{
+                    ...styles.fileTypeBadge,
+                    background: viewMode === 'list' ? 'none' : '#f1f3f4',
+                    padding: viewMode === 'list' ? '0' : '3px 8px',
+                    fontSize: viewMode === 'grid' ? '11px' : '12px'
+                  }}>
+                    {file.type.toUpperCase()}
+                  </span>
+                  <span style={styles.fileSize}>{file.size}</span>
+                  <span style={styles.fileDate}>{file.date}</span>
                 </div>
-                {file.document_type && (
-                  <span style={styles.fileType}>{file.document_type}</span>
-                )}
-                {file.owner && (
-                  <p style={styles.fileOwner}>By: {file.owner}</p>
-                )}
               </div>
               
-              <div style={styles.fileActions}>
+              <div style={{
+                ...styles.fileActions,
+                flexDirection: viewMode === 'grid' ? 'row' : 'row',
+                gap: viewMode === 'grid' ? '6px' : '8px',
+                marginTop: viewMode === 'grid' ? 'auto' : '0',
+                marginLeft: viewMode === 'list' ? '12px' : '0'
+              }}>
                 <button 
-                  onClick={() => handleDownload(file.id, file.original_name)}
-                  style={styles.actionButton}
-                  title="Download"
+                  onClick={() => {
+                    const updatedFiles = files.map(f => 
+                      f.id === file.id ? { ...f, starred: !f.starred } : f
+                    );
+                    setFiles(updatedFiles);
+                  }}
+                  style={{
+                    ...styles.actionBtn,
+                    color: file.starred ? '#FFD700' : '#5f6368',
+                    width: viewMode === 'grid' ? '32px' : '36px',
+                    height: viewMode === 'grid' ? '32px' : '36px',
+                    fontSize: viewMode === 'grid' ? '14px' : '16px'
+                  }}
+                  title={file.starred ? "Unstar" : "Star"}
                 >
-                  ⬇️
+                  {file.starred ? '★' : '☆'}
                 </button>
                 <button 
                   onClick={() => handleShareOpen(file)}
-                  style={styles.actionButton}
-                  title="Share"
+                  style={{
+                    ...styles.actionBtn,
+                    color: file.shared ? '#4285F4' : '#5f6368',
+                    width: viewMode === 'grid' ? '32px' : '36px',
+                    height: viewMode === 'grid' ? '32px' : '36px',
+                    fontSize: viewMode === 'grid' ? '14px' : '16px'
+                  }}
+                  title={file.shared ? "Shared" : "Share"}
                 >
                   🔗
                 </button>
                 <button 
-                  onClick={() => handleDelete(file.id, file.original_name)}
-                  style={{...styles.actionButton, color: '#ea4335'}}
-                  title="Delete"
+                  onClick={() => handleDownload(file.id, file.name)}
+                  style={{
+                    ...styles.actionBtn,
+                    width: viewMode === 'grid' ? '32px' : '36px',
+                    height: viewMode === 'grid' ? '32px' : '36px',
+                    fontSize: viewMode === 'grid' ? '14px' : '16px'
+                  }}
+                  title="Download"
                 >
-                  🗑️
+                  ⬇️
                 </button>
               </div>
             </div>
           ))
         )}
+      </div>
+
+      {/* Footer */}
+      <div style={styles.footer}>
+        <div style={styles.footerStats}>
+          Showing {filteredFiles.length} of {files.length} files
+          {searchTerm && (
+            <span style={styles.filteredText}> • Filtered</span>
+          )}
+        </div>
       </div>
 
       {/* Share Modal */}
@@ -367,165 +299,192 @@ const MyFiles = () => {
   );
 };
 
-// Simple inline styles
+// Styles
 const styles = {
   pageContainer: {
+    flex: 1,
     padding: '20px',
+    overflowX: 'hidden',
+    maxWidth: '100%',
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: '20px',
     flexWrap: 'wrap',
-    gap: '10px',
+    gap: '16px',
+  },
+  headerLeft: {
+    flex: 1,
+    minWidth: '200px',
+  },
+  headerRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    flexWrap: 'wrap',
   },
   title: {
     fontSize: '24px',
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#202124',
     margin: '0 0 4px 0',
   },
-  subtitle: {
+  filesStats: {
     fontSize: '14px',
     color: '#5f6368',
-    margin: '0',
   },
-  headerControls: {
+  viewControls: {
     display: 'flex',
-    gap: '10px',
-    alignItems: 'center',
-  },
-  viewToggleButton: {
-    padding: '8px 16px',
+    gap: '4px',
     backgroundColor: '#f8f9fa',
+    padding: '4px',
+    borderRadius: '8px',
+    border: '1px solid #dadce0',
+  },
+  viewBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '36px',
+    height: '36px',
     border: '1px solid #dadce0',
     borderRadius: '6px',
-    color: '#5f6368',
+    background: 'none',
     cursor: 'pointer',
+    fontSize: '18px',
   },
   uploadButton: {
     backgroundColor: '#4285F4',
     color: 'white',
     border: 'none',
     padding: '10px 16px',
-    borderRadius: '6px',
-    cursor: 'pointer',
+    borderRadius: '8px',
+    fontSize: '14px',
     fontWeight: '500',
-  },
-  searchContainer: {
-    marginBottom: '20px',
-  },
-  searchBox: {
+    cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    whiteSpace: 'nowrap',
+  },
+  searchSection: {
+    marginBottom: '20px',
+  },
+  searchContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    backgroundColor: '#f1f3f4',
     borderRadius: '8px',
     padding: '10px 16px',
-    border: '1px solid #dadce0',
   },
   searchIcon: {
     marginRight: '10px',
-    color: '#5f6368',
+    fontSize: '16px',
   },
   searchInput: {
     flex: 1,
     border: 'none',
     backgroundColor: 'transparent',
     fontSize: '14px',
-    outline: 'none',
     color: '#202124',
+    outline: 'none',
+    minWidth: 0,
   },
   filesContainer: {
-    gap: '16px',
+    gap: '12px',
+    maxWidth: '100%',
+    boxSizing: 'border-box',
   },
-  fileCard: {
+  fileItem: {
     backgroundColor: 'white',
     border: '1px solid #e0e0e0',
     borderRadius: '10px',
-    padding: '16px',
     display: 'flex',
     transition: 'all 0.2s',
+    boxSizing: 'border-box',
+    overflow: 'hidden',
+    '&:hover': {
+      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+      borderColor: '#4285F4',
+    },
   },
-  fileIcon: {
-    marginRight: '16px',
+  fileIconContainer: {
+    position: 'relative',
     display: 'flex',
-    flexDirection: 'column',
+    justifyContent: 'center',
     alignItems: 'center',
+    flexShrink: 0,
   },
   fileTypeIcon: {
-    fontSize: '40px',
-    marginBottom: '8px',
+    fontSize: '32px',
   },
-  fileBadge: {
+  fileStar: {
+    position: 'absolute',
+    top: '-4px',
+    right: '-4px',
+    fontSize: '12px',
+    color: '#FFD700',
+    backgroundColor: 'white',
+    borderRadius: '50%',
+    padding: '1px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+  },
+  fileShared: {
+    position: 'absolute',
+    bottom: '-2px',
+    right: '-2px',
     fontSize: '10px',
-    fontWeight: 'bold',
-    padding: '4px 8px',
-    borderRadius: '12px',
-    backgroundColor: '#e8f0fe',
     color: '#4285F4',
+    backgroundColor: 'white',
+    borderRadius: '50%',
+    padding: '1px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
   },
   fileInfo: {
-    flex: 1,
+    minWidth: 0,
   },
   fileName: {
-    fontSize: '16px',
+    fontSize: '14px',
     fontWeight: '600',
     color: '#202124',
     margin: '0 0 8px 0',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
   },
   fileMeta: {
-    display: 'flex',
-    gap: '10px',
-    marginBottom: '8px',
+    marginBottom: '4px',
+  },
+  fileTypeBadge: {
+    fontSize: '11px',
+    fontWeight: '500',
+    color: '#4285F4',
+    borderRadius: '10px',
   },
   fileSize: {
     fontSize: '12px',
     color: '#5f6368',
-    backgroundColor: '#f1f3f4',
-    padding: '2px 8px',
-    borderRadius: '12px',
   },
   fileDate: {
     fontSize: '12px',
     color: '#5f6368',
-    backgroundColor: '#f1f3f4',
-    padding: '2px 8px',
-    borderRadius: '12px',
-  },
-  fileType: {
-    fontSize: '12px',
-    color: '#4285F4',
-    backgroundColor: '#e8f0fe',
-    padding: '2px 8px',
-    borderRadius: '12px',
-    display: 'inline-block',
-  },
-  fileOwner: {
-    fontSize: '12px',
-    color: '#5f6368',
-    marginTop: '8px',
   },
   fileActions: {
     display: 'flex',
-    gap: '8px',
-    alignItems: 'center',
+    flexShrink: 0,
   },
-  actionButton: {
-    width: '36px',
-    height: '36px',
+  actionBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     border: '1px solid #dadce0',
     borderRadius: '6px',
     backgroundColor: 'white',
     color: '#5f6368',
     cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '16px',
+    '&:hover': {
+      backgroundColor: '#f8f9fa',
+      borderColor: '#4285F4',
+      color: '#4285F4',
+    },
   },
   emptyState: {
     display: 'flex',
@@ -538,23 +497,64 @@ const styles = {
     borderRadius: '12px',
     textAlign: 'center',
     gridColumn: '1 / -1',
-  },
-  emptyIcon: {
-    fontSize: '48px',
-    color: '#dadce0',
-    marginBottom: '16px',
+    marginTop: '20px',
   },
   emptyTitle: {
     fontSize: '18px',
     fontWeight: '600',
     color: '#202124',
-    margin: '0 0 8px 0',
+    margin: '16px 0 8px 0',
   },
-  emptyMessage: {
+  emptyText: {
     fontSize: '14px',
     color: '#5f6368',
     margin: '0 0 20px 0',
+    maxWidth: '300px',
+  },
+  footer: {
+    marginTop: '20px',
+    paddingTop: '16px',
+    borderTop: '1px solid #e0e0e0',
+  },
+  footerStats: {
+    fontSize: '14px',
+    color: '#5f6368',
+    textAlign: 'center',
+  },
+  filteredText: {
+    color: '#4285F4',
+    fontStyle: 'italic',
+  },
+  loadingContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '60px 20px',
+    textAlign: 'center',
+  },
+  spinner: {
+    width: '40px',
+    height: '40px',
+    border: '3px solid #f3f3f3',
+    borderTop: '3px solid #4285F4',
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite',
+    marginBottom: '20px',
+  },
+  loadingText: {
+    fontSize: '16px',
+    color: '#5f6368',
   },
 };
+
+// Add CSS animation
+const styleSheet = document.styleSheets[0];
+styleSheet.insertRule(`
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`, styleSheet.cssRules.length);
 
 export default MyFiles;
