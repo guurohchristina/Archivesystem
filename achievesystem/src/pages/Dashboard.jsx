@@ -779,7 +779,7 @@ const styles = {
     flexDirection: 'column',
     position: 'fixed',
     left: 0,
-    top: '20px',
+    marginTop:'100px',
     bottom: 0,
     overflowY: 'auto',
     zIndex: 1000,
