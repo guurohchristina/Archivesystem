@@ -757,7 +757,8 @@ const styles = {
     display: 'flex',
     minHeight: '100vh',
     backgroundColor: '#f8f9fa',
-    position: 'relative',
+    position: 'fixed',
+    marginTop:'120px'
     
     
   },
