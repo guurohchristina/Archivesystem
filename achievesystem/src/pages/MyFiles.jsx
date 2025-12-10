@@ -1749,12 +1749,13 @@ const styles = {
 };
 
 // Add CSS animation
+/*
 const styleSheet = document.styleSheets[0];
 styleSheet.insertRule(`
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
-`, styleSheet.cssRules.length);
+`, styleSheet.cssRules.length);*/
 
 export default MyFiles;
