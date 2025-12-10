@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 
 
-import MyFilesContent from "./my-files"; // This will be your original dashboard content
+import MyFilesContent from "./MyFiles"; // This will be your original dashboard content
 import UploadContent from "./Upload";
 import SharedContent from "./SharedwithMe";
 
@@ -75,7 +75,7 @@ const Dashboard = () => {
   
 
   // Set active nav based on route
-  /*
+  
   useEffect(() => {
     const path = location.pathname;
     if (path.includes("/upload")) setActiveNav("upload");
@@ -88,7 +88,7 @@ const Dashboard = () => {
     { id: "upload", label: "Upload", icon: <Upload size={20} />, path: "/upload" },
     { id: "my-files", label: "My Files", icon: <Folder size={20} />, path: "/my-files" },
     { id: "shared", label: "Shared", icon: <Users size={20} />, path: "/shared" },
-  ];*/
+  ];
   
   
   
