@@ -27,9 +27,9 @@ import {
 } from "lucide-react";
 
 
-import MyFilesContent from "./MyFiles.jsx"; // This will be your original dashboard content
-import UploadContent from "./Upload.jsx";
-import SharedContent from "./SharedwithMe.jsx";
+import MyFilesContent from "./MyFiles"; // This will be your original dashboard content
+import UploadContent from "./Upload";
+import SharedContent from "./SharedwithMe";
 
 
 
