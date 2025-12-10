@@ -87,7 +87,7 @@ const Dashboard = () => {
   const navItems = [
     { id: "upload", label: "Upload", icon: <Upload size={20} />, path: "/upload" },
     { id: "my-files", label: "My Files", icon: <Folder size={20} />, path: "/my-files" },
-    { id: "shared", label: "Shared", icon: <Users size={20} />, path: "/shared" },
+    { id: "shared", label: "Shared", icon: <Users size={20} />, path: "/shared-files" },
   ];
   
   

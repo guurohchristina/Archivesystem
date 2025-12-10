@@ -43,6 +43,12 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           
           
+          <Route path="/my-files" element={<Dashboard />} />
+          <Route path="/upload" element={<Dashboard />} />
+          <Route path="/shared-files" element={<Dashboard />} />
+          <Route path="/profile" element={<Dashboard />} />
+          
+          
          
          
           
