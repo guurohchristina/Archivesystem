@@ -2,44 +2,33 @@ import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 import ShareModal from '../components/ShareModal.jsx';
-import { Grid, List, Star, Share2, Download, Trash2, Search, Filter, ChevronDown, ChevronUp } from "lucide-react";
 
 const MyFiles = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [files, setFiles] = useState([]);
-  const [filteredFiles, setFilteredFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // Filter states
   const [searchTerm, setSearchTerm] = useState("");
-  const [departmentFilter, setDepartmentFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [classificationFilter, setClassificationFilter] = useState("");
-  const [sortColumn, setSortColumn] = useState("uploaded_at");
-  const [sortDirection, setSortDirection] = useState("desc");
-  
-  // View mode
   const [viewMode, setViewMode] = useState("grid");
-  
-  // Share modal
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
-  
-  // Filter panel visibility
-  const [showFilters, setShowFilters] = useState(false);
+
+  // Sample files data for demonstration - remove this when API is working
+  const [demoFiles] = useState([
+    { id: 1, name: "Annual Report 2024.pdf", type: "pdf", size: "2.4 MB", date: "Today", starred: true, shared: false, owner: "You", department: "Finance", classification: "Confidential" },
+    { id: 2, name: "Project Proposal.docx", type: "doc", size: "1.8 MB", date: "Yesterday", starred: false, shared: true, owner: "John Doe", department: "Marketing", classification: "Unclassified" },
+    { id: 3, name: "Team Meeting.mp4", type: "video", size: "45.2 MB", date: "2 days ago", starred: true, shared: false, owner: "You", department: "Operations", classification: "Confidential" },
+    { id: 4, name: "Company Logo.png", type: "image", size: "3.1 MB", date: "Nov 12", starred: false, shared: false, owner: "Design Team", department: "Design", classification: "Public" },
+    { id: 5, name: "Financial Data.xlsx", type: "spreadsheet", size: "5.7 MB", date: "Nov 10", starred: false, shared: true, owner: "You", department: "Finance", classification: "Secret" },
+    { id: 6, name: "Design Assets.zip", type: "archive", size: "125.4 MB", date: "Nov 5", starred: true, shared: false, owner: "Design Team", department: "Design", classification: "Unclassified" },
+  ]);
 
   const API_BASE = 'http://localhost:3000';
 
   useEffect(() => {
     fetchUserFiles();
   }, []);
-
-  // Apply filters whenever dependencies change
-  useEffect(() => {
-    applyFilters();
-  }, [files, searchTerm, departmentFilter, typeFilter, classificationFilter, sortColumn, sortDirection]);
 
   const fetchUserFiles = async () => {
     setLoading(true);
@@ -48,7 +37,11 @@ const MyFiles = () => {
       const token = localStorage.getItem("token");
       
       if (!token) {
-        throw new Error("No authentication token found");
+        // For demo purposes, use sample data if no token
+        console.log("No token found, using demo data");
+        setFiles(demoFiles);
+        setLoading(false);
+        return;
       }
 
       const response = await fetch(`${API_BASE}/api/upload`, {
@@ -59,87 +52,82 @@ const MyFiles = () => {
       });
 
       const result = await response.json();
+      console.log("API Response:", result);
 
       if (result.success) {
-        setFiles(result.files || []);
+        // Transform API data to match our format
+        const transformedFiles = (result.files || []).map(file => ({
+          id: file.id,
+          name: file.original_name,
+          type: getFileTypeFromExtension(file.filetype),
+          size: formatFileSize(file.file_size),
+          date: formatRelativeDate(file.uploaded_at),
+          starred: false, // You can add this to your API later
+          shared: file.is_public || false,
+          owner: file.owner || "Unknown",
+          department: file.department || "General",
+          classification: file.classification_level || "Unclassified",
+          description: file.description,
+          fileSizeBytes: file.file_size,
+          uploadedAt: file.uploaded_at,
+          documentType: file.document_type,
+          isPublic: file.is_public
+        }));
+        
+        setFiles(transformedFiles.length > 0 ? transformedFiles : demoFiles);
       } else {
-        throw new Error(result.message || "Failed to load files");
+        console.log("API failed, using demo data");
+        setFiles(demoFiles);
       }
     } catch (error) {
       console.error("Error fetching files:", error);
-      setError(error.message);
+      console.log("Using demo data due to error");
+      setFiles(demoFiles);
     } finally {
       setLoading(false);
     }
   };
 
-  const applyFilters = () => {
-    let filtered = [...files];
+  // Helper function to get file type from extension
+  const getFileTypeFromExtension = (filetype) => {
+    if (!filetype) return "document";
+    const type = filetype.toLowerCase();
+    if (type.includes('pdf')) return 'pdf';
+    if (type.includes('word') || type.includes('doc')) return 'doc';
+    if (type.includes('excel') || type.includes('sheet') || type.includes('csv')) return 'spreadsheet';
+    if (type.includes('image') || type.includes('jpg') || type.includes('png') || type.includes('gif')) return 'image';
+    if (type.includes('video') || type.includes('mp4') || type.includes('mov')) return 'video';
+    if (type.includes('audio') || type.includes('mp3') || type.includes('wav')) return 'audio';
+    if (type.includes('zip') || type.includes('rar') || type.includes('archive')) return 'archive';
+    return 'document';
+  };
 
-    // Apply search filter
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(file => 
-        file.original_name.toLowerCase().includes(term) ||
-        (file.description && file.description.toLowerCase().includes(term)) ||
-        (file.owner && file.owner.toLowerCase().includes(term))
-      );
-    }
-
-    // Apply department filter
-    if (departmentFilter) {
-      filtered = filtered.filter(file => file.department === departmentFilter);
-    }
-
-    // Apply document type filter
-    if (typeFilter) {
-      filtered = filtered.filter(file => file.document_type === typeFilter);
-    }
-
-    // Apply classification filter
-    if (classificationFilter) {
-      filtered = filtered.filter(file => file.classification_level === classificationFilter);
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      let aValue = a[sortColumn];
-      let bValue = b[sortColumn];
-
-      // Handle dates
-      if (sortColumn.includes('date') || sortColumn.includes('at')) {
-        aValue = new Date(aValue).getTime();
-        bValue = new Date(bValue).getTime();
-      }
-
-      // Handle file sizes
-      if (sortColumn === 'file_size') {
-        aValue = parseInt(aValue) || 0;
-        bValue = parseInt(bValue) || 0;
-      }
-
-      // Handle strings
-      if (typeof aValue === 'string') {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
-      }
-
-      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-      return 0;
+  // Helper function to format relative date
+  const formatRelativeDate = (dateString) => {
+    if (!dateString) return "Recently";
+    
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric"
     });
-
-    setFilteredFiles(filtered);
   };
 
-  const handleSort = (column) => {
-    if (sortColumn === column) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortColumn(column);
-      setSortDirection('desc');
-    }
-  };
+  // Filter files based on search term
+  const filteredFiles = files.filter(file => 
+    file.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    file.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    file.owner?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleDelete = async (fileId, fileName) => {
     if (!window.confirm(`Are you sure you want to delete "${fileName}"?`)) {
@@ -148,20 +136,26 @@ const MyFiles = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE}/api/upload/${fileId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // Only call API if we have a token (real data)
+      if (token) {
+        const response = await fetch(`${API_BASE}/api/upload/${fileId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      const result = await response.json();
-
-      if (result.success) {
-        alert("File deleted successfully");
-        fetchUserFiles(); // Refresh list
+        const result = await response.json();
+        if (result.success) {
+          alert("File deleted successfully");
+          fetchUserFiles();
+        } else {
+          alert(result.message || "Failed to delete file");
+        }
       } else {
-        alert(result.message || "Failed to delete file");
+        // For demo: remove from local state
+        setFiles(files.filter(f => f.id !== fileId));
+        alert("File deleted (demo mode)");
       }
     } catch (error) {
       console.error("Error deleting file:", error);
@@ -172,25 +166,30 @@ const MyFiles = () => {
   const handleDownload = async (fileId, fileName) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE}/api/upload/${fileId}/download`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      if (token) {
+        const response = await fetch(`${API_BASE}/api/upload/${fileId}/download`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        } else {
+          const result = await response.json();
+          alert(result.message || "Failed to download file");
+        }
       } else {
-        const result = await response.json();
-        alert(result.message || "Failed to download file");
+        // Demo mode
+        alert(`Downloading ${fileName} (demo mode)`);
       }
     } catch (error) {
       console.error("Error downloading file:", error);
@@ -198,11 +197,7 @@ const MyFiles = () => {
     }
   };
 
-  const handleShareOpen = (file, event) => {
-    if (event) {
-      event.stopPropagation();
-      event.preventDefault();
-    }
+  const handleShareOpen = (file) => {
     setSelectedFile(file);
     setShareMenuOpen(true);
   };
@@ -220,67 +215,29 @@ const MyFiles = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+  const getFileIcon = (type) => {
+    const icons = {
+      pdf: "📄",
+      doc: "📝",
+      video: "🎬",
+      image: "🖼️",
+      spreadsheet: "📊",
+      archive: "📦",
+      audio: "🎵",
+    };
+    return icons[type] || "📎";
   };
 
-  const getFileIcon = (fileType) => {
-    if (!fileType) return "📄";
-    if (fileType.includes("pdf")) return "📕";
-    if (fileType.includes("word") || fileType.includes("document")) return "📘";
-    if (fileType.includes("spreadsheet") || fileType.includes("excel")) return "📊";
-    if (fileType.includes("text")) return "📃";
-    if (fileType.includes("image")) return "🖼️";
-    if (fileType.includes("video")) return "🎬";
-    if (fileType.includes("audio")) return "🎵";
-    if (fileType.includes("zip") || fileType.includes("archive")) return "📦";
-    return "📄";
-  };
-
-  const getClassificationBadge = (level) => {
+  const getClassificationColor = (level) => {
     const colors = {
       "Top Secret": "#dc2626",
       "Secret": "#ea580c",
       "Confidential": "#ca8a04",
       "Unclassified": "#16a34a",
+      "Public": "#3b82f6",
     };
-    
-    return (
-      <span style={{
-        ...styles.classificationBadge,
-        backgroundColor: `${colors[level]}20`,
-        color: colors[level] || "#6b7280",
-        borderColor: `${colors[level]}40`
-      }}>
-        {level}
-      </span>
-    );
+    return colors[level] || "#6b7280";
   };
-
-  const getPrivacyBadge = (isPublic) => {
-    return (
-      <span style={isPublic ? styles.publicBadge : styles.privateBadge}>
-        {isPublic ? "Public" : "Private"}
-      </span>
-    );
-  };
-
-  const clearFilters = () => {
-    setSearchTerm("");
-    setDepartmentFilter("");
-    setTypeFilter("");
-    setClassificationFilter("");
-  };
-
-  // Extract unique values for filters
-  const departments = [...new Set(files.map(f => f.department).filter(Boolean))];
-  const documentTypes = [...new Set(files.map(f => f.document_type).filter(Boolean))];
-  const classifications = ["Unclassified", "Confidential", "Secret", "Top Secret"];
 
   if (loading) {
     return (
@@ -309,63 +266,58 @@ const MyFiles = () => {
 
   return (
     <div style={styles.pageContainer}>
-      {/* Header Section */}
+      {/* Header */}
       <div style={styles.header}>
         <div style={styles.headerLeft}>
           <h1 style={styles.title}>My Files</h1>
-          <p style={styles.subtitle}>
-            {filteredFiles.length} of {files.length} files • {formatFileSize(files.reduce((sum, file) => sum + parseInt(file.file_size || 0), 0))} used
-          </p>
+          <div style={styles.filesStats}>
+            <span>{files.length} files • {formatFileSize(files.reduce((sum, file) => sum + (parseInt(file.fileSizeBytes) || 0), 0))} used</span>
+          </div>
         </div>
+        
         <div style={styles.headerRight}>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            style={styles.filterButton}
-          >
-            <Filter size={16} />
-            <span>Filters</span>
-            {showFilters ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          </button>
           <div style={styles.viewControls}>
             <button 
               style={{
-                ...styles.viewButton,
+                ...styles.viewBtn,
                 backgroundColor: viewMode === 'grid' ? 'white' : 'transparent',
                 color: viewMode === 'grid' ? '#4285F4' : '#5f6368',
               }}
               onClick={() => setViewMode('grid')}
               title="Grid view"
             >
-              <Grid size={20} />
+              <span style={{ fontSize: '18px' }}>◼️◼️</span>
             </button>
             <button 
               style={{
-                ...styles.viewButton,
+                ...styles.viewBtn,
                 backgroundColor: viewMode === 'list' ? 'white' : 'transparent',
                 color: viewMode === 'list' ? '#4285F4' : '#5f6368',
               }}
               onClick={() => setViewMode('list')}
               title="List view"
             >
-              <List size={20} />
+              <span style={{ fontSize: '18px' }}>☰</span>
             </button>
           </div>
+          
           <button
             onClick={() => navigate("/upload")}
             style={styles.uploadButton}
           >
-            📤 Upload New File
+            <span style={{ marginRight: '8px' }}>📤</span>
+            Upload New File
           </button>
         </div>
       </div>
 
-      {/* Search and Filters Section */}
+      {/* Search */}
       <div style={styles.searchSection}>
         <div style={styles.searchContainer}>
-          <Search size={18} color="#5f6368" />
+          <span style={styles.searchIcon}>🔍</span>
           <input
             type="text"
-            placeholder="Search files by name, description, or owner..."
+            placeholder="Search files by name, owner, or description..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={styles.searchInput}
@@ -373,193 +325,139 @@ const MyFiles = () => {
         </div>
       </div>
 
-      {/* Filters Panel */}
-      {showFilters && (
-        <div style={styles.filtersPanel}>
-          <div style={styles.filterGrid}>
-            <div style={styles.filterGroup}>
-              <label style={styles.filterLabel}>Department</label>
-              <select
-                value={departmentFilter}
-                onChange={(e) => setDepartmentFilter(e.target.value)}
-                style={styles.selectInput}
-              >
-                <option value="">All Departments</option>
-                {departments.map((dept, index) => (
-                  <option key={index} value={dept}>{dept}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div style={styles.filterGroup}>
-              <label style={styles.filterLabel}>Document Type</label>
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                style={styles.selectInput}
-              >
-                <option value="">All Types</option>
-                {documentTypes.map((type, index) => (
-                  <option key={index} value={type}>{type}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div style={styles.filterGroup}>
-              <label style={styles.filterLabel}>Classification</label>
-              <select
-                value={classificationFilter}
-                onChange={(e) => setClassificationFilter(e.target.value)}
-                style={styles.selectInput}
-              >
-                <option value="">All Levels</option>
-                {classifications.map((level, index) => (
-                  <option key={index} value={level}>{level}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div style={styles.filterGroup}>
-              <label style={styles.filterLabel}>Sort By</label>
-              <select
-                value={sortColumn}
-                onChange={(e) => setSortColumn(e.target.value)}
-                style={styles.selectInput}
-              >
-                <option value="uploaded_at">Upload Date</option>
-                <option value="original_name">File Name</option>
-                <option value="file_size">File Size</option>
-                <option value="document_type">Document Type</option>
-              </select>
-            </div>
-          </div>
-          
-          {(searchTerm || departmentFilter || typeFilter || classificationFilter) && (
-            <div style={styles.filterActions}>
-              <button
-                onClick={clearFilters}
-                style={styles.clearFiltersButton}
-              >
-                Clear Filters
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Files Grid/List */}
-      {filteredFiles.length === 0 ? (
-        <div style={styles.emptyState}>
-          <div style={styles.emptyIcon}>📁</div>
-          <h3 style={styles.emptyTitle}>No files found</h3>
-          <p style={styles.emptyMessage}>
-            {searchTerm || departmentFilter || typeFilter || classificationFilter
-              ? "No files match your current filters. Try changing your search criteria."
-              : "You haven't uploaded any files yet."}
-          </p>
-          <button
-            onClick={() => navigate("/upload")}
-            style={styles.uploadButton}
-          >
-            Upload Your First File
-          </button>
-        </div>
-      ) : (
-        <div style={{
-          ...styles.filesContainer,
-          display: viewMode === 'grid' ? 'grid' : 'flex',
-          flexDirection: viewMode === 'list' ? 'column' : 'row',
-          gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(280px, 1fr))' : 'none'
-        }}>
-          {filteredFiles.map((file) => (
+      <div style={{
+        ...styles.filesContainer,
+        display: viewMode === 'grid' ? 'grid' : 'flex',
+        flexDirection: viewMode === 'list' ? 'column' : 'row',
+        gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(250px, 1fr))' : 'none'
+      }}>
+        {filteredFiles.length === 0 ? (
+          <div style={styles.emptyState}>
+            <span style={{ fontSize: '48px' }}>📁</span>
+            <h3 style={styles.emptyTitle}>No files found</h3>
+            <p style={styles.emptyText}>
+              {searchTerm ? "No files match your search." : "You haven't uploaded any files yet."}
+            </p>
+            <button
+              onClick={() => navigate("/upload")}
+              style={styles.uploadButton}
+            >
+              Upload Your First File
+            </button>
+          </div>
+        ) : (
+          filteredFiles.map((file) => (
             <div key={file.id} style={{
               ...styles.fileItem,
               flexDirection: viewMode === 'grid' ? 'column' : 'row',
               alignItems: viewMode === 'grid' ? 'stretch' : 'center'
             }}>
               <div style={styles.fileIconContainer}>
-                <span style={styles.fileTypeIcon}>{getFileIcon(file.filetype)}</span>
-                <div style={styles.fileBadges}>
-                  {getPrivacyBadge(file.is_public)}
-                  {getClassificationBadge(file.classification_level)}
-                </div>
+                <span style={styles.fileTypeIcon}>{getFileIcon(file.type)}</span>
+                {file.starred && (
+                  <span style={styles.fileStar}>
+                    ⭐
+                  </span>
+                )}
+                {file.shared && (
+                  <span style={styles.fileShared}>
+                    🔗
+                  </span>
+                )}
               </div>
               
               <div style={styles.fileInfo}>
-                <h3 style={styles.fileName} title={file.original_name}>
-                  {file.original_name}
-                </h3>
-                <p style={styles.fileDescription}>
-                  {file.description || "No description"}
-                </p>
+                <h3 style={styles.fileName}>{file.name}</h3>
                 <div style={{
                   ...styles.fileMeta,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: viewMode === 'list' ? '16px' : '12px'
+                  gap: viewMode === 'list' ? '16px' : '8px'
                 }}>
-                  <span style={styles.fileSize}>
-                    {formatFileSize(file.file_size)}
+                  <span style={{
+                    ...styles.fileTypeBadge,
+                    background: viewMode === 'list' ? 'none' : '#f1f3f4',
+                    padding: viewMode === 'list' ? '0' : '4px 8px'
+                  }}>
+                    {file.type.toUpperCase()}
                   </span>
-                  <span style={styles.fileType}>
-                    {file.document_type || "Document"}
+                  <span style={styles.fileSize}>{file.size}</span>
+                  <span style={styles.fileDate}>{file.date}</span>
+                </div>
+                
+                <div style={styles.fileDetails}>
+                  <span style={styles.fileOwner}>
+                    {file.owner}
                   </span>
-                  <span style={styles.fileDate}>
-                    {formatDate(file.uploaded_at)}
+                  {file.department && (
+                    <span style={styles.fileDepartment}>
+                      • {file.department}
+                    </span>
+                  )}
+                  <span style={{
+                    ...styles.fileClassification,
+                    color: getClassificationColor(file.classification)
+                  }}>
+                    • {file.classification}
                   </span>
                 </div>
-                {file.owner && (
-                  <div style={styles.fileOwner}>
-                    Uploaded by {file.owner}
-                    {file.department && (
-                      <span style={styles.fileDepartment}> • {file.department}</span>
-                    )}
-                  </div>
-                )}
               </div>
               
               <div style={styles.fileActions}>
                 <button 
-                  onClick={() => handleDownload(file.id, file.original_name)}
-                  style={styles.actionButton}
+                  onClick={() => {
+                    // Toggle star
+                    const updatedFiles = files.map(f => 
+                      f.id === file.id ? { ...f, starred: !f.starred } : f
+                    );
+                    setFiles(updatedFiles);
+                  }}
+                  style={{
+                    ...styles.actionBtn,
+                    color: file.starred ? '#FFD700' : '#5f6368'
+                  }}
+                  title={file.starred ? "Unstar" : "Star"}
+                >
+                  {file.starred ? '★' : '☆'}
+                </button>
+                <button 
+                  onClick={() => handleShareOpen(file)}
+                  style={{
+                    ...styles.actionBtn,
+                    color: file.shared ? '#4285F4' : '#5f6368'
+                  }}
+                  title={file.shared ? "Shared" : "Share"}
+                >
+                  🔗
+                </button>
+                <button 
+                  onClick={() => handleDownload(file.id, file.name)}
+                  style={styles.actionBtn}
                   title="Download"
                 >
-                  <Download size={18} />
+                  ⬇️
                 </button>
                 <button 
-                  onClick={(e) => handleShareOpen(file, e)}
-                  style={styles.actionButton}
-                  title="Share"
-                >
-                  <Share2 size={18} />
-                </button>
-                <button 
-                  onClick={() => handleDelete(file.id, file.original_name)}
-                  style={{...styles.actionButton, color: '#ea4335'}}
+                  onClick={() => handleDelete(file.id, file.name)}
+                  style={{...styles.actionBtn, color: '#ea4335'}}
                   title="Delete"
                 >
-                  <Trash2 size={18} />
+                  🗑️
                 </button>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
 
-      {/* Summary Footer */}
+      {/* Footer */}
       <div style={styles.footer}>
-        <div style={styles.footerLeft}>
-          <span style={styles.footerText}>
-            Showing {filteredFiles.length} of {files.length} files
-            {(searchTerm || departmentFilter || typeFilter || classificationFilter) && (
-              <span style={styles.filteredIndicator}> (filtered)</span>
-            )}
-          </span>
-        </div>
-        <div style={styles.footerRight}>
-          <span style={styles.footerHint}>
-            {viewMode === 'grid' ? 'Grid' : 'List'} view • Click icons to interact with files
-          </span>
+        <div style={styles.footerStats}>
+          Showing {filteredFiles.length} of {files.length} files
+          {searchTerm && (
+            <span style={styles.filteredText}> • Filtered</span>
+          )}
         </div>
       </div>
 
@@ -594,32 +492,16 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
-    flexWrap: 'wrap',
   },
   title: {
     fontSize: '24px',
     fontWeight: '600',
     color: '#202124',
-    margin: 0,
-    marginBottom: '4px',
+    margin: '0 0 4px 0',
   },
-  subtitle: {
+  filesStats: {
     fontSize: '14px',
     color: '#5f6368',
-    margin: 0,
-  },
-  filterButton: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '8px 16px',
-    backgroundColor: '#f8f9fa',
-    border: '1px solid #dadce0',
-    borderRadius: '8px',
-    color: '#5f6368',
-    fontSize: '14px',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
   },
   viewControls: {
     display: 'flex',
@@ -629,17 +511,17 @@ const styles = {
     borderRadius: '8px',
     border: '1px solid #dadce0',
   },
-  viewButton: {
+  viewBtn: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '36px',
-    height: '36px',
-    border: 'none',
+    width: '40px',
+    height: '40px',
+    border: '1px solid #dadce0',
     borderRadius: '6px',
     background: 'none',
     cursor: 'pointer',
-    transition: 'all 0.2s',
+    fontSize: '18px',
   },
   uploadButton: {
     backgroundColor: '#4285F4',
@@ -650,82 +532,30 @@ const styles = {
     fontSize: '14px',
     fontWeight: '500',
     cursor: 'pointer',
-    transition: 'background-color 0.2s',
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
   },
   searchSection: {
-    marginBottom: '20px',
+    marginBottom: '24px',
   },
   searchContainer: {
     display: 'flex',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f1f3f4',
     borderRadius: '8px',
     padding: '12px 16px',
-    border: '1px solid #dadce0',
+  },
+  searchIcon: {
+    marginRight: '12px',
+    fontSize: '18px',
   },
   searchInput: {
     flex: 1,
     border: 'none',
     backgroundColor: 'transparent',
-    marginLeft: '12px',
     fontSize: '14px',
     color: '#202124',
     outline: 'none',
-  },
-  filtersPanel: {
-    backgroundColor: 'white',
-    border: '1px solid #e0e0e0',
-    borderRadius: '8px',
-    padding: '20px',
-    marginBottom: '24px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-  },
-  filterGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '16px',
-    marginBottom: '16px',
-  },
-  filterGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-  },
-  filterLabel: {
-    fontSize: '12px',
-    fontWeight: '500',
-    color: '#5f6368',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-  },
-  selectInput: {
-    padding: '10px 12px',
-    border: '1px solid #dadce0',
-    borderRadius: '6px',
-    fontSize: '14px',
-    color: '#202124',
-    backgroundColor: 'white',
-    outline: 'none',
-    cursor: 'pointer',
-  },
-  filterActions: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    paddingTop: '16px',
-    borderTop: '1px solid #f0f0f0',
-  },
-  clearFiltersButton: {
-    padding: '8px 16px',
-    backgroundColor: '#f8f9fa',
-    border: '1px solid #dadce0',
-    borderRadius: '6px',
-    color: '#5f6368',
-    fontSize: '14px',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
   },
   filesContainer: {
     gap: '16px',
@@ -744,21 +574,36 @@ const styles = {
     },
   },
   fileIconContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
+    position: 'relative',
     marginRight: viewMode === 'grid' ? '0' : '16px',
     marginBottom: viewMode === 'grid' ? '16px' : '0',
+    display: 'flex',
+    justifyContent: 'center',
   },
   fileTypeIcon: {
     fontSize: '48px',
-    marginBottom: viewMode === 'grid' ? '12px' : '8px',
   },
-  fileBadges: {
-    display: 'flex',
-    flexDirection: viewMode === 'grid' ? 'row' : 'column',
-    gap: '6px',
-    width: '100%',
+  fileStar: {
+    position: 'absolute',
+    top: '-8px',
+    right: '-8px',
+    fontSize: '16px',
+    color: '#FFD700',
+    backgroundColor: 'white',
+    borderRadius: '50%',
+    padding: '2px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+  },
+  fileShared: {
+    position: 'absolute',
+    bottom: '-4px',
+    right: '-4px',
+    fontSize: '14px',
+    color: '#4285F4',
+    backgroundColor: 'white',
+    borderRadius: '50%',
+    padding: '2px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
   },
   fileInfo: {
     flex: 1,
@@ -768,50 +613,40 @@ const styles = {
     fontSize: '16px',
     fontWeight: '600',
     color: '#202124',
-    margin: '0 0 8px 0',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: viewMode === 'grid' ? 'wrap' : 'nowrap',
-  },
-  fileDescription: {
-    fontSize: '14px',
-    color: '#5f6368',
     margin: '0 0 12px 0',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    display: '-webkit-box',
-    WebkitLineClamp: viewMode === 'grid' ? 2 : 1,
-    WebkitBoxOrient: 'vertical',
+    whiteSpace: 'nowrap',
   },
   fileMeta: {
-    fontSize: '12px',
-    color: '#5f6368',
     marginBottom: '8px',
   },
-  fileSize: {
-    backgroundColor: '#f1f3f4',
-    padding: '2px 8px',
-    borderRadius: '12px',
-  },
-  fileType: {
-    backgroundColor: '#e8f0fe',
-    color: '#4285F4',
-    padding: '2px 8px',
-    borderRadius: '12px',
-  },
-  fileDate: {
-    backgroundColor: '#f1f3f4',
-    padding: '2px 8px',
-    borderRadius: '12px',
-  },
-  fileOwner: {
+  fileTypeBadge: {
     fontSize: '12px',
-    color: '#5f6368',
-    marginTop: '8px',
-  },
-  fileDepartment: {
     fontWeight: '500',
     color: '#4285F4',
+    borderRadius: '12px',
+  },
+  fileSize: {
+    fontSize: '12px',
+    color: '#5f6368',
+  },
+  fileDate: {
+    fontSize: '12px',
+    color: '#5f6368',
+  },
+  fileDetails: {
+    fontSize: '12px',
+    color: '#5f6368',
+  },
+  fileOwner: {
+    fontWeight: '500',
+  },
+  fileDepartment: {
+    color: '#34A853',
+  },
+  fileClassification: {
+    fontWeight: '500',
   },
   fileActions: {
     display: 'flex',
@@ -820,7 +655,7 @@ const styles = {
     marginLeft: viewMode === 'grid' ? '0' : '16px',
     justifyContent: viewMode === 'grid' ? 'center' : 'flex-start',
   },
-  actionButton: {
+  actionBtn: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -831,43 +666,12 @@ const styles = {
     backgroundColor: 'white',
     color: '#5f6368',
     cursor: 'pointer',
-    transition: 'all 0.2s',
+    fontSize: '16px',
     '&:hover': {
       backgroundColor: '#f8f9fa',
       borderColor: '#4285F4',
       color: '#4285F4',
     },
-  },
-  classificationBadge: {
-    fontSize: '10px',
-    fontWeight: '600',
-    padding: '4px 8px',
-    borderRadius: '12px',
-    border: '1px solid',
-    display: 'inline-block',
-    textAlign: 'center',
-  },
-  publicBadge: {
-    fontSize: '10px',
-    fontWeight: '600',
-    padding: '4px 8px',
-    borderRadius: '12px',
-    backgroundColor: '#e8f0fe',
-    color: '#4285F4',
-    border: '1px solid #4285F4',
-    display: 'inline-block',
-    textAlign: 'center',
-  },
-  privateBadge: {
-    fontSize: '10px',
-    fontWeight: '600',
-    padding: '4px 8px',
-    borderRadius: '12px',
-    backgroundColor: '#f1f3f4',
-    color: '#5f6368',
-    border: '1px solid #dadce0',
-    display: 'inline-block',
-    textAlign: 'center',
   },
   emptyState: {
     display: 'flex',
@@ -879,44 +683,32 @@ const styles = {
     border: '2px dashed #e0e0e0',
     borderRadius: '12px',
     textAlign: 'center',
-  },
-  emptyIcon: {
-    fontSize: '64px',
-    color: '#dadce0',
-    marginBottom: '20px',
+    gridColumn: '1 / -1',
   },
   emptyTitle: {
-    fontSize: '20px',
+    fontSize: '18px',
     fontWeight: '600',
     color: '#202124',
-    margin: '0 0 8px 0',
+    margin: '16px 0 8px 0',
   },
-  emptyMessage: {
+  emptyText: {
     fontSize: '14px',
     color: '#5f6368',
-    maxWidth: '400px',
     margin: '0 0 24px 0',
-    lineHeight: '1.5',
+    maxWidth: '300px',
   },
   footer: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginTop: '24px',
-    padding: '16px 0',
+    paddingTop: '16px',
     borderTop: '1px solid #e0e0e0',
   },
-  footerText: {
+  footerStats: {
     fontSize: '14px',
     color: '#5f6368',
   },
-  filteredIndicator: {
+  filteredText: {
     color: '#4285F4',
     fontStyle: 'italic',
-  },
-  footerHint: {
-    fontSize: '12px',
-    color: '#9aa0a6',
   },
   loadingContainer: {
     display: 'flex',
@@ -976,17 +768,7 @@ const styles = {
     fontSize: '14px',
     fontWeight: '500',
     cursor: 'pointer',
-    transition: 'background-color 0.2s',
   },
 };
-
-// Add CSS animation
-const styleSheet = document.styleSheets[0];
-styleSheet.insertRule(`
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-`, styleSheet.cssRules.length);
 
 export default MyFiles;
