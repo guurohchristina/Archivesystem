@@ -27,6 +27,11 @@ import {
 } from "lucide-react";
 
 
+import MyFilesContent from "./MyFiles.jsx"; // This will be your original dashboard content
+import UploadContent from "./Upload.jsx";
+import SharedContent from "./SharedwithMe.jsx";
+
+
 
 const Dashboard = () => {
   const { user, logout } = useContext(AuthContext);
@@ -60,14 +65,17 @@ const Dashboard = () => {
   
 
   // Sample files data
+  /*
   const [files, setFiles] = useState([
     { id: 1, name: "Annual Report 2024.pdf", type: "pdf", size: "2.4 MB", date: "Today", starred: true, shared: false },
     { id: 2, name: "Project Proposal.docx", type: "doc", size: "1.8 MB", date: "Yesterday", starred: false, shared: true },
     { id: 3, name: "Team Meeting.mp4", type: "video", size: "45.2 MB", date: "2 days ago", starred: true, shared: false },
     { id: 4, name: "Company Logo.png", type: "image", size: "3.1 MB", date: "Nov 12", starred: false, shared: false },
-  ]);
+  ]);*/
+  
 
   // Set active nav based on route
+  /*
   useEffect(() => {
     const path = location.pathname;
     if (path.includes("/upload")) setActiveNav("upload");
@@ -80,7 +88,13 @@ const Dashboard = () => {
     { id: "upload", label: "Upload", icon: <Upload size={20} />, path: "/upload" },
     { id: "my-files", label: "My Files", icon: <Folder size={20} />, path: "/my-files" },
     { id: "shared", label: "Shared", icon: <Users size={20} />, path: "/shared" },
-  ];
+  ];*/
+  
+  
+  
+  
+  
+  
 
   const categoryItems = [
     { id: "documents", label: "Documents", icon: <FileText size={20} />, count: 12, color: "#4285F4" },
@@ -238,6 +252,44 @@ const Dashboard = () => {
     };
     return icons[type] || "📎";
   };
+  
+  
+  // Handle navigation
+  const handleNavigation = (navId) => {
+    setActiveNav(navId);
+    if (isMobileView) {
+      setIsMobileMenuOpen(false);
+    }
+    // Update URL hash without reloading the page
+    window.history.pushState(null, "", `#${navId}`);
+  };
+
+  // Get current page component based on activeNav
+  const renderContent = () => {
+    switch (activeNav) {
+      case "upload":
+        return <UploadContent />;
+      case "shared":
+        return <SharedContent />;
+      case "my-files":
+      default:
+        return <MyFilesContent />;
+    }
+  };
+  
+  const getPageTitle = () => {
+    switch (activeNav) {
+      case "upload":
+        return "Upload Files";
+      case "shared":
+        return "Shared Files";
+      default:
+        return "My Files";
+    }
+  };
+  
+  
+  
 
   // Calculate sidebar transform
   const getSidebarTransform = () => {
@@ -574,10 +626,22 @@ const Dashboard = () => {
             >
               <List size={20} />
             </button>
+            
+            <div style={styles.breadcrumb}>
+            <span style={styles.breadcrumbActive}>{getPageTitle()}</span>
+            
           </div>
         </div>
+        </div>
+        
+        
+        <div style={styles.pageContent}>
+          {renderContent()}
+        </div>
+        
+        
 
-        {/* Files Content */}
+        {/* Files Content *
         
         <div style={styles.filesContent}>
           <div style={styles.filesHeader}>
@@ -587,7 +651,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Files Grid/List */}
+          {/* Files Grid/List *
           
           <div style={{
             ...styles.filesContainer,
@@ -637,7 +701,7 @@ const Dashboard = () => {
                 
                 <div style={styles.fileActions}>
                   <button 
-                    onClick={() => {/* Handle star */}
+                    onClick={() => {/* Handle star *
                     }
                     
                     style={{
@@ -649,7 +713,7 @@ const Dashboard = () => {
                     <Star size={16} fill={file.starred ? "#FFD700" : "none"} />
                   </button>
                   <button 
-                    onClick={() => {/* Handle share */}
+                    onClick={() => {/* Handle share *
                     }
                     
                     style={{
@@ -664,8 +728,12 @@ const Dashboard = () => {
               </div>
             ))}
           </div>
-        </div>
+        </div>*/}
+        
+        
       </main>
+      
+    
 
       {/* Add some debug CSS */}
       
@@ -1249,6 +1317,10 @@ const catstyles = { ...existingStyles, ...categoryStyles };*/
 
 
 export default Dashboard;
+
+
+
+
 
 
 
