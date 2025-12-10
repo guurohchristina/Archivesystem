@@ -758,7 +758,7 @@ const styles = {
     minHeight: '100vh',
     backgroundColor: '#f8f9fa',
     position: 'relative',
-    marginTop:'200px'
+    
     
   },
   mobileOverlay: {
