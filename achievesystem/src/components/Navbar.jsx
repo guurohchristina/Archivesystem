@@ -198,7 +198,7 @@ const styles = {
     boxShadow: '0 2px 10px rgba(0, 0, 0, 0.08)',
     borderBottom: '1px solid #dadce0',
     padding: '0 20px',
-    position: 'sticky',
+    position: 'fixed',
     top: 0,
     zIndex: 1000,
   },
