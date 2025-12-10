@@ -269,7 +269,7 @@ const Dashboard = () => {
     switch (activeNav) {
       case "upload":
         return <UploadContent />;
-      case "shared":
+      case "shared-files":
         return <SharedContent />;
       case "my-files":
       default:
@@ -281,7 +281,7 @@ const Dashboard = () => {
     switch (activeNav) {
       case "upload":
         return "Upload Files";
-      case "shared":
+      case "shared-files":
         return "Shared Files";
       default:
         return "My Files";
