@@ -1321,6 +1321,7 @@ const MyFiles = () => {
   );
 };
 
+/*
 // Styles
 const styles = {
   pageContainer: {
