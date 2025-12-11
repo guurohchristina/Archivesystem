@@ -1012,7 +1012,7 @@ const styles = {
     alignItems: 'center',
     gap: '16px',
     position: 'fixed',
-    top: '100px',
+    top: 0,
     zIndex: 50
   },
   mobileMenuBtn: {
