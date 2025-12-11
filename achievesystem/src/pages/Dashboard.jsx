@@ -93,7 +93,7 @@ const Dashboard = () => {
   
   const userItems = [
   
-    { id: "profile", label: "Profile", icon: <User size={20} />, path: "/profile" },
+    { id: "profile", label: "Profile", icon: <User size={20} />, path: "/Profile" },
     { id: "settings", label: "Settings", icon: <Settings size={20} />, action: () => navigate("/settings") },
     { id: "logout", label: "Logout", icon: <LogOut size={20} />, action: () => {
       logout();
