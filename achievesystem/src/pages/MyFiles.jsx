@@ -629,6 +629,8 @@ const styles = {
     gap: '12px',
     maxWidth: '100%',
     boxSizing: 'border-box',
+    border:'1px solid green'
+  
   },
   fileItem: {
     backgroundColor: 'white',
