@@ -1005,7 +1005,7 @@ const styles = {
     transition: 'margin-left 0.3s ease'
   },
   topBar: {
-    padding: '16px 24px',
+    padding: '30px 24px',
     background: 'white',
     borderBottom: '1px solid #e0e0e0',
     display: 'flex',
