@@ -575,7 +575,7 @@ const styles = {
     padding: '4px',
     borderRadius: '8px',
     /*border: '1px solid #dadce0',*/
-    border:'1px solod red'
+    border:'1px solid red'
   },
   viewBtn: {
     display: 'flex',
