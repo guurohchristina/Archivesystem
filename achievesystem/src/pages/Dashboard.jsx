@@ -1013,7 +1013,8 @@ const styles = {
     gap: '16px',
     position: 'fixed',
     top: 0,
-    zIndex: 50
+    zIndex: 50,
+    marginTop:'100px'
   },
   mobileMenuBtn: {
     background: 'none',
