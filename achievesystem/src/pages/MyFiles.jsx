@@ -737,7 +737,8 @@ const styles = {
     justifyContent: 'center',
     /*border: '1px solid #dadce0',*/
     border:'1px solid red',
-  
+  width:'12px',
+  height:'12px',
     borderRadius: '6px',
     backgroundColor: 'white',
     color: '#5f6368',
