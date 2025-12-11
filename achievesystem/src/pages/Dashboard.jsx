@@ -1013,7 +1013,7 @@ const styles = {
     alignItems: 'center',
     gap: '16px',
     position: 'relative',
-    top: 0,
+    top: '-20px',
     zIndex: 50
   
   },
