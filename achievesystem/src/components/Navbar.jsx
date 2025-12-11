@@ -61,14 +61,7 @@ const Navbar = () => {
                 <span style={styles.linkIcon}>📊</span>
                 Dashboard
               </Link>
-              <Link to="/myfiles" style={styles.navLink}>
-                <span style={styles.linkIcon}>📁</span>
-                My Files
-              </Link>
-              <Link to="/shared-with-me" style={styles.navLink}>
-                <span style={styles.linkIcon}>🔗</span>
-                Shared Files
-              </Link>
+          
               {user.role === "admin" && (
                 <Link to="/admin" style={styles.adminLink}>
                   <span style={styles.linkIcon}>👑</span>
