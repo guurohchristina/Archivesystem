@@ -135,22 +135,8 @@ const Navbar = () => {
                   <span style={styles.linkIcon}>📊</span>
                   Dashboard
                 </Link>
-                <Link 
-                  to="/myfiles" 
-                  style={styles.mobileLink}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <span style={styles.linkIcon}>📁</span>
-                  My Files
-                </Link>
-                <Link 
-                  to="/shared-with-me" 
-                  style={styles.mobileLink}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <span style={styles.linkIcon}>🔗</span>
-                  Shared Files
-                </Link>
+              
+            
                 {user.role === "admin" && (
                   <Link 
                     to="/admin" 
