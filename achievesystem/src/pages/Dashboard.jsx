@@ -1011,7 +1011,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '16px',
-    position: 'fixed',
+    position: 'relative',
     top: 0,
     zIndex: 50
   
