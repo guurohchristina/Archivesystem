@@ -370,7 +370,7 @@ const MyFiles = () => {
             }}>
               <div style={{
                 ...styles.fileIconContainer,
-                marginRight: viewMode === 'grid' ? '0' : '16px',
+                marginRight: viewMode === 'grid' ? '0' : '12px',
                 marginBottom: viewMode === 'grid' ? '12px' : '0',
               }}>
                 <span style={styles.fileTypeIcon}>{getFileIcon(file.type)}</span>
