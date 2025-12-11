@@ -635,7 +635,7 @@ const styles = {
   },
   fileItem: {
     backgroundColor: 'white',
-    border: '1px solid #e0e0e0',
+    /*border: '1px solid #e0e0e0',*/
     borderRadius: '10px',
     display: 'flex',
     transition: 'all 0.2s',
@@ -644,7 +644,7 @@ const styles = {
     '&:hover': {
       boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
       borderColor: '#4285F4',
-      border:'1px solid pink'
+      border:'1px solid red'
   
     },
   },
@@ -654,6 +654,8 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     flexShrink: 0,
+    border:'1px solid red'
+  
   },
   fileTypeIcon: {
     fontSize: '32px',
