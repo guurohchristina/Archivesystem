@@ -272,6 +272,8 @@ const Dashboard = () => {
         return <UploadContent />;
       case "shared":
         return <SharedContent />;
+        case "profile":
+          return <Myprofile />;
       case "my-files":
       default:
         return <MyFilesContent />;
