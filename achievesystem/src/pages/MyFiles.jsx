@@ -643,7 +643,7 @@ const styles = {
     overflow: 'hidden',
     '&:hover': {
       boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      borderColor: '#4285F4',
+      /*borderColor: '#4285F4',*/
       border:'1px solid red'
   
     },
