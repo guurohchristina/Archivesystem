@@ -762,6 +762,7 @@ const styles = {
     
     
   },
+  /*
   mobileOverlay: {
     position: 'fixed',
     top: 0,
@@ -771,7 +772,7 @@ const styles = {
     background: 'rgba(0, 0, 0, 0.5)',
     zIndex: 999,
     display: 'none'
-  },
+  },*/
   sidebar: {
     background: 'white',
     borderRight: '1px solid #e0e0e0',
