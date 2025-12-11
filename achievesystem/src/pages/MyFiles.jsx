@@ -635,7 +635,7 @@ const styles = {
   },
   fileItem: {
     backgroundColor: 'white',
-    /*border: '1px solid #e0e0e0',*/
+    border: '1px solid #e0e0e0',
     borderRadius: '10px',
     display: 'flex',
     transition: 'all 0.2s',
@@ -643,8 +643,8 @@ const styles = {
     overflow: 'hidden',
     '&:hover': {
       boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      /*borderColor: '#4285F4',*/
-      border:'1px solid red'
+      borderColor: '#4285F4',
+    
   
     },
   },
@@ -727,6 +727,8 @@ const styles = {
   fileActions: {
     display: 'flex',
     flexShrink: 0,
+    border:'1px solid red'
+  
   },
   actionBtn: {
     display: 'flex',
