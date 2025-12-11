@@ -173,6 +173,7 @@ const Navbar = () => {
 
 const styles = {
   navbar: {
+    width:'100%',
     backgroundColor: '#ffffff',
     boxShadow: '0 2px 10px rgba(0, 0, 0, 0.08)',
     borderBottom: '1px solid #dadce0',
