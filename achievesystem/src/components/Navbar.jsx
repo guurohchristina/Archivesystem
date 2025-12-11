@@ -182,7 +182,8 @@ const styles = {
     zIndex: 1000,
   },
   container: {
-    maxWidth: '1200px',
+    width:'100%',
+    /*maxWidth: '1200px',*/
     margin: '0 auto',
     display: 'flex',
     justifyContent: 'space-between',
