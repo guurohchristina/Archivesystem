@@ -91,6 +91,12 @@ const Dashboard = () => {
     { id: "shared", label: "Shared", icon: <Users size={20} />, path: "/shared-files" },
   ];
   
+  const userItems = [
+  
+    { id: "profile", label: "Profile", icon: <User size={20} />, path: "/profile" },
+    { id: "settings", label: "Settings", icon: <Settings size={20} />, action: () => navigate("/settings") },
+    { id: "logout", label: "Logout", icon: <LogOut size={20} />, action: logout },
+  ];
   
   
   
@@ -105,24 +111,7 @@ const Dashboard = () => {
     { id: "archives", label: "Archives", icon: <Archive size={20} />, count: 3, color: "#8E44AD" },
   ];
 
-  const userItems = [
-    
-    { 
-      id: "profile", 
-      label: "Profile", 
-      icon: <User size={20} />, 
-      onClick: () => {
-        navigate("/profile");
-        setActiveNav("profile");
-      } 
-    },
-    
-    
-    
-    /*{ id: "profile", label: "Profile", icon: <User size={20} />, path: "/profile" },
-    { id: "settings", label: "Settings", icon: <Settings size={20} />, action: () => navigate("/settings") },
-    { id: "logout", label: "Logout", icon: <LogOut size={20} />, action: logout },*/
-  ];
+  
   
   
   
