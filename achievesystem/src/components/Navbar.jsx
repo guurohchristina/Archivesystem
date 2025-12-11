@@ -182,13 +182,15 @@ const styles = {
     zIndex: 1000,
   },
   container: {
-    width:'100%',
-    /*maxWidth: '1200px',*/
+    
+    maxWidth: '1200px',
     margin: '0 auto',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     minHeight: '64px',
+    border:'1px solid red'
+  
   },
   brandContainer: {
     display: 'flex',
