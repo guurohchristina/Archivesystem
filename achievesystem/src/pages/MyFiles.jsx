@@ -735,7 +735,9 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    border: '1px solid #dadce0',
+    /*border: '1px solid #dadce0',*/
+    border:'1px solid red',
+  
     borderRadius: '6px',
     backgroundColor: 'white',
     color: '#5f6368',
