@@ -97,7 +97,7 @@ const Dashboard = () => {
     { id: "settings", label: "Settings", icon: <Settings size={20} />, action: () => navigate("/settings") },
     { id: "logout", label: "Logout", icon: <LogOut size={20} />, action: () => {
       logout();
-      navigate("/login");
+      navigate("/");
     } },
   ];
   
