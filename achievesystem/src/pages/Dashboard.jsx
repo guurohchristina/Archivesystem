@@ -52,7 +52,7 @@ const Dashboard = () => {
   // Check if mobile view on mount and resize
   useEffect(() => {
     const checkMobile = () => {
-   setIsMobileView(window.innerWidth < 414);
+   setIsMobileView(window.innerWidth < 1024);
     };
     
     checkMobile();
