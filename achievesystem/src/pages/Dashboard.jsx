@@ -777,7 +777,7 @@ const styles = {
     borderRight: '1px solid #e0e0e0',
     display: 'flex',
     flexDirection: 'column',
-    position: 'relative',
+    position: 'fixed',
     left: 0,
     bottom: 0,
     overflowY: 'auto',
