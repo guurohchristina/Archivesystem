@@ -30,7 +30,7 @@ import {
 import MyFilesContent from "./MyFiles.jsx"; // This will be your original dashboard content
 import UploadContent from "./Upload.jsx";
 import SharedContent from "./SharedwithMe.jsx";
-
+import Myprofile from "./Profile.jsx";
 
 
 const Dashboard = () => {
@@ -80,6 +80,7 @@ const Dashboard = () => {
     const path = location.pathname;
     if (path.includes("/upload")) setActiveNav("upload");
     else if (path.includes("/shared-files")) setActiveNav("shared");
+    else if (path.includes("/profile")) setActiveNav("profile");
     else setActiveNav("my-files");
   }, [location]);
 
@@ -105,7 +106,7 @@ const Dashboard = () => {
   ];
 
   const userItems = [
-    { id: "profile", label: "Profile", icon: <User size={20} />, action: () => navigate("/profile") },
+    { id: "profile", label: "Profile", icon: <User size={20} />, path: "/profile" },
     { id: "settings", label: "Settings", icon: <Settings size={20} />, action: () => navigate("/settings") },
     { id: "logout", label: "Logout", icon: <LogOut size={20} />, action: logout },
   ];
