@@ -782,7 +782,7 @@ const styles = {
     left: 0,
     bottom: 0,
     overflowY: 'auto',
-    zIndex: 1000,
+    zIndex: 100,
     height: '100vh'
   },
   sidebarToggle: {
