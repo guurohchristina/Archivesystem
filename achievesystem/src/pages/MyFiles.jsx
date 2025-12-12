@@ -269,7 +269,7 @@ const MyFiles = () => {
         fontSize: '12px',
         zIndex: 9999,
       }}>
-        Files: {files.length} | API Data loaded
+      {/*  Files: {files.length} | API Data*/} loaded
       </div>
 
       {/* Header */}
