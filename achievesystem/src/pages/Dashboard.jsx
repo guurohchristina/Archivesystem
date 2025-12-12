@@ -533,13 +533,15 @@ const Dashboard = () => {
             <span style={styles.storagePercentage}>
               {((totalStorageUsed / (15 * 1024 * 1024 * 1024)) * 100).toFixed(1)}% of 15 GB
             </span>
+            {/*}
             <button 
               onClick={refetchCategories}
               style={styles.refreshButton}
               title="Refresh data"
             >
               ↻
-            </button>
+            </button>*/}
+            
           </div>
         </div>
       )}
