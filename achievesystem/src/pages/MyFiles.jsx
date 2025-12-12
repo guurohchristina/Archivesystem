@@ -728,9 +728,8 @@ const styles = {
   fileActions: {
     display: 'flex',
     flexShrink: 0,
-    justifyContent:'center',
-    gap:'10px',
-    border:'1px solid red'
+    justifyContent:'center'
+    
     
     
   
@@ -740,7 +739,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     /*border: '1px solid #dadce0',*/
-    border:'1px solid green',
+  
    /* borderRadius: '6px',*/
    padding: '5px',
     backgroundColor: 'white',

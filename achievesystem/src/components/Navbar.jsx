@@ -190,8 +190,8 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    minHeight: '64px',
-    border:'1px solid red'
+    minHeight: '64px'
+    
   
   },
   brandContainer: {
