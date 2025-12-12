@@ -472,7 +472,7 @@ const MyFiles = () => {
                   style={{
                     ...styles.actionBtn,
                     color: file.shared ? '#4285F4' : '#5f6368',
-                    width: viewMode === 'grid' ? '32px' : '36px',
+                    width: viewMode === 'grid' ? '12px' : '36px',
                     height: viewMode === 'grid' ? '32px' : '36px',
                     fontSize: viewMode === 'grid' ? '14px' : '16px'
                   }}
