@@ -727,7 +727,8 @@ const styles = {
   },
   fileActions: {
     display: 'flex',
-    flexShrink: 0
+    flexShrink: 0,
+    border:'1px solid red'
     
     
   
