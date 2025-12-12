@@ -108,11 +108,6 @@ const Home = () => {
     setExpandedService(expandedService === serviceId ? null : serviceId);
   };
 
-  // Responsive styles based on device
-  const getResponsiveStyle = (desktopValue, mobileValue) => {
-    return isMobile ? mobileValue : desktopValue;
-  };
-
   return (
     <div style={styles.container}>
       {/* Hero Section - Single column on mobile, side-by-side on desktop */}
@@ -133,6 +128,27 @@ const Home = () => {
             Organize, Secure, and Access
             <span style={styles.highlight}> Your Files</span>
           </h1>
+          
+          {/* Mobile Image - Only shows on mobile, after the heading */}
+          {isMobile && (
+            <div style={styles.mobileHeroImage}>
+              <div style={styles.mobileImagePlaceholder}>
+                <div style={styles.mobileFloatingCard}>
+                  <span style={styles.floatingIcon}>📄</span>
+                  <span>Document.pdf</span>
+                </div>
+                <div style={styles.mobileFloatingCard2}>
+                  <span style={styles.floatingIcon}>📊</span>
+                  <span>Report.xlsx</span>
+                </div>
+                <div style={styles.mobileFloatingCard3}>
+                  <span style={styles.floatingIcon}>🖼️</span>
+                  <span>Image.png</span>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <p style={styles.heroDescription}>
             Professional archiving solutions for students, educators, and businesses. 
             Keep your important documents safe, organized, and accessible anywhere.
@@ -141,8 +157,10 @@ const Home = () => {
             <Link to="/register">
               <button style={{
                 ...styles.primaryButton,
-                padding: getResponsiveStyle('16px 32px', '14px 24px'),
-                width: getResponsiveStyle('auto', '100%'),
+                padding: getResponsiveStyle('14px 28px', '14px 24px'),
+                fontSize: getResponsiveStyle('16px', '15px'),
+                minWidth: getResponsiveStyle('180px', '100%'),
+                height: getResponsiveStyle('50px', '50px'),
               }}>
                 <span style={styles.buttonIcon}>🚀</span>
                 Get Started Free
@@ -151,8 +169,10 @@ const Home = () => {
             <Link to="/login">
               <button style={{
                 ...styles.secondaryButton,
-                padding: getResponsiveStyle('16px 32px', '14px 24px'),
-                width: getResponsiveStyle('auto', '100%'),
+                padding: getResponsiveStyle('14px 28px', '14px 24px'),
+                fontSize: getResponsiveStyle('16px', '15px'),
+                minWidth: getResponsiveStyle('180px', '100%'),
+                height: getResponsiveStyle('50px', '50px'),
               }}>
                 <span style={styles.buttonIcon}>👤</span>
                 Sign In
@@ -164,6 +184,7 @@ const Home = () => {
             flexDirection: getResponsiveStyle('row', 'column'),
             alignItems: getResponsiveStyle('center', 'flex-start'),
             gap: getResponsiveStyle('20px', '12px'),
+            marginTop: getResponsiveStyle('32px', '24px'),
           }}>
             <div style={styles.trustBadge}>
               <span style={styles.trustIcon}>✅</span>
@@ -179,18 +200,20 @@ const Home = () => {
             </div>
           </div>
         </div>
+        
+        {/* Desktop Image - Only shows on desktop */}
         {!isMobile && (
-          <div style={styles.heroImage}>
-            <div style={styles.imagePlaceholder}>
-              <div style={styles.floatingCard}>
+          <div style={styles.desktopHeroImage}>
+            <div style={styles.desktopImagePlaceholder}>
+              <div style={styles.desktopFloatingCard}>
                 <span style={styles.floatingIcon}>📄</span>
                 <span>Document.pdf</span>
               </div>
-              <div style={styles.floatingCard2}>
+              <div style={styles.desktopFloatingCard2}>
                 <span style={styles.floatingIcon}>📊</span>
                 <span>Report.xlsx</span>
               </div>
-              <div style={styles.floatingCard3}>
+              <div style={styles.desktopFloatingCard3}>
                 <span style={styles.floatingIcon}>🖼️</span>
                 <span>Image.png</span>
               </div>
@@ -359,7 +382,10 @@ const Home = () => {
                 <button style={{
                   ...styles.ctaPrimaryButton,
                   width: getResponsiveStyle('auto', '100%'),
-                  padding: getResponsiveStyle('18px 40px', '16px 24px'),
+                  padding: getResponsiveStyle('16px 32px', '14px 24px'),
+                  fontSize: getResponsiveStyle('16px', '15px'),
+                  height: getResponsiveStyle('50px', '50px'),
+                  minWidth: getResponsiveStyle('200px', '100%'),
                 }}>
                   <span style={styles.buttonIcon}>📁</span>
                   Create Your Archive
@@ -369,7 +395,10 @@ const Home = () => {
                 <button style={{
                   ...styles.ctaSecondaryButton,
                   width: getResponsiveStyle('auto', '100%'),
-                  padding: getResponsiveStyle('18px 40px', '16px 24px'),
+                  padding: getResponsiveStyle('16px 32px', '14px 24px'),
+                  fontSize: getResponsiveStyle('16px', '15px'),
+                  height: getResponsiveStyle('50px', '50px'),
+                  minWidth: getResponsiveStyle('200px', '100%'),
                 }}>
                   <span style={styles.buttonIcon}>👥</span>
                   Schedule Demo
@@ -444,6 +473,12 @@ const Home = () => {
   );
 };
 
+// Helper function for responsive styles
+const getResponsiveStyle = (desktopValue, mobileValue) => {
+  const isMobile = window.innerWidth < 768;
+  return isMobile ? mobileValue : desktopValue;
+};
+
 const styles = {
   container: {
     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
@@ -489,15 +524,15 @@ const styles = {
   },
   ctaButtons: {
     display: 'flex',
-    gap: '16px',
-    marginBottom: '32px',
+    gap: '12px',
+    marginBottom: '24px',
+    flexWrap: 'wrap',
   },
   primaryButton: {
     backgroundColor: '#4285F4',
     color: 'white',
     border: 'none',
-    borderRadius: '10px',
-    fontSize: '16px',
+    borderRadius: '8px',
     fontWeight: '600',
     cursor: 'pointer',
     display: 'flex',
@@ -514,8 +549,7 @@ const styles = {
     backgroundColor: 'transparent',
     color: '#4285F4',
     border: '2px solid #4285F4',
-    borderRadius: '10px',
-    fontSize: '16px',
+    borderRadius: '8px',
     fontWeight: '600',
     cursor: 'pointer',
     display: 'flex',
@@ -544,13 +578,72 @@ const styles = {
   trustIcon: {
     fontSize: '16px',
   },
-  heroImage: {
+  
+  // Mobile Hero Image
+  mobileHeroImage: {
+    margin: '24px 0 32px 0',
+    width: '100%',
+  },
+  mobileImagePlaceholder: {
+    position: 'relative',
+    width: '100%',
+    height: '200px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '12px',
+    border: '2px dashed #dadce0',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mobileFloatingCard: {
+    position: 'absolute',
+    top: '15px',
+    left: '15px',
+    backgroundColor: 'white',
+    padding: '10px 16px',
+    borderRadius: '8px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontSize: '13px',
+  },
+  mobileFloatingCard2: {
+    position: 'absolute',
+    top: '60px',
+    right: '15px',
+    backgroundColor: 'white',
+    padding: '10px 16px',
+    borderRadius: '8px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontSize: '13px',
+  },
+  mobileFloatingCard3: {
+    position: 'absolute',
+    bottom: '15px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    backgroundColor: 'white',
+    padding: '10px 16px',
+    borderRadius: '8px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontSize: '13px',
+  },
+  
+  // Desktop Hero Image
+  desktopHeroImage: {
     flex: 1,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  imagePlaceholder: {
+  desktopImagePlaceholder: {
     position: 'relative',
     width: '400px',
     height: '300px',
@@ -561,7 +654,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  floatingCard: {
+  desktopFloatingCard: {
     position: 'absolute',
     top: '20px',
     left: '-40px',
@@ -574,7 +667,7 @@ const styles = {
     gap: '10px',
     fontSize: '14px',
   },
-  floatingCard2: {
+  desktopFloatingCard2: {
     position: 'absolute',
     top: '120px',
     right: '-30px',
@@ -587,7 +680,7 @@ const styles = {
     gap: '10px',
     fontSize: '14px',
   },
-  floatingCard3: {
+  desktopFloatingCard3: {
     position: 'absolute',
     bottom: '30px',
     left: '30px',
@@ -603,6 +696,8 @@ const styles = {
   floatingIcon: {
     fontSize: '20px',
   },
+  
+  // Services Section
   servicesSection: {
     backgroundColor: '#f8f9fa',
   },
@@ -682,6 +777,8 @@ const styles = {
     color: '#4285F4',
     fontSize: '14px',
   },
+  
+  // Features Section
   featuresSection: {
     backgroundColor: 'white',
   },
@@ -719,6 +816,8 @@ const styles = {
     fontSize: '14px',
     color: '#5f6368',
   },
+  
+  // Stats Section
   statsSection: {
     backgroundColor: '#4285F4',
     color: 'white',
@@ -734,6 +833,8 @@ const styles = {
     fontSize: '16px',
     opacity: 0.9,
   },
+  
+  // CTA Section
   ctaSection: {
     backgroundColor: '#f8f9fa',
   },
@@ -758,8 +859,7 @@ const styles = {
     backgroundColor: '#4285F4',
     color: 'white',
     border: 'none',
-    borderRadius: '10px',
-    fontSize: '16px',
+    borderRadius: '8px',
     fontWeight: '600',
     cursor: 'pointer',
     display: 'flex',
@@ -776,8 +876,7 @@ const styles = {
     backgroundColor: 'transparent',
     color: '#4285F4',
     border: '2px solid #4285F4',
-    borderRadius: '10px',
-    fontSize: '16px',
+    borderRadius: '8px',
     fontWeight: '600',
     cursor: 'pointer',
     display: 'flex',
@@ -790,6 +889,8 @@ const styles = {
       transform: 'translateY(-2px)',
     },
   },
+  
+  // Footer
   footer: {
     backgroundColor: '#202124',
     color: 'white',
