@@ -527,7 +527,7 @@ const styles = {
   },
   ctaButtons: {
     display: 'flex',
-    gap: '20px',
+    gap: '12px',
     marginBottom: '24px',
     flexWrap: 'wrap',
   },
@@ -857,6 +857,7 @@ const styles = {
   ctaButtons: {
     display: 'flex',
     justifyContent: 'center',
+    gap:'12px'
   },
   ctaPrimaryButton: {
     backgroundColor: '#4285F4',
