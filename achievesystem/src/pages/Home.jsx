@@ -1,672 +1,5 @@
-/*const Home = () => {
-  return (
-    <div className="page">
-      <h1>Welcome to Achieve System</h1>
-      <p>Your academic record and achievements hub.</p>
-    </div>
-  );
-};
-
-export default Home; */
-
-
-/*const Home = () => {
-  return (
-    <div className="page" style={{ fontFamily: "Inter, sans-serif" }}>
-      
-      
-      <section
-        style={{
-          textAlign: "center",
-          padding: "60px 20px",
-          background: "#ffffff",
-        }}
-      >
-        <h1 style={{ fontSize: "2.8rem", marginBottom: "10px", color: "#1e293b" }}>
-          Welcome to Achieve System
-        </h1>
-        <p style={{ fontSize: "1.2rem", color: "#475569", maxWidth: "600px", margin: "0 auto" }}>
-          Your secure hub for storing, managing, and accessing academic files and documents.
-        </p>
-
-        <button
-          style={{
-            marginTop: "30px",
-            padding: "14px 28px",
-            background: "#1e293b",
-            borderRadius: "8px",
-            border: "none",
-            color: "white",
-            fontSize: "1.1rem",
-            cursor: "pointer",
-            fontWeight: "600",
-          }}
-          onClick={() => (window.location.href = "/register")}
-        >
-          Start Uploading
-        </button>
-      </section>
-
-      
-      <section
-        style={{
-          padding: "50px 20px",
-          background: "#f8fafc",
-          marginTop: "30px",
-        }}
-      >
-        <h2
-          style={{
-            textAlign: "center",
-            fontSize: "2rem",
-            color: "#1e293b",
-            marginBottom: "40px",
-          }}
-        >
-          Why Use Achieve System?
-        </h2>
-
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "20px",
-            justifyContent: "center",
-          }}
-        >
-          
-          <div
-            style={{
-              width: "280px",
-              background: "#ffffff",
-              padding: "25px",
-              borderRadius: "12px",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
-            }}
-          >
-            <h3 style={{ fontSize: "1.3rem", marginBottom: "10px", color: "#1e293b" }}>
-              Secure File Storage
-            </h3>
-            <p style={{ color: "#475569" }}>
-              Keep all your academic documents safe with modern file protection.
-            </p>
-          </div>
-
-        
-          <div
-            style={{
-              width: "280px",
-              background: "#ffffff",
-              padding: "25px",
-              borderRadius: "12px",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
-            }}
-          >
-            <h3 style={{ fontSize: "1.3rem", marginBottom: "10px", color: "#1e293b" }}>
-              Easy File Management
-            </h3>
-            <p style={{ color: "#475569" }}>
-              Upload, access, organize, and categorize your files easily.
-            </p>
-          </div>
-
-          
-          <div
-            style={{
-              width: "280px",
-              background: "#ffffff",
-              padding: "25px",
-              borderRadius: "12px",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
-            }}
-          >
-            <h3 style={{ fontSize: "1.3rem", marginBottom: "10px", color: "#1e293b" }}>
-              Access Anytime
-            </h3>
-            <p style={{ color: "#475569" }}>
-              Retrieve your documents whenever you need them, on any device.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      
-      <footer
-        style={{
-          marginTop: "40px",
-          padding: "20px",
-          background: "#1e293b",
-          color: "white",
-          textAlign: "center",
-        }}
-      >
-        <p>© 2025 Achieve System. All rights reserved.</p>
-      </footer>
-    </div>
-  );
-};
-
-export default Home;
-*/
-
-
-/*const Home = () => {
-  const [expandedService, setExpandedService] = useState(null);
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
-
-  useEffect(() => {
-    setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
-  }, []);
-
-  const services = [
-    {
-      id: 1,
-      name: "Secure File Storage",
-      icon: "fas fa-shield-alt",
-      description: "Military-grade encryption for your academic documents and files. Rest easy knowing your data is protected with end-to-end encryption.",
-      features: [
-        "256-bit AES encryption",
-        "Automatic backup",
-        "Secure access controls",
-        "Cross-platform availability"
-      ]
-    },
-    {
-      id: 2,
-      name: "Smart Organization",
-      icon: "fas fa-folder-tree",
-      description: "AI-powered categorization system that automatically organizes your academic files by subject, date, and type.",
-      features: [
-        "AI auto-categorization",
-        "Smart search",
-        "Custom folders",
-        "Quick filters"
-      ]
-    },
-    {
-      id: 3,
-      name: "Collaborative Features",
-      icon: "fas fa-users",
-      description: "Share files securely with classmates and instructors while maintaining strict access controls.",
-      features: [
-        "Group workspaces",
-        "Role-based permissions",
-        "Version history",
-        "Activity tracking"
-      ]
-    },
-    {
-      id: 4,
-      name: "Advanced Search",
-      icon: "fas fa-search",
-      description: "Find any academic file in seconds with our powerful search engine. Search by content, course, or metadata.",
-      features: [
-        "Full-text search",
-        "Course filtering",
-        "Date ranges",
-        "Saved searches"
-      ]
-    }
-  ];
-
-  const features = [
-    {
-      icon: "fas fa-lock",
-      name: "Bank-Level Security",
-      description: "Your academic data is protected with the same security standards used by educational institutions."
-    },
-    {
-      icon: "fas fa-infinity",
-      name: "Ample Storage",
-      description: "Generous storage space for all your academic materials, assignments, and research documents."
-    },
-    {
-      icon: "fas fa-bolt",
-      name: "Lightning Fast",
-      description: "Upload and access your academic files instantly with our optimized platform."
-    },
-    {
-      icon: "fas fa-mobile-alt",
-      name: "Any Device Access",
-      description: "Access your academic archives from anywhere with our responsive web platform."
-    }
-  ];
-
-  const toggleService = (serviceId) => {
-    setExpandedService(expandedService === serviceId ? null : serviceId);
-  };
-
-  return (
-    <div className="page" style={{ fontFamily: "Inter, sans-serif" }}>
-      
-      <header style={{
-        background: "#ffffff",
-        borderBottom: "1px solid #e2e8f0",
-        padding: "1.5rem 2rem",
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
-        boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)"
-      }}>
-        <nav style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          maxWidth: "1400px",
-          margin: "0 auto"
-        }}>
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            fontSize: "1.8rem",
-            fontWeight: 700,
-            color: "#1e293b"
-          }}>
-            <i className="fas fa-box-archive"></i>
-            Achieve System
-          </div>
-          <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-            <button style={{
-              background: "#1e293b",
-              color: "white",
-              border: "none",
-              padding: "0.75rem 1.5rem",
-              borderRadius: "8px",
-              fontWeight: 600,
-              cursor: "pointer",
-              transition: "all 0.3s ease"
-            }}>
-              Sign In
-            </button>
-            <button style={{
-              background: "transparent",
-              color: "#1e293b",
-              border: "2px solid #1e293b",
-              padding: "0.75rem 1.5rem",
-              borderRadius: "8px",
-              fontWeight: 600,
-              cursor: "pointer",
-              transition: "all 0.3s ease"
-            }}>
-              Get Started Free
-            </button>
-          </div>
-        </nav>
-      </header>
-
-      
-      <section style={{
-        textAlign: "center",
-        padding: "6rem 2rem",
-        background: "linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)"
-      }}>
-        <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-          <h1 style={{ 
-            fontSize: "3rem", 
-            fontWeight: 700, 
-            marginBottom: "1.5rem", 
-            color: "#1e293b", 
-            lineHeight: "1.1" 
-          }}>
-            Organize, Secure, and Access Your Academic Files
-          </h1>
-          <p style={{ 
-            fontSize: "1.25rem", 
-            color: "#64748b", 
-            marginBottom: "2.5rem", 
-            lineHeight: "1.6" 
-          }}>
-            Achieve System provides secure archiving solutions for students and educators. Keep your important academic files safe, organized, and accessible.
-          </p>
-          <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
-            <button style={{
-              background: "#1e293b",
-              color: "white",
-              border: "none",
-              padding: "1rem 2rem",
-              borderRadius: "8px",
-              fontWeight: 600,
-              fontSize: "1.1rem",
-              cursor: "pointer",
-              transition: "all 0.3s ease"
-            }}>
-              Start Your Free Trial
-            </button>
-            <button style={{
-              background: "transparent",
-              color: "#1e293b",
-              border: "2px solid #1e293b",
-              padding: "1rem 2rem",
-              borderRadius: "8px",
-              fontWeight: 600,
-              fontSize: "1.1rem",
-              cursor: "pointer",
-              transition: "all 0.3s ease"
-            }}>
-              <i className="fas fa-play-circle"></i> Watch Demo
-            </button>
-          </div>
-        </div>
-      </section>
-
-      
-      <section style={{
-        padding: "4rem 2rem",
-        background: "#ffffff",
-        maxWidth: "1400px",
-        margin: "0 auto"
-      }}>
-        <h2 style={{
-          fontSize: "2.5rem",
-          fontWeight: 700,
-          textAlign: "center",
-          marginBottom: "3rem",
-          color: "#1e293b"
-        }}>
-          How Achieve System Works
-        </h2>
-        <div style={{
-          display: "flex",
-          gap: "1.5rem",
-          overflowX: "auto",
-          padding: "1rem 0"
-        }}>
-          {services.map((service) => (
-            <div
-              key={service.id}
-              style={{
-                minWidth: "300px",
-                background: expandedService === service.id ? "#ffffff" : "#f8fafc",
-                border: `1px solid ${expandedService === service.id ? "#94a3b8" : "#e2e8f0"}`,
-                borderRadius: "12px",
-                padding: "2rem",
-                transition: "all 0.3s ease",
-                cursor: "pointer",
-                boxShadow: expandedService === service.id ? "0 8px 25px rgba(0, 0, 0, 0.15)" : "none",
-                transform: expandedService === service.id ? "translateY(-4px)" : "none"
-              }}
-              onMouseEnter={() => !isTouchDevice && setExpandedService(service.id)}
-              onMouseLeave={() => !isTouchDevice && setExpandedService(null)}
-              onClick={() => isTouchDevice && toggleService(service.id)}
-            >
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: "1rem"
-              }}>
-                <div style={{
-                  width: "50px",
-                  height: "50px",
-                  borderRadius: "10px",
-                  background: "#e2e8f0",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "1.25rem",
-                  color: "#475569"
-                }}>
-                  <i className={service.icon}></i>
-                </div>
-                <div style={{
-                  color: "#64748b",
-                  fontSize: "0.9rem",
-                  transition: "transform 0.3s ease",
-                  transform: expandedService === service.id ? "rotate(180deg)" : "none"
-                }}>
-                  <i className="fas fa-chevron-down"></i>
-                  {isTouchDevice && " (Tap to expand)"}
-                </div>
-              </div>
-              <h3 style={{
-                fontSize: "1.25rem",
-                fontWeight: 600,
-                color: "#1e293b",
-                marginBottom: "0.5rem"
-              }}>
-                {service.name}
-              </h3>
-              <div style={{
-                color: "#64748b",
-                lineHeight: "1.5",
-                maxHeight: expandedService === service.id ? "200px" : "0",
-                overflow: "hidden",
-                transition: "max-height 0.3s ease"
-              }}>
-                <p>{service.description}</p>
-                <ul style={{
-                  listStyle: "none",
-                  marginTop: "1rem",
-                  color: "#64748b"
-                }}>
-                  {service.features.map((feature, index) => (
-                    <li key={index} style={{
-                      marginBottom: "0.5rem",
-                      paddingLeft: "1rem",
-                      position: "relative"
-                    }}>
-                      <span style={{
-                        position: "absolute",
-                        left: 0,
-                        color: "#10b981",
-                        fontWeight: "bold"
-                      }}>✓</span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      
-      <section style={{
-        padding: "4rem 2rem",
-        background: "#f1f5f9"
-      }}>
-        <h2 style={{
-          fontSize: "2.5rem",
-          fontWeight: 700,
-          textAlign: "center",
-          marginBottom: "3rem",
-          color: "#1e293b"
-        }}>
-          Why Choose Achieve System?
-        </h2>
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-          gap: "2rem",
-          maxWidth: "1200px",
-          margin: "0 auto"
-        }}>
-          {features.map((feature, index) => (
-            <div key={index} style={{
-              background: "#ffffff",
-              border: "1px solid #e2e8f0",
-              borderRadius: "12px",
-              padding: "2rem",
-              textAlign: "center",
-              transition: "all 0.3s ease"
-            }}>
-              <div style={{
-                width: "70px",
-                height: "70px",
-                borderRadius: "12px",
-                background: "#e2e8f0",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 1.5rem",
-                fontSize: "1.5rem",
-                color: "#475569"
-              }}>
-                <i className={feature.icon}></i>
-              </div>
-              <h3 style={{
-                fontSize: "1.25rem",
-                fontWeight: 600,
-                marginBottom: "1rem",
-                color: "#1e293b"
-              }}>
-                {feature.name}
-              </h3>
-              <p style={{ color: "#64748b", lineHeight: "1.6" }}>
-                {feature.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      
-      <section style={{
-        padding: "4rem 2rem",
-        background: "#ffffff"
-      }}>
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "2rem",
-          maxWidth: "1200px",
-          margin: "0 auto"
-        }}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{
-              fontSize: "3rem",
-              fontWeight: 700,
-              color: "#1e293b",
-              marginBottom: "0.5rem"
-            }}>50K+</div>
-            <div style={{ color: "#64748b", fontSize: "1.1rem" }}>Students & Educators</div>
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{
-              fontSize: "3rem",
-              fontWeight: 700,
-              color: "#1e293b",
-              marginBottom: "0.5rem"
-            }}>10M+</div>
-            <div style={{ color: "#64748b", fontSize: "1.1rem" }}>Files Archived</div>
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{
-              fontSize: "3rem",
-              fontWeight: 700,
-              color: "#1e293b",
-              marginBottom: "0.5rem"
-            }}>99.9%</div>
-            <div style={{ color: "#64748b", fontSize: "1.1rem" }}>Uptime</div>
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{
-              fontSize: "3rem",
-              fontWeight: 700,
-              color: "#1e293b",
-              marginBottom: "0.5rem"
-            }}>256-bit</div>
-            <div style={{ color: "#64748b", fontSize: "1.1rem" }}>Encryption</div>
-          </div>
-        </div>
-      </section>
-
-    
-      <section style={{
-        padding: "6rem 2rem",
-        background: "linear-gradient(135deg, #1e293b 0%, #334155 100%)",
-        textAlign: "center",
-        color: "white"
-      }}>
-        <div style={{ maxWidth: "600px", margin: "0 auto" }}>
-          <h2 style={{
-            fontSize: "2.5rem",
-            fontWeight: 700,
-            marginBottom: "1.5rem"
-          }}>
-            Ready to Secure Your Academic Files?
-          </h2>
-          <p style={{
-            fontSize: "1.25rem",
-            marginBottom: "2.5rem",
-            color: "#cbd5e1",
-            lineHeight: "1.6"
-          }}>
-            Join thousands of students and educators who trust Achieve System with their important academic documents. Start with 15GB free.
-          </p>
-          <button style={{
-            background: "white",
-            color: "#1e293b",
-            border: "none",
-            padding: "1rem 2rem",
-            borderRadius: "8px",
-            fontWeight: 600,
-            fontSize: "1.1rem",
-            cursor: "pointer",
-            transition: "all 0.3s ease"
-          }}>
-            Create Your Archive Now
-          </button>
-        </div>
-      </section>
-
-      
-      <footer style={{
-        background: "#1e293b",
-        color: "white",
-        padding: "3rem 2rem"
-      }}>
-        <div style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: "2rem"
-        }}>
-          <div>
-            <h3 style={{ marginBottom: "1rem", fontSize: "1.1rem", fontWeight: 600 }}>Achieve System</h3>
-            <p style={{ color: "#cbd5e1", lineHeight: "1.6" }}>
-              The trusted academic archiving platform for students and educators worldwide.
-            </p>
-          </div>
-          <div>
-            <h3 style={{ marginBottom: "1rem", fontSize: "1.1rem", fontWeight: 600 }}>Product</h3>
-            <ul style={{ listStyle: "none" }}>
-              <li style={{ marginBottom: "0.5rem" }}><a href="#features" style={{ color: "#cbd5e1", textDecoration: "none" }}>Features</a></li>
-              <li style={{ marginBottom: "0.5rem" }}><a href="#pricing" style={{ color: "#cbd5e1", textDecoration: "none" }}>Pricing</a></li>
-              <li style={{ marginBottom: "0.5rem" }}><a href="#security" style={{ color: "#cbd5e1", textDecoration: "none" }}>Security</a></li>
-            </ul>
-          </div>
-          <div>
-            <h3 style={{ marginBottom: "1rem", fontSize: "1.1rem", fontWeight: 600 }}>Support</h3>
-            <ul style={{ listStyle: "none" }}>
-              <li style={{ marginBottom: "0.5rem" }}><a href="#help" style={{ color: "#cbd5e1", textDecoration: "none" }}>Help Center</a></li>
-              <li style={{ marginBottom: "0.5rem" }}><a href="#docs" style={{ color: "#cbd5e1", textDecoration: "none" }}>Documentation</a></li>
-              <li style={{ marginBottom: "0.5rem" }}><a href="#contact" style={{ color: "#cbd5e1", textDecoration: "none" }}>Contact</a></li>
-            </ul>
-          </div>
-        </div>
-        <div style={{
-          textAlign: "center",
-          marginTop: "3rem",
-          paddingTop: "2rem",
-          borderTop: "1px solid #334155",
-          color: "#94a3b8"
-        }}>
-          <p>© 2024 Achieve System. All rights reserved. Empowering education through secure archiving.</p>
-        </div>
-      </footer>
-    </div>
-  );
-};
-
-export default Home;*/
-
-
-
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
   const [expandedService, setExpandedService] = useState(null);
@@ -681,6 +14,7 @@ const Home = () => {
       id: 1,
       name: "Secure File Storage",
       image: "https://images.unsplash.com/photo-1556075798-4825dfaaf498?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&w=400&h=300&fit=crop&crop=center",
+      icon: "🔒",
       description: "Military-grade encryption for your documents and files. Rest easy knowing your data is protected with end-to-end encryption.",
       features: [
         "256-bit AES encryption",
@@ -692,9 +26,9 @@ const Home = () => {
     {
       id: 2,
       name: "Smart Organization",
-     image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&w=400&h=300&fit=crop&crop=center",
-
-      description: "AI-powered categorization system that automatically organizes your academic files by subject, date, and type.",
+      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&w=400&h=300&fit=crop&crop=center",
+      icon: "📊",
+      description: "AI-powered categorization system that automatically organizes your files by subject, date, and type.",
       features: [
         "AI auto-categorization",
         "Smart search",
@@ -705,7 +39,8 @@ const Home = () => {
     {
       id: 3,
       name: "Collaborative Features",
-       image: "https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&w=400&h=300&fit=crop&crop=center",
+      image: "https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&w=400&h=300&fit=crop&crop=center",
+      icon: "🤝",
       description: "Share files securely with colleagues while maintaining strict access controls.",
       features: [
         "Group workspaces",
@@ -717,7 +52,8 @@ const Home = () => {
     {
       id: 4,
       name: "Advanced Search",
-      icon: "fas fa-search",
+      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&w=400&h=300&fit=crop&crop=center",
+      icon: "🔍",
       description: "Find any document or file in seconds with our powerful search engine. Search by content, course, or metadata.",
       features: [
         "Full-text search",
@@ -730,27 +66,32 @@ const Home = () => {
 
   const features = [
     {
-      image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&w=300&h=200&fit=crop&crop=center",
-
+      icon: "🛡️",
       name: "Bank-Level Security",
-      description: "Your  data is protected with the same security standards used by educational institutions."
+      description: "Your data is protected with the same security standards used by financial institutions."
     },
     {
-      image: "https://images.unsplash.com/photo-1586953208448-b95a79798f07?ixlib=rb-4.0.3&w=300&h=200&fit=crop&crop=center",
-
+      icon: "💾",
       name: "Ample Storage",
-      description: "Generous storage space for all your  documents."
+      description: "Generous storage space for all your important documents and files."
     },
     {
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&w=300&h=200&fit=crop&crop=center",
+      icon: "⚡",
       name: "Lightning Fast",
-      description: "Upload and access your  files instantly with our optimized platform."
+      description: "Upload and access your files instantly with our optimized platform."
     },
     {
-      image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?ixlib=rb-4.0.3&w=300&h=200&fit=crop&crop=center",
+      icon: "📱",
       name: "Any Device Access",
-      description: "Access your academic archives from anywhere with our responsive web platform."
+      description: "Access your archives from anywhere with our responsive web platform."
     }
+  ];
+
+  const stats = [
+    { number: "50K+", label: "Active Users" },
+    { number: "10M+", label: "Files Archived" },
+    { number: "99.9%", label: "Uptime" },
+    { number: "256-bit", label: "Encryption" }
   ];
 
   const toggleService = (serviceId) => {
@@ -758,60 +99,103 @@ const Home = () => {
   };
 
   return (
-    <div className="home-container">
-      
-
+    <div style={styles.container}>
       {/* Hero Section */}
-      <section className="hero-section">
-        <div className="hero-content">
-          <h1>Organize, Secure, and Access Your Files</h1>
-          <p>
-            Archieve System  archiving solutions for students, educators, businesses etc. 
-            Keep your important documents safe, organized, and accessible.
+      <section style={styles.heroSection}>
+        <div style={styles.heroContent}>
+          <div style={styles.heroBadge}>
+            <span>🔒 Trusted Archive Platform</span>
+          </div>
+          <h1 style={styles.heroTitle}>
+            Organize, Secure, and Access
+            <span style={styles.highlight}> Your Files</span>
+          </h1>
+          <p style={styles.heroDescription}>
+            Professional archiving solutions for students, educators, and businesses. 
+            Keep your important documents safe, organized, and accessible anywhere.
           </p>
-          <div className="cta-buttons">
-            <button className="primary-cta">
-              Start uploading
-            </button>
-            
+          <div style={styles.ctaButtons}>
+            <Link to="/register">
+              <button style={styles.primaryButton}>
+                <span style={styles.buttonIcon}>🚀</span>
+                Get Started Free
+              </button>
+            </Link>
+            <Link to="/login">
+              <button style={styles.secondaryButton}>
+                <span style={styles.buttonIcon}>👤</span>
+                Sign In
+              </button>
+            </Link>
+          </div>
+          <div style={styles.trustBadges}>
+            <div style={styles.trustBadge}>
+              <span style={styles.trustIcon}>✅</span>
+              No credit card required
+            </div>
+            <div style={styles.trustBadge}>
+              <span style={styles.trustIcon}>🛡️</span>
+              Enterprise Security
+            </div>
+            <div style={styles.trustBadge}>
+              <span style={styles.trustIcon}>⚡</span>
+              Setup in 5 minutes
+            </div>
+          </div>
+        </div>
+        <div style={styles.heroImage}>
+          <div style={styles.imagePlaceholder}>
+            <div style={styles.floatingCard}>
+              <span style={styles.floatingIcon}>📄</span>
+              <span>Document.pdf</span>
+            </div>
+            <div style={styles.floatingCard2}>
+              <span style={styles.floatingIcon}>📊</span>
+              <span>Report.xlsx</span>
+            </div>
+            <div style={styles.floatingCard3}>
+              <span style={styles.floatingIcon}>🖼️</span>
+              <span>Image.png</span>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Services Section - Horizontal Expandable */}
-      <section className="services-section">
-        <h2>How Archieve System Works</h2>
-        <div className="services-horizontal">
+      {/* Services Section */}
+      <section style={styles.servicesSection}>
+        <div style={styles.sectionHeader}>
+          <h2 style={styles.sectionTitle}>How Archive System Works</h2>
+          <p style={styles.sectionSubtitle}>Powerful features designed to simplify your file management</p>
+        </div>
+        <div style={styles.servicesGrid}>
           {services.map((service) => (
             <div
               key={service.id}
-              className={`service-card ${expandedService === service.id ? 'expanded' : ''}`}
+              style={{
+                ...styles.serviceCard,
+                ...(expandedService === service.id ? styles.serviceCardExpanded : {})
+              }}
               onMouseEnter={() => !isTouchDevice && setExpandedService(service.id)}
               onMouseLeave={() => !isTouchDevice && setExpandedService(null)}
               onClick={() => isTouchDevice && toggleService(service.id)}
             >
-              <div className="service-header">
-              <  img 
-        src={service.image} 
-        alt={service.name}
-        className="service-image"
-    />
-                <div className="expand-indicator">
-                  <i className="fas fa-chevron-down"></i>
-                  
-                </div>
+              <div style={styles.serviceIconContainer}>
+                <span style={styles.serviceIcon}>{service.icon}</span>
               </div>
-              <h3 className="service-name">{service.name}</h3>
-              <div className="service-description">
-                <p>{service.description}</p>
-                <ul className="service-features">
+              <h3 style={styles.serviceName}>{service.name}</h3>
+              <p style={styles.serviceDescription}>{service.description}</p>
+              {expandedService === service.id && (
+                <div style={styles.serviceFeatures}>
                   {service.features.map((feature, index) => (
-                    <li key={index}>
-                      <span className="feature-check">✓</span>
-                      {feature}
-                    </li>
+                    <div key={index} style={styles.featureItem}>
+                      <span style={styles.featureIcon}>✓</span>
+                      <span>{feature}</span>
+                    </div>
                   ))}
-                </ul>
+                </div>
+              )}
+              <div style={styles.expandIndicator}>
+                {expandedService === service.id ? '▲' : '▼'}
               </div>
             </div>
           ))}
@@ -819,416 +203,598 @@ const Home = () => {
       </section>
 
       {/* Features Section */}
-      <section className="features-section">
-        <h2>Why Choose Archieve System?</h2>
-        <div className="features-grid">
+      <section style={styles.featuresSection}>
+        <div style={styles.sectionHeader}>
+          <h2 style={styles.sectionTitle}>Why Choose Archive System?</h2>
+          <p style={styles.sectionSubtitle}>Everything you need for secure and efficient file management</p>
+        </div>
+        <div style={styles.featuresGrid}>
           {features.map((feature, index) => (
-            <div key={index} className="feature-card">
-              <img 
-                      src={feature.image} 
-                              alt={feature.name}
-                                      className="feature-image"
-                                          />
-              <h3 className="feature-name">{feature.name}</h3>
-              <p className="feature-description">{feature.description}</p>
+            <div key={index} style={styles.featureCard}>
+              <div style={styles.featureIconContainer}>
+                <span style={styles.featureEmoji}>{feature.icon}</span>
+              </div>
+              <h3 style={styles.featureName}>{feature.name}</h3>
+              <p style={styles.featureDescription}>{feature.description}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="stats-section">
-        <div className="stats-grid">
-          <div className="stat-item">
-            <div className="stat-number">50K+</div>
-            <div className="stat-label">Users</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-number">10M+</div>
-            <div className="stat-label">Files Archived</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-number">99.9%</div>
-            <div className="stat-label">Uptime</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-number">256-bit</div>
-            <div className="stat-label">Encryption</div>
-          </div>
+      <section style={styles.statsSection}>
+        <div style={styles.statsGrid}>
+          {stats.map((stat, index) => (
+            <div key={index} style={styles.statCard}>
+              <div style={styles.statNumber}>{stat.number}</div>
+              <div style={styles.statLabel}>{stat.label}</div>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="cta-section">
-        <div className="cta-content">
-          <h2>Ready to Secure Your Files?</h2>
-          <p>
-            Join thousands of Users who trust Archieve System with their 
-            importantdocuments.
-          </p><br></br>
-          <button className="cta-button">
-            Create Your Archive Now
-          </button>
+      <section style={styles.ctaSection}>
+        <div style={styles.ctaContainer}>
+          <div style={styles.ctaContent}>
+            <h2 style={styles.ctaTitle}>Ready to Secure Your Files?</h2>
+            <p style={styles.ctaDescription}>
+              Join thousands of users who trust Archive System with their 
+              important documents. Start your free trial today.
+            </p>
+            <div style={styles.ctaButtons}>
+              <Link to="/register">
+                <button style={styles.ctaPrimaryButton}>
+                  <span style={styles.buttonIcon}>📁</span>
+                  Create Your Archive
+                </button>
+              </Link>
+              <Link to="/login">
+                <button style={styles.ctaSecondaryButton}>
+                  <span style={styles.buttonIcon}>👥</span>
+                  Schedule Demo
+                </button>
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-       <footer style={styles.footer}>
+      <footer style={styles.footer}>
         <div style={styles.footerContent}>
           <div style={styles.footerSection}>
-            <h3 style={styles.footerTitle}>Achieve System</h3>
+            <div style={styles.footerLogo}>
+              <span style={styles.logoIcon}>📁</span>
+              <div>
+                <h3 style={styles.footerTitle}>Archive System</h3>
+                <p style={styles.footerTagline}>Secure File Management</p>
+              </div>
+            </div>
             <p style={styles.footerText}>
-              The trusted  archiving platform for students, educators, businesses worldwide.
+              The trusted archiving platform for students, educators, and businesses worldwide.
             </p>
           </div>
 
           <div style={styles.footerSection}>
-            <h3 style={styles.footerTitle}>Support</h3>
+            <h4 style={styles.footerHeading}>Quick Links</h4>
             <ul style={styles.footerLinks}>
-              <li><a href="#help" style={styles.footerLink}>Help Center</a></li>
-              <li><a href="#docs" style={styles.footerLink}>Documentation</a></li>
-              <li><a href="#contact" style={styles.footerLink}>Contact</a></li>
+              <li><Link to="/" style={styles.footerLink}>Home</Link></li>
+              <li><Link to="/features" style={styles.footerLink}>Features</Link></li>
+              <li><Link to="/pricing" style={styles.footerLink}>Pricing</Link></li>
+              <li><Link to="/about" style={styles.footerLink}>About</Link></li>
             </ul>
+          </div>
+
+          <div style={styles.footerSection}>
+            <h4 style={styles.footerHeading}>Support</h4>
+            <ul style={styles.footerLinks}>
+              <li><Link to="/help" style={styles.footerLink}>Help Center</Link></li>
+              <li><Link to="/docs" style={styles.footerLink}>Documentation</Link></li>
+              <li><Link to="/contact" style={styles.footerLink}>Contact</Link></li>
+              <li><Link to="/privacy" style={styles.footerLink}>Privacy Policy</Link></li>
+            </ul>
+          </div>
+
+          <div style={styles.footerSection}>
+            <h4 style={styles.footerHeading}>Connect</h4>
+            <div style={styles.socialLinks}>
+              <a href="#" style={styles.socialLink}>🐦</a>
+              <a href="#" style={styles.socialLink}>💼</a>
+              <a href="#" style={styles.socialLink}>📘</a>
+              <a href="#" style={styles.socialLink}>📷</a>
+            </div>
+            <p style={styles.contactEmail}>support@archivesystem.com</p>
           </div>
         </div>
         <div style={styles.footerBottom}>
-          <p>© 2024 Achieve System. All rights reserved. Empowering education through secure archiving.</p>
+          <p>© 2024 Archive System. All rights reserved. Empowering secure file management worldwide.</p>
         </div>
       </footer>
     </div>
   );
 };
 
-// Styles object
 const styles = {
   container: {
-    fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
-    minHeight: '100vh'
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    color: '#202124',
+    lineHeight: 1.6,
+    overflowX: 'hidden',
   },
-  header: {
-    background: "#ffffff",
-    borderBottom: "1px solid #e2e8f0",
-    padding: "1.5rem 2rem",
-    position: "sticky",
-    top: 0,
-    zIndex: 100,
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)"
-  },
-  nav: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    maxWidth: "1400px",
-    margin: "0 auto"
-  },
-  logo: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    fontSize: "1.8rem",
-    fontWeight: 700,
-    color: "#1e293b"
-  },
-  logoIcon: {
-    fontSize: "2rem"
-  },
-  navActions: {
-    display: "flex",
-    gap: "1rem",
-    alignItems: "center"
-  },
-  signInBtn: {
-    background: "#1e293b",
-    color: "white",
-    border: "none",
-    padding: "0.75rem 1.5rem",
-    borderRadius: "8px",
-    fontWeight: 600,
-    cursor: "pointer",
-    transition: "all 0.3s ease"
-  },
-  signUpBtn: {
-    background: "transparent",
-    color: "#1e293b",
-    border: "2px solid #1e293b",
-    padding: "0.75rem 1.5rem",
-    borderRadius: "8px",
-    fontWeight: 600,
-    cursor: "pointer",
-    transition: "all 0.3s ease"
-  },
-  hero: {
-    textAlign: "center",
-    padding: "6rem 2rem",
-    background: "linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)"
+  heroSection: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '80px 40px',
+    backgroundColor: '#ffffff',
+    maxWidth: '1200px',
+    margin: '0 auto',
+    gap: '60px',
   },
   heroContent: {
-    maxWidth: "800px",
-    margin: "0 auto"
+    flex: 1,
+    maxWidth: '600px',
+  },
+  heroBadge: {
+    display: 'inline-block',
+    backgroundColor: '#f0f7ff',
+    color: '#4285F4',
+    padding: '8px 16px',
+    borderRadius: '20px',
+    fontSize: '14px',
+    fontWeight: '500',
+    marginBottom: '24px',
   },
   heroTitle: {
-    fontSize: "3rem",
-    fontWeight: 700,
-    marginBottom: "1.5rem",
-    color: "#1e293b",
-    lineHeight: "1.1"
+    fontSize: '48px',
+    fontWeight: '700',
+    lineHeight: '1.2',
+    marginBottom: '20px',
+    color: '#202124',
+  },
+  highlight: {
+    color: '#4285F4',
   },
   heroDescription: {
-    fontSize: "1.25rem",
-    color: "#64748b",
-    marginBottom: "2.5rem",
-    lineHeight: "1.6"
+    fontSize: '18px',
+    color: '#5f6368',
+    marginBottom: '32px',
+    lineHeight: '1.6',
   },
   ctaButtons: {
-    display: "flex",
-    gap: "1rem",
-    justifyContent: "center",
-    flexWrap: "wrap"
+    display: 'flex',
+    gap: '16px',
+    marginBottom: '32px',
+    flexWrap: 'wrap',
   },
-  primaryCta: {
-    background: "#1e293b",
-    color: "white",
-    border: "none",
-    padding: "1rem 2rem",
-    borderRadius: "8px",
-    fontWeight: 600,
-    fontSize: "1.1rem",
-    cursor: "pointer",
-    transition: "all 0.3s ease"
+  primaryButton: {
+    backgroundColor: '#4285F4',
+    color: 'white',
+    border: 'none',
+    padding: '16px 32px',
+    borderRadius: '10px',
+    fontSize: '16px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    transition: 'all 0.2s',
+    '&:hover': {
+      backgroundColor: '#3367d6',
+      transform: 'translateY(-2px)',
+    },
   },
-  secondaryCta: {
-    background: "transparent",
-    color: "#1e293b",
-    border: "2px solid #1e293b",
-    padding: "1rem 2rem",
-    borderRadius: "8px",
-    fontWeight: 600,
-    fontSize: "1.1rem",
-    cursor: "pointer",
-    transition: "all 0.3s ease"
+  secondaryButton: {
+    backgroundColor: 'transparent',
+    color: '#4285F4',
+    border: '2px solid #4285F4',
+    padding: '16px 32px',
+    borderRadius: '10px',
+    fontSize: '16px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    transition: 'all 0.2s',
+    '&:hover': {
+      backgroundColor: '#f0f7ff',
+      transform: 'translateY(-2px)',
+    },
   },
-  services: {
-    padding: "4rem 2rem",
-    background: "#ffffff",
-    maxWidth: "1400px",
-    margin: "0 auto"
+  buttonIcon: {
+    fontSize: '18px',
+  },
+  trustBadges: {
+    display: 'flex',
+    gap: '20px',
+    flexWrap: 'wrap',
+  },
+  trustBadge: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontSize: '14px',
+    color: '#5f6368',
+  },
+  trustIcon: {
+    fontSize: '16px',
+  },
+  heroImage: {
+    flex: 1,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imagePlaceholder: {
+    position: 'relative',
+    width: '400px',
+    height: '300px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '16px',
+    border: '2px dashed #dadce0',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  floatingCard: {
+    position: 'absolute',
+    top: '20px',
+    left: '-40px',
+    backgroundColor: 'white',
+    padding: '12px 20px',
+    borderRadius: '10px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    fontSize: '14px',
+  },
+  floatingCard2: {
+    position: 'absolute',
+    top: '120px',
+    right: '-30px',
+    backgroundColor: 'white',
+    padding: '12px 20px',
+    borderRadius: '10px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    fontSize: '14px',
+  },
+  floatingCard3: {
+    position: 'absolute',
+    bottom: '30px',
+    left: '30px',
+    backgroundColor: 'white',
+    padding: '12px 20px',
+    borderRadius: '10px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    fontSize: '14px',
+  },
+  floatingIcon: {
+    fontSize: '20px',
+  },
+  servicesSection: {
+    padding: '80px 40px',
+    backgroundColor: '#f8f9fa',
+  },
+  sectionHeader: {
+    textAlign: 'center',
+    maxWidth: '800px',
+    margin: '0 auto 60px',
   },
   sectionTitle: {
-    fontSize: "2.5rem",
-    fontWeight: 700,
-    textAlign: "center",
-    marginBottom: "3rem",
-    color: "#1e293b"
+    fontSize: '36px',
+    fontWeight: '700',
+    color: '#202124',
+    marginBottom: '16px',
   },
-  servicesHorizontal: {
-    display: "flex",
-    gap: "1.5rem",
-    overflowX: "auto",
-    padding: "1rem 0"
+  sectionSubtitle: {
+    fontSize: '18px',
+    color: '#5f6368',
+  },
+  servicesGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: '30px',
+    maxWidth: '1200px',
+    margin: '0 auto',
   },
   serviceCard: {
-    minWidth: "300px",
-    background: "#f8fafc",
-    border: "1px solid #e2e8f0",
-    borderRadius: "12px",
-    padding: "2rem",
-    transition: "all 0.3s ease",
-    cursor: "pointer"
+    backgroundColor: 'white',
+    borderRadius: '16px',
+    padding: '32px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+    transition: 'all 0.3s ease',
+    position: 'relative',
+    cursor: 'pointer',
+    border: '1px solid #f1f3f4',
   },
   serviceCardExpanded: {
-    background: "#ffffff",
-    borderColor: "#94a3b8",
-    boxShadow: "0 8px 25px rgba(0, 0, 0, 0.15)",
-    transform: "translateY(-4px)"
+    boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
+    borderColor: '#4285F4',
+    transform: 'translateY(-5px)',
   },
-  serviceHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: "1rem"
+  serviceIconContainer: {
+    width: '60px',
+    height: '60px',
+    backgroundColor: '#f0f7ff',
+    borderRadius: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: '24px',
   },
   serviceIcon: {
-    width: "50px",
-    height: "50px",
-    borderRadius: "10px",
-    background: "#e2e8f0",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "1.25rem",
-    color: "#475569"
-  },
-  expandIndicator: {
-    color: "#64748b",
-    fontSize: "0.9rem",
-    transition: "transform 0.3s ease"
+    fontSize: '28px',
   },
   serviceName: {
-    fontSize: "1.25rem",
-    fontWeight: 600,
-    color: "#1e293b",
-    marginBottom: "0.5rem"
+    fontSize: '20px',
+    fontWeight: '600',
+    color: '#202124',
+    marginBottom: '12px',
   },
   serviceDescription: {
-    color: "#64748b",
-    lineHeight: "1.5",
-    overflow: "hidden",
-    transition: "max-height 0.3s ease"
+    fontSize: '15px',
+    color: '#5f6368',
+    marginBottom: '16px',
   },
   serviceFeatures: {
-    listStyle: "none",
-    marginTop: "1rem",
-    color: "#64748b"
+    marginTop: '20px',
+    paddingTop: '20px',
+    borderTop: '1px solid #f1f3f4',
   },
   featureItem: {
-    marginBottom: "0.5rem",
-    paddingLeft: "1rem",
-    position: "relative"
-  },
-  featureCheck: {
-    position: "absolute",
-    left: 0,
-    color: "#10b981",
-    fontWeight: "bold"
-  },
-  features: {
-    padding: "4rem 2rem",
-    background: "#f1f5f9"
-  },
-  featuresGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-    gap: "2rem",
-    maxWidth: "1200px",
-    margin: "0 auto"
-  },
-  featureCard: {
-    background: "#ffffff",
-    border: "1px solid #e2e8f0",
-    borderRadius: "12px",
-    padding: "2rem",
-    textAlign: "center",
-    transition: "all 0.3s ease"
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    marginBottom: '10px',
+    fontSize: '14px',
+    color: '#5f6368',
   },
   featureIcon: {
-    width: "70px",
-    height: "70px",
-    borderRadius: "12px",
-    background: "#e2e8f0",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    margin: "0 auto 1.5rem",
-    fontSize: "1.5rem",
-    color: "#475569"
+    color: '#34a853',
+    fontWeight: 'bold',
+  },
+  expandIndicator: {
+    position: 'absolute',
+    top: '32px',
+    right: '32px',
+    color: '#4285F4',
+    fontSize: '14px',
+  },
+  featuresSection: {
+    padding: '80px 40px',
+    backgroundColor: 'white',
+  },
+  featuresGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+    gap: '30px',
+    maxWidth: '1200px',
+    margin: '0 auto',
+  },
+  featureCard: {
+    textAlign: 'center',
+    padding: '32px 24px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '16px',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      transform: 'translateY(-5px)',
+      boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
+    },
+  },
+  featureIconContainer: {
+    width: '70px',
+    height: '70px',
+    backgroundColor: '#e8f0fe',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: '0 auto 24px',
+  },
+  featureEmoji: {
+    fontSize: '32px',
   },
   featureName: {
-    fontSize: "1.25rem",
-    fontWeight: 600,
-    marginBottom: "1rem",
-    color: "#1e293b"
+    fontSize: '18px',
+    fontWeight: '600',
+    color: '#202124',
+    marginBottom: '12px',
   },
   featureDescription: {
-    color: "#64748b",
-    lineHeight: "1.6"
+    fontSize: '14px',
+    color: '#5f6368',
   },
-  stats: {
-    padding: "4rem 2rem",
-    background: "#ffffff"
+  statsSection: {
+    padding: '60px 40px',
+    backgroundColor: '#4285F4',
+    color: 'white',
   },
   statsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-    gap: "2rem",
-    maxWidth: "1200px",
-    margin: "0 auto"
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '40px',
+    maxWidth: '1200px',
+    margin: '0 auto',
+    textAlign: 'center',
   },
-  statItem: {
-    textAlign: "center"
+  statCard: {
+    padding: '24px',
   },
   statNumber: {
-    fontSize: "3rem",
-    fontWeight: 700,
-    color: "#1e293b",
-    marginBottom: "0.5rem"
+    fontSize: '48px',
+    fontWeight: '700',
+    marginBottom: '8px',
   },
   statLabel: {
-    color: "#64748b",
-    fontSize: "1.1rem"
+    fontSize: '16px',
+    opacity: 0.9,
   },
   ctaSection: {
-    padding: "6rem 2rem",
-    background: "linear-gradient(135deg, #1e293b 0%, #334155 100%)",
-    textAlign: "center",
-    color: "white"
+    padding: '80px 40px',
+    backgroundColor: '#f8f9fa',
+  },
+  ctaContainer: {
+    maxWidth: '800px',
+    margin: '0 auto',
+    textAlign: 'center',
   },
   ctaContent: {
-    maxWidth: "600px",
-    margin: "0 auto"
+    backgroundColor: 'white',
+    padding: '60px',
+    borderRadius: '20px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
   },
   ctaTitle: {
-    fontSize: "2.5rem",
-    fontWeight: 700,
-    marginBottom: "1.5rem"
+    fontSize: '36px',
+    fontWeight: '700',
+    color: '#202124',
+    marginBottom: '16px',
   },
   ctaDescription: {
-    fontSize: "1.25rem",
-    marginBottom: "2.5rem",
-    color: "#cbd5e1",
-    lineHeight: "1.6"
+    fontSize: '18px',
+    color: '#5f6368',
+    marginBottom: '32px',
+    maxWidth: '600px',
+    marginLeft: 'auto',
+    marginRight: 'auto',
   },
-  ctaButton: {
-    background: "white",
-    color: "#1e293b",
-    border: "none",
-    padding: "1rem 2rem",
-    borderRadius: "8px",
-    fontWeight: 600,
-    fontSize: "1.1rem",
-    cursor: "pointer",
-    transition: "all 0.3s ease"
+  ctaButtons: {
+    display: 'flex',
+    gap: '16px',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+  },
+  ctaPrimaryButton: {
+    backgroundColor: '#4285F4',
+    color: 'white',
+    border: 'none',
+    padding: '18px 40px',
+    borderRadius: '10px',
+    fontSize: '16px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    transition: 'all 0.2s',
+    '&:hover': {
+      backgroundColor: '#3367d6',
+      transform: 'translateY(-2px)',
+    },
+  },
+  ctaSecondaryButton: {
+    backgroundColor: 'transparent',
+    color: '#4285F4',
+    border: '2px solid #4285F4',
+    padding: '18px 40px',
+    borderRadius: '10px',
+    fontSize: '16px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    transition: 'all 0.2s',
+    '&:hover': {
+      backgroundColor: '#f0f7ff',
+      transform: 'translateY(-2px)',
+    },
   },
   footer: {
-    background: "#1e293b",
-    color: "white",
-    padding: "3rem 2rem"
+    backgroundColor: '#202124',
+    color: 'white',
+    padding: '60px 40px 30px',
   },
   footerContent: {
-    maxWidth: "1200px",
-    margin: "0 auto",
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-    gap: "2rem"
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+    gap: '40px',
+    maxWidth: '1200px',
+    margin: '0 auto',
   },
   footerSection: {
-    marginBottom: "1rem"
+    marginBottom: '20px',
+  },
+  footerLogo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '20px',
+  },
+  logoIcon: {
+    fontSize: '32px',
   },
   footerTitle: {
-    marginBottom: "1rem",
-    fontSize: "1.1rem",
-    fontWeight: 600
+    fontSize: '20px',
+    fontWeight: '600',
+    marginBottom: '4px',
+  },
+  footerTagline: {
+    fontSize: '14px',
+    opacity: 0.8,
   },
   footerText: {
-    color: "#cbd5e1",
-    lineHeight: "1.6"
+    fontSize: '14px',
+    opacity: 0.7,
+    lineHeight: 1.6,
+  },
+  footerHeading: {
+    fontSize: '16px',
+    fontWeight: '600',
+    marginBottom: '20px',
   },
   footerLinks: {
-    listStyle: "none"
+    listStyle: 'none',
+    padding: 0,
   },
   footerLink: {
-    color: "#cbd5e1",
-    textDecoration: "none",
-    transition: "color 0.3s ease",
-    display: "block",
-    marginBottom: "0.5rem"
+    color: 'rgba(255,255,255,0.7)',
+    textDecoration: 'none',
+    fontSize: '14px',
+    marginBottom: '12px',
+    display: 'block',
+    transition: 'color 0.2s',
+    '&:hover': {
+      color: 'white',
+    },
+  },
+  socialLinks: {
+    display: 'flex',
+    gap: '16px',
+    marginBottom: '20px',
+  },
+  socialLink: {
+    fontSize: '20px',
+    color: 'rgba(255,255,255,0.7)',
+    textDecoration: 'none',
+    transition: 'color 0.2s',
+    '&:hover': {
+      color: 'white',
+    },
+  },
+  contactEmail: {
+    fontSize: '14px',
+    opacity: 0.7,
   },
   footerBottom: {
-    textAlign: "center",
-    marginTop: "3rem",
-    paddingTop: "2rem",
-    borderTop: "1px solid #334155",
-    color: "#94a3b8"
-  }
+    textAlign: 'center',
+    marginTop: '40px',
+    paddingTop: '30px',
+    borderTop: '1px solid rgba(255,255,255,0.1)',
+    fontSize: '14px',
+    opacity: 0.6,
+  },
 };
 
 export default Home;
