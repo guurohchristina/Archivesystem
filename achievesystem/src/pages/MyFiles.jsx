@@ -472,7 +472,7 @@ const MyFiles = () => {
                   style={{
                     ...styles.actionBtn,
                     color: file.shared ? '#4285F4' : '#5f6368',
-                    width: viewMode === 'grid' ? '12px' : '36px',
+                    width: viewMode === 'grid' ? '32px' : '36px',
                     height: viewMode === 'grid' ? '32px' : '36px',
                     fontSize: viewMode === 'grid' ? '14px' : '16px'
                   }}
@@ -574,8 +574,8 @@ const styles = {
     backgroundColor: '#f8f9fa',
     padding: '4px',
     borderRadius: '8px',
-    /*border: '1px solid #dadce0',*/
-    border:'1px solid red'
+    border: '1px solid #dadce0',
+    
   },
   viewBtn: {
     display: 'flex',
@@ -629,8 +629,9 @@ const styles = {
     gap: '12px',
     width:'100%',
     maxWidth: '100%',
-    boxSizing: 'border-box',
-    border:'1px solid green'
+    boxSizing: 'border-box'
+  
+    
   
   },
   fileItem: {
@@ -653,8 +654,8 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    flexShrink: 0,
-    border:'1px solid red'
+    flexShrink: 0
+  
   
   },
   fileTypeIcon: {
@@ -726,9 +727,9 @@ const styles = {
   },
   fileActions: {
     display: 'flex',
-    flexShrink: 0,
-    border:'1px solid red',
-    width:'100%'
+    flexShrink: 0
+    
+    
   
   },
   actionBtn: {
