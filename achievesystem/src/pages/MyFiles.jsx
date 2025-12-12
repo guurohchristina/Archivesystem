@@ -738,10 +738,10 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    /*border: '1px solid #dadce0',*/
+    border: '1px solid #dadce0',
   
    /* borderRadius: '6px',*/
-   padding: '5px',
+   padding: '0, 10px',
     backgroundColor: 'white',
     color: '#5f6368',
     cursor: 'pointer',
