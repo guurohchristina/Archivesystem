@@ -741,7 +741,7 @@ const styles = {
     border: '1px solid #dadce0',
   
    /* borderRadius: '6px',*/
-   padding: '0, 10px',
+   padding: '0, 4px',
     backgroundColor: 'white',
     color: '#5f6368',
     cursor: 'pointer',
