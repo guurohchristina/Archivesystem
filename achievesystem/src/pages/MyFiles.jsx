@@ -728,6 +728,7 @@ const styles = {
   fileActions: {
     display: 'flex',
     flexShrink: 0,
+    justifyContent:'spacebetween',
     border:'1px solid red'
     
     
