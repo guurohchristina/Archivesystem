@@ -89,7 +89,7 @@ const Dashboard = () => {
     { id: "upload", label: "Upload", icon: <Upload size={20} />, path: "/upload" },
     { id: "my-files", label: "My Files", icon: <Folder size={20} />, path: "/my-files" },
     { id: "shared", label: "Shared", icon: <Users size={20} />, path: "/shared-files" },
-      { id: "profile", label: "Profile", icon: <User size={20} />, path: "/profile" },
+  
   ];
   
   const userItems = [
