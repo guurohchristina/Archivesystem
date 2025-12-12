@@ -93,7 +93,7 @@ const Dashboard = () => {
   ];
   
   const userItems = [
-  
+     { id: "profile", label: "Profile", icon: <User size={20} />, path: "/profile" },
   
     { id: "settings", label: "Settings", icon: <Settings size={20} />, action: () => navigate("/settings") },
     { id: "logout", label: "Logout", icon: <LogOut size={20} />, action: () => {
@@ -568,8 +568,12 @@ const Dashboard = () => {
               <button
                 key={item.id}
                 onClick={() => {
-                  item.action();
-                  if (isMobileView) setIsMobileMenuOpen(false);
+                  if (item.action){
+                    item.action();
+                    
+                  }else if(item.path){
+                    handleNavigation(item.id, item.path);
+                  }
                 }}
                 style={{
                   ...styles.userAction,
