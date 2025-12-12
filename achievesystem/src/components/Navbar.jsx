@@ -70,6 +70,7 @@ const Navbar = () => {
               )}
               
               {/* User Profile */}
+              {/*
               <div style={styles.userProfile}>
                 <div style={styles.userAvatar}>
                   {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
@@ -78,7 +79,7 @@ const Navbar = () => {
                   <p style={styles.userName}>{user.name || 'User'}</p>
                   <p style={styles.userEmail}>{user.email || ''}</p>
                 </div>
-              </div>
+              </div>*/}
               
               <button onClick={handleLogout} style={styles.logoutButton}>
                 <span style={styles.linkIcon}>🚪</span>
