@@ -33,6 +33,7 @@ import SharedContent from "./SharedwithMe.jsx";
 import MyProfile from "./Profile.jsx";
 
 
+
 const Dashboard = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -617,7 +618,7 @@ const Dashboard = () => {
           </div>
           
           <div style={styles.viewControls}>
-            <button 
+          {/*  <button 
               style={{
                 ...styles.viewBtn,
                 backgroundColor: viewMode === 'grid' ? 'white' : 'transparent',
@@ -628,7 +629,8 @@ const Dashboard = () => {
               title="Grid view"
             >
               <Grid size={20} />
-            </button>
+            </button>*/}
+            
             <button 
               style={{
                 ...styles.viewBtn,
