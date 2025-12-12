@@ -4,9 +4,19 @@ import { Link } from 'react-router-dom';
 const Home = () => {
   const [expandedService, setExpandedService] = useState(null);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
     setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const services = [
@@ -98,15 +108,28 @@ const Home = () => {
     setExpandedService(expandedService === serviceId ? null : serviceId);
   };
 
+  // Responsive styles based on device
+  const getResponsiveStyle = (desktopValue, mobileValue) => {
+    return isMobile ? mobileValue : desktopValue;
+  };
+
   return (
     <div style={styles.container}>
-      {/* Hero Section */}
-      <section style={styles.heroSection}>
+      {/* Hero Section - Single column on mobile, side-by-side on desktop */}
+      <section style={{
+        ...styles.heroSection,
+        flexDirection: getResponsiveStyle('row', 'column'),
+        padding: getResponsiveStyle('80px 40px', '40px 20px'),
+        gap: getResponsiveStyle('60px', '40px'),
+      }}>
         <div style={styles.heroContent}>
           <div style={styles.heroBadge}>
             <span>🔒 Trusted Archive Platform</span>
           </div>
-          <h1 style={styles.heroTitle}>
+          <h1 style={{
+            ...styles.heroTitle,
+            fontSize: getResponsiveStyle('48px', '32px'),
+          }}>
             Organize, Secure, and Access
             <span style={styles.highlight}> Your Files</span>
           </h1>
@@ -116,19 +139,32 @@ const Home = () => {
           </p>
           <div style={styles.ctaButtons}>
             <Link to="/register">
-              <button style={styles.primaryButton}>
+              <button style={{
+                ...styles.primaryButton,
+                padding: getResponsiveStyle('16px 32px', '14px 24px'),
+                width: getResponsiveStyle('auto', '100%'),
+              }}>
                 <span style={styles.buttonIcon}>🚀</span>
                 Get Started Free
               </button>
             </Link>
             <Link to="/login">
-              <button style={styles.secondaryButton}>
+              <button style={{
+                ...styles.secondaryButton,
+                padding: getResponsiveStyle('16px 32px', '14px 24px'),
+                width: getResponsiveStyle('auto', '100%'),
+              }}>
                 <span style={styles.buttonIcon}>👤</span>
                 Sign In
               </button>
             </Link>
           </div>
-          <div style={styles.trustBadges}>
+          <div style={{
+            ...styles.trustBadges,
+            flexDirection: getResponsiveStyle('row', 'column'),
+            alignItems: getResponsiveStyle('center', 'flex-start'),
+            gap: getResponsiveStyle('20px', '12px'),
+          }}>
             <div style={styles.trustBadge}>
               <span style={styles.trustIcon}>✅</span>
               No credit card required
@@ -143,31 +179,52 @@ const Home = () => {
             </div>
           </div>
         </div>
-        <div style={styles.heroImage}>
-          <div style={styles.imagePlaceholder}>
-            <div style={styles.floatingCard}>
-              <span style={styles.floatingIcon}>📄</span>
-              <span>Document.pdf</span>
-            </div>
-            <div style={styles.floatingCard2}>
-              <span style={styles.floatingIcon}>📊</span>
-              <span>Report.xlsx</span>
-            </div>
-            <div style={styles.floatingCard3}>
-              <span style={styles.floatingIcon}>🖼️</span>
-              <span>Image.png</span>
+        {!isMobile && (
+          <div style={styles.heroImage}>
+            <div style={styles.imagePlaceholder}>
+              <div style={styles.floatingCard}>
+                <span style={styles.floatingIcon}>📄</span>
+                <span>Document.pdf</span>
+              </div>
+              <div style={styles.floatingCard2}>
+                <span style={styles.floatingIcon}>📊</span>
+                <span>Report.xlsx</span>
+              </div>
+              <div style={styles.floatingCard3}>
+                <span style={styles.floatingIcon}>🖼️</span>
+                <span>Image.png</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </section>
 
-      {/* Services Section */}
-      <section style={styles.servicesSection}>
+      {/* Services Section - Single column on mobile, grid on desktop */}
+      <section style={{
+        ...styles.servicesSection,
+        padding: getResponsiveStyle('80px 40px', '40px 20px'),
+      }}>
         <div style={styles.sectionHeader}>
-          <h2 style={styles.sectionTitle}>How Archive System Works</h2>
-          <p style={styles.sectionSubtitle}>Powerful features designed to simplify your file management</p>
+          <h2 style={{
+            ...styles.sectionTitle,
+            fontSize: getResponsiveStyle('36px', '28px'),
+          }}>
+            How Archive System Works
+          </h2>
+          <p style={{
+            ...styles.sectionSubtitle,
+            fontSize: getResponsiveStyle('18px', '16px'),
+          }}>
+            Powerful features designed to simplify your file management
+          </p>
         </div>
-        <div style={styles.servicesGrid}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: getResponsiveStyle('repeat(2, 1fr)', '1fr'),
+          gap: getResponsiveStyle('30px', '20px'),
+          maxWidth: '1200px',
+          margin: '0 auto',
+        }}>
           {services.map((service) => (
             <div
               key={service.id}
@@ -175,9 +232,9 @@ const Home = () => {
                 ...styles.serviceCard,
                 ...(expandedService === service.id ? styles.serviceCardExpanded : {})
               }}
-              onMouseEnter={() => !isTouchDevice && setExpandedService(service.id)}
-              onMouseLeave={() => !isTouchDevice && setExpandedService(null)}
-              onClick={() => isTouchDevice && toggleService(service.id)}
+              onMouseEnter={() => !isTouchDevice && !isMobile && setExpandedService(service.id)}
+              onMouseLeave={() => !isTouchDevice && !isMobile && setExpandedService(null)}
+              onClick={() => (isTouchDevice || isMobile) && toggleService(service.id)}
             >
               <div style={styles.serviceIconContainer}>
                 <span style={styles.serviceIcon}>{service.icon}</span>
@@ -202,13 +259,32 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section style={styles.featuresSection}>
+      {/* Features Section - Single column on mobile, grid on desktop */}
+      <section style={{
+        ...styles.featuresSection,
+        padding: getResponsiveStyle('80px 40px', '40px 20px'),
+      }}>
         <div style={styles.sectionHeader}>
-          <h2 style={styles.sectionTitle}>Why Choose Archive System?</h2>
-          <p style={styles.sectionSubtitle}>Everything you need for secure and efficient file management</p>
+          <h2 style={{
+            ...styles.sectionTitle,
+            fontSize: getResponsiveStyle('36px', '28px'),
+          }}>
+            Why Choose Archive System?
+          </h2>
+          <p style={{
+            ...styles.sectionSubtitle,
+            fontSize: getResponsiveStyle('18px', '16px'),
+          }}>
+            Everything you need for secure and efficient file management
+          </p>
         </div>
-        <div style={styles.featuresGrid}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: getResponsiveStyle('repeat(2, 1fr)', '1fr'),
+          gap: getResponsiveStyle('30px', '20px'),
+          maxWidth: '1200px',
+          margin: '0 auto',
+        }}>
           {features.map((feature, index) => (
             <div key={index} style={styles.featureCard}>
               <div style={styles.featureIconContainer}>
@@ -221,36 +297,80 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section style={styles.statsSection}>
-        <div style={styles.statsGrid}>
+      {/* Stats Section - Single column on mobile, grid on desktop */}
+      <section style={{
+        ...styles.statsSection,
+        padding: getResponsiveStyle('60px 40px', '40px 20px'),
+      }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: getResponsiveStyle('repeat(4, 1fr)', 'repeat(2, 1fr)'),
+          gap: getResponsiveStyle('40px', '20px'),
+          maxWidth: '1200px',
+          margin: '0 auto',
+          textAlign: 'center',
+        }}>
           {stats.map((stat, index) => (
             <div key={index} style={styles.statCard}>
-              <div style={styles.statNumber}>{stat.number}</div>
+              <div style={{
+                ...styles.statNumber,
+                fontSize: getResponsiveStyle('48px', '36px'),
+              }}>
+                {stat.number}
+              </div>
               <div style={styles.statLabel}>{stat.label}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section style={styles.ctaSection}>
-        <div style={styles.ctaContainer}>
-          <div style={styles.ctaContent}>
-            <h2 style={styles.ctaTitle}>Ready to Secure Your Files?</h2>
+      {/* CTA Section - Single column always */}
+      <section style={{
+        ...styles.ctaSection,
+        padding: getResponsiveStyle('80px 40px', '40px 20px'),
+      }}>
+        <div style={{
+          maxWidth: '800px',
+          margin: '0 auto',
+          textAlign: 'center',
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: getResponsiveStyle('60px', '40px 20px'),
+            borderRadius: '20px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          }}>
+            <h2 style={{
+              ...styles.ctaTitle,
+              fontSize: getResponsiveStyle('36px', '28px'),
+            }}>
+              Ready to Secure Your Files?
+            </h2>
             <p style={styles.ctaDescription}>
               Join thousands of users who trust Archive System with their 
               important documents. Start your free trial today.
             </p>
-            <div style={styles.ctaButtons}>
+            <div style={{
+              ...styles.ctaButtons,
+              flexDirection: getResponsiveStyle('row', 'column'),
+              gap: getResponsiveStyle('16px', '12px'),
+            }}>
               <Link to="/register">
-                <button style={styles.ctaPrimaryButton}>
+                <button style={{
+                  ...styles.ctaPrimaryButton,
+                  width: getResponsiveStyle('auto', '100%'),
+                  padding: getResponsiveStyle('18px 40px', '16px 24px'),
+                }}>
                   <span style={styles.buttonIcon}>📁</span>
                   Create Your Archive
                 </button>
               </Link>
               <Link to="/login">
-                <button style={styles.ctaSecondaryButton}>
+                <button style={{
+                  ...styles.ctaSecondaryButton,
+                  width: getResponsiveStyle('auto', '100%'),
+                  padding: getResponsiveStyle('18px 40px', '16px 24px'),
+                }}>
                   <span style={styles.buttonIcon}>👥</span>
                   Schedule Demo
                 </button>
@@ -260,9 +380,18 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer style={styles.footer}>
-        <div style={styles.footerContent}>
+      {/* Footer - Single column on mobile, grid on desktop */}
+      <footer style={{
+        ...styles.footer,
+        padding: getResponsiveStyle('60px 40px 30px', '40px 20px 20px'),
+      }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: getResponsiveStyle('repeat(auto-fit, minmax(250px, 1fr))', '1fr'),
+          gap: getResponsiveStyle('40px', '30px'),
+          maxWidth: '1200px',
+          margin: '0 auto',
+        }}>
           <div style={styles.footerSection}>
             <div style={styles.footerLogo}>
               <span style={styles.logoIcon}>📁</span>
@@ -326,15 +455,12 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '80px 40px',
     backgroundColor: '#ffffff',
     maxWidth: '1200px',
     margin: '0 auto',
-    gap: '60px',
   },
   heroContent: {
     flex: 1,
-    maxWidth: '600px',
   },
   heroBadge: {
     display: 'inline-block',
@@ -347,7 +473,6 @@ const styles = {
     marginBottom: '24px',
   },
   heroTitle: {
-    fontSize: '48px',
     fontWeight: '700',
     lineHeight: '1.2',
     marginBottom: '20px',
@@ -366,19 +491,18 @@ const styles = {
     display: 'flex',
     gap: '16px',
     marginBottom: '32px',
-    flexWrap: 'wrap',
   },
   primaryButton: {
     backgroundColor: '#4285F4',
     color: 'white',
     border: 'none',
-    padding: '16px 32px',
     borderRadius: '10px',
     fontSize: '16px',
     fontWeight: '600',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: '10px',
     transition: 'all 0.2s',
     '&:hover': {
@@ -390,13 +514,13 @@ const styles = {
     backgroundColor: 'transparent',
     color: '#4285F4',
     border: '2px solid #4285F4',
-    padding: '16px 32px',
     borderRadius: '10px',
     fontSize: '16px',
     fontWeight: '600',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: '10px',
     transition: 'all 0.2s',
     '&:hover': {
@@ -409,8 +533,6 @@ const styles = {
   },
   trustBadges: {
     display: 'flex',
-    gap: '20px',
-    flexWrap: 'wrap',
   },
   trustBadge: {
     display: 'flex',
@@ -482,7 +604,6 @@ const styles = {
     fontSize: '20px',
   },
   servicesSection: {
-    padding: '80px 40px',
     backgroundColor: '#f8f9fa',
   },
   sectionHeader: {
@@ -491,21 +612,12 @@ const styles = {
     margin: '0 auto 60px',
   },
   sectionTitle: {
-    fontSize: '36px',
     fontWeight: '700',
     color: '#202124',
     marginBottom: '16px',
   },
   sectionSubtitle: {
-    fontSize: '18px',
     color: '#5f6368',
-  },
-  servicesGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: '30px',
-    maxWidth: '1200px',
-    margin: '0 auto',
   },
   serviceCard: {
     backgroundColor: 'white',
@@ -571,15 +683,7 @@ const styles = {
     fontSize: '14px',
   },
   featuresSection: {
-    padding: '80px 40px',
     backgroundColor: 'white',
-  },
-  featuresGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '30px',
-    maxWidth: '1200px',
-    margin: '0 auto',
   },
   featureCard: {
     textAlign: 'center',
@@ -616,23 +720,13 @@ const styles = {
     color: '#5f6368',
   },
   statsSection: {
-    padding: '60px 40px',
     backgroundColor: '#4285F4',
     color: 'white',
-  },
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '40px',
-    maxWidth: '1200px',
-    margin: '0 auto',
-    textAlign: 'center',
   },
   statCard: {
     padding: '24px',
   },
   statNumber: {
-    fontSize: '48px',
     fontWeight: '700',
     marginBottom: '8px',
   },
@@ -641,22 +735,9 @@ const styles = {
     opacity: 0.9,
   },
   ctaSection: {
-    padding: '80px 40px',
     backgroundColor: '#f8f9fa',
   },
-  ctaContainer: {
-    maxWidth: '800px',
-    margin: '0 auto',
-    textAlign: 'center',
-  },
-  ctaContent: {
-    backgroundColor: 'white',
-    padding: '60px',
-    borderRadius: '20px',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-  },
   ctaTitle: {
-    fontSize: '36px',
     fontWeight: '700',
     color: '#202124',
     marginBottom: '16px',
@@ -671,21 +752,19 @@ const styles = {
   },
   ctaButtons: {
     display: 'flex',
-    gap: '16px',
     justifyContent: 'center',
-    flexWrap: 'wrap',
   },
   ctaPrimaryButton: {
     backgroundColor: '#4285F4',
     color: 'white',
     border: 'none',
-    padding: '18px 40px',
     borderRadius: '10px',
     fontSize: '16px',
     fontWeight: '600',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: '12px',
     transition: 'all 0.2s',
     '&:hover': {
@@ -697,13 +776,13 @@ const styles = {
     backgroundColor: 'transparent',
     color: '#4285F4',
     border: '2px solid #4285F4',
-    padding: '18px 40px',
     borderRadius: '10px',
     fontSize: '16px',
     fontWeight: '600',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: '12px',
     transition: 'all 0.2s',
     '&:hover': {
@@ -714,14 +793,6 @@ const styles = {
   footer: {
     backgroundColor: '#202124',
     color: 'white',
-    padding: '60px 40px 30px',
-  },
-  footerContent: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '40px',
-    maxWidth: '1200px',
-    margin: '0 auto',
   },
   footerSection: {
     marginBottom: '20px',
