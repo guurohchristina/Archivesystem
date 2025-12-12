@@ -307,12 +307,15 @@ const Upload = () => {
         </div>
       )}
 
+      {/* Main Content - Split Layout */}
       <div style={styles.container}>
-        {/* Left Panel - File Selection */}
-        <div style={styles.leftPanel}>
+        {/* Left Column - File Selection */}
+        <div style={styles.leftColumn}>
           <div style={styles.uploadCard}>
-            <h2 style={styles.cardTitle}>1. Select Files</h2>
-            <p style={styles.cardSubtitle}>Drag & drop or click to browse</p>
+            <div style={styles.cardHeader}>
+              <h2 style={styles.cardTitle}>1. Select Files</h2>
+              <span style={styles.cardCounter}>{selectedFiles.length} selected</span>
+            </div>
             
             <input
               type="file"
@@ -323,19 +326,19 @@ const Upload = () => {
               style={{ display: 'none' }}
             />
             
+            {/* Drop Zone */}
             <div 
-              style={styles.dropZone}
+              style={{
+                ...styles.dropZone,
+                borderColor: selectedFiles.length > 0 ? '#4285F4' : '#dadce0',
+                backgroundColor: selectedFiles.length > 0 ? '#f0f7ff' : '#f8f9fa',
+                minHeight: selectedFiles.length > 0 ? '100px' : '200px',
+                justifyContent: selectedFiles.length > 0 ? 'flex-start' : 'center',
+              }}
               onClick={triggerFileInput}
             >
               {selectedFiles.length > 0 ? (
                 <div style={styles.filesList}>
-                  <div style={styles.filesHeader}>
-                    <h4 style={{ margin: 0 }}>Selected Files ({selectedFiles.length})</h4>
-                    <span style={styles.totalSize}>
-                      {formatFileSize(totalFileSize)}
-                    </span>
-                  </div>
-                  
                   <div style={styles.filesContainer}>
                     {selectedFiles.map((file, index) => (
                       <div key={index} style={styles.fileItem}>
@@ -370,9 +373,9 @@ const Upload = () => {
                         e.stopPropagation();
                         triggerFileInput();
                       }}
-                      style={styles.secondaryButton}
+                      style={styles.addButton}
                     >
-                      Add More Files
+                      + Add More Files
                     </button>
                     <button
                       type="button"
@@ -380,7 +383,7 @@ const Upload = () => {
                         e.stopPropagation();
                         clearAllFiles();
                       }}
-                      style={styles.dangerButton}
+                      style={styles.clearButton}
                     >
                       Clear All
                     </button>
@@ -397,9 +400,23 @@ const Upload = () => {
                 </div>
               )}
             </div>
+            
+            {/* File Summary */}
+            {selectedFiles.length > 0 && (
+              <div style={styles.fileSummary}>
+                <div style={styles.summaryItem}>
+                  <span style={styles.summaryLabel}>Total files:</span>
+                  <span style={styles.summaryValue}>{selectedFiles.length}</span>
+                </div>
+                <div style={styles.summaryItem}>
+                  <span style={styles.summaryLabel}>Total size:</span>
+                  <span style={styles.summaryValue}>{formatFileSize(totalFileSize)}</span>
+                </div>
+              </div>
+            )}
           </div>
           
-          {/* Progress Bar */}
+          {/* Progress Bar - Fixed position at bottom of left column */}
           {uploading && (
             <div style={styles.progressCard}>
               <h3 style={styles.cardTitle}>Upload Progress</h3>
@@ -422,8 +439,8 @@ const Upload = () => {
           )}
         </div>
 
-        {/* Right Panel - Form */}
-        <div style={styles.rightPanel}>
+        {/* Right Column - Form (ALWAYS VISIBLE) */}
+        <div style={styles.rightColumn}>
           <form onSubmit={handleUpload} style={styles.form}>
             <div style={styles.formCard}>
               <h2 style={styles.cardTitle}>2. Document Information</h2>
@@ -540,36 +557,36 @@ const Upload = () => {
                   </div>
                 </div>
               </div>
-            </div>
-            
-            {/* Submit Buttons */}
-            <div style={styles.actionButtons}>
-              <button 
-                type="button" 
-                onClick={resetForm}
-                disabled={uploading}
-                style={styles.cancelButton}
-              >
-                Clear Form
-              </button>
               
-              <button 
-                type="submit" 
-                disabled={uploading || selectedFiles.length === 0}
-                style={selectedFiles.length === 0 ? styles.disabledButton : styles.submitButton}
-              >
-                {uploading ? (
-                  <>
-                    <div style={styles.spinner}></div>
-                    Uploading...
-                  </>
-                ) : (
-                  `Upload ${selectedFiles.length} File${selectedFiles.length !== 1 ? 's' : ''}`
-                )}
-              </button>
+              {/* UPLOAD BUTTON - NOW INSIDE FORM CARD */}
+              <div style={styles.actionButtons}>
+                <button 
+                  type="button" 
+                  onClick={resetForm}
+                  disabled={uploading}
+                  style={styles.cancelButton}
+                >
+                  Clear Form
+                </button>
+                
+                <button 
+                  type="submit" 
+                  disabled={uploading || selectedFiles.length === 0}
+                  style={selectedFiles.length === 0 ? styles.disabledButton : styles.submitButton}
+                >
+                  {uploading ? (
+                    <>
+                      <div style={styles.spinner}></div>
+                      Uploading...
+                    </>
+                  ) : (
+                    `Upload ${selectedFiles.length} File${selectedFiles.length !== 1 ? 's' : ''}`
+                  )}
+                </button>
+              </div>
             </div>
             
-            {/* User Info */}
+            {/* User Info Card - BELOW FORM */}
             <div style={styles.userCard}>
               <div style={styles.userHeader}>
                 <div style={styles.userAvatar}>
@@ -583,7 +600,7 @@ const Upload = () => {
               <div style={styles.userStats}>
                 <div style={styles.statItem}>
                   <div style={styles.statValue}>{selectedFiles.length}</div>
-                  <div style={styles.statLabel}>Files</div>
+                  <div style={styles.statLabel}>Files Selected</div>
                 </div>
                 <div style={styles.statItem}>
                   <div style={styles.statValue}>{formatFileSize(totalFileSize)}</div>
@@ -604,6 +621,7 @@ const styles = {
     padding: '20px',
     backgroundColor: '#f8f9fa',
     minHeight: '100vh',
+    overflowX: 'hidden',
   },
   header: {
     display: 'flex',
@@ -651,67 +669,78 @@ const styles = {
   container: {
     display: 'flex',
     gap: '30px',
-    maxWidth: '1200px',
+    maxWidth: '1400px',
     margin: '0 auto',
+    alignItems: 'flex-start',
   },
-  leftPanel: {
+  leftColumn: {
     flex: 1,
     maxWidth: '500px',
+    position: 'sticky',
+    top: '20px',
   },
-  rightPanel: {
+  rightColumn: {
     flex: 1,
     maxWidth: '600px',
   },
   uploadCard: {
     backgroundColor: 'white',
     borderRadius: '12px',
-    padding: '30px',
+    padding: '25px',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
     marginBottom: '20px',
   },
   formCard: {
     backgroundColor: 'white',
     borderRadius: '12px',
-    padding: '30px',
+    padding: '25px',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
     marginBottom: '20px',
   },
   progressCard: {
     backgroundColor: 'white',
     borderRadius: '12px',
-    padding: '30px',
+    padding: '25px',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+    marginTop: '20px',
+  },
+  cardHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '20px',
   },
   cardTitle: {
     fontSize: '18px',
     fontWeight: '600',
     color: '#202124',
-    margin: '0 0 8px 0',
+    margin: 0,
   },
-  cardSubtitle: {
+  cardCounter: {
     fontSize: '14px',
     color: '#5f6368',
-    margin: '0 0 20px 0',
+    backgroundColor: '#f1f3f4',
+    padding: '4px 12px',
+    borderRadius: '20px',
   },
   dropZone: {
     border: '2px dashed #dadce0',
     borderRadius: '12px',
-    padding: '30px',
-    textAlign: 'center',
+    padding: '20px',
     cursor: 'pointer',
     transition: 'all 0.2s',
-    backgroundColor: '#f8f9fa',
-    minHeight: '200px',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'center',
-    '&:hover': {
-      borderColor: '#4285F4',
-      backgroundColor: '#f0f7ff',
-    },
+    minHeight: '200px',
+    overflow: 'hidden',
   },
   emptyDropZone: {
     textAlign: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
   },
   uploadIcon: {
     fontSize: '48px',
@@ -736,29 +765,23 @@ const styles = {
   },
   filesList: {
     width: '100%',
-  },
-  filesHeader: {
     display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '16px',
-  },
-  totalSize: {
-    fontSize: '14px',
-    color: '#5f6368',
-    fontWeight: '500',
+    flexDirection: 'column',
+    flex: 1,
   },
   filesContainer: {
+    flex: 1,
     maxHeight: '300px',
     overflowY: 'auto',
-    marginBottom: '20px',
+    marginBottom: '15px',
     border: '1px solid #f1f3f4',
     borderRadius: '8px',
+    padding: '5px',
   },
   fileItem: {
     display: 'flex',
     alignItems: 'center',
-    padding: '12px',
+    padding: '10px',
     borderBottom: '1px solid #f1f3f4',
     backgroundColor: 'white',
     transition: 'all 0.2s',
@@ -770,7 +793,7 @@ const styles = {
     },
   },
   fileIcon: {
-    fontSize: '24px',
+    fontSize: '20px',
     marginRight: '12px',
     flexShrink: 0,
   },
@@ -807,12 +830,13 @@ const styles = {
   fileActions: {
     display: 'flex',
     gap: '10px',
+    marginTop: '10px',
   },
-  secondaryButton: {
-    padding: '10px 20px',
-    backgroundColor: '#f8f9fa',
-    color: '#202124',
-    border: '1px solid #dadce0',
+  addButton: {
+    padding: '10px 16px',
+    backgroundColor: '#4285F4',
+    color: 'white',
+    border: 'none',
     borderRadius: '8px',
     fontSize: '14px',
     fontWeight: '500',
@@ -820,11 +844,11 @@ const styles = {
     flex: 1,
     transition: 'all 0.2s',
     '&:hover': {
-      backgroundColor: '#f1f3f4',
+      backgroundColor: '#3367d6',
     },
   },
-  dangerButton: {
-    padding: '10px 20px',
+  clearButton: {
+    padding: '10px 16px',
     backgroundColor: '#fce8e6',
     color: '#ea4335',
     border: '1px solid #fadbd8',
@@ -837,6 +861,29 @@ const styles = {
     '&:hover': {
       backgroundColor: '#fadbd8',
     },
+  },
+  fileSummary: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginTop: '15px',
+    paddingTop: '15px',
+    borderTop: '1px solid #f1f3f4',
+  },
+  summaryItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    flex: 1,
+  },
+  summaryLabel: {
+    fontSize: '12px',
+    color: '#5f6368',
+    marginBottom: '4px',
+  },
+  summaryValue: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#202124',
   },
   form: {
     width: '100%',
@@ -930,7 +977,9 @@ const styles = {
   actionButtons: {
     display: 'flex',
     gap: '12px',
-    marginBottom: '20px',
+    marginTop: '30px',
+    paddingTop: '20px',
+    borderTop: '1px solid #f1f3f4',
   },
   cancelButton: {
     padding: '14px 24px',
@@ -1116,40 +1165,3 @@ const styles = {
     fontWeight: '600',
     color: '#202124',
     marginBottom: '2px',
-  },
-  userEmail: {
-    fontSize: '14px',
-    color: '#5f6368',
-  },
-  userStats: {
-    display: 'flex',
-    gap: '20px',
-    borderTop: '1px solid #d2e3fc',
-    paddingTop: '16px',
-  },
-  statItem: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  statValue: {
-    fontSize: '18px',
-    fontWeight: '600',
-    color: '#202124',
-    marginBottom: '4px',
-  },
-  statLabel: {
-    fontSize: '12px',
-    color: '#5f6368',
-  },
-};
-
-// Add CSS animation
-const styleSheet = document.styleSheets[0];
-styleSheet.insertRule(`
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-`, styleSheet.cssRules.length);
-
-export default Upload;
