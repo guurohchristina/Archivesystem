@@ -392,6 +392,8 @@ const Home = () => {
                 </button>
               </Link>
               <Link to="/login">
+                
+                {/*
                 <button style={{
                   ...styles.ctaSecondaryButton,
                   width: getResponsiveStyle('auto', '100%'),
@@ -402,7 +404,8 @@ const Home = () => {
                 }}>
                   <span style={styles.buttonIcon}>👥</span>
                   Schedule Demo
-                </button>
+                </button>*/}
+                
               </Link>
             </div>
           </div>
@@ -524,7 +527,7 @@ const styles = {
   },
   ctaButtons: {
     display: 'flex',
-    gap: '12px',
+    gap: '20px',
     marginBottom: '24px',
     flexWrap: 'wrap',
   },
