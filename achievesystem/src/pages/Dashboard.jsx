@@ -631,6 +631,21 @@ const Dashboard = () => {
               <Grid size={20} />
             </button>*/}
             
+              <div style={styles.userProfile}>
+                <div style={styles.userAvatar}>
+                  {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <div style={styles.userInfo}>
+                  <p style={styles.userName}>{user.name || 'User'}</p>
+                  <p style={styles.userEmail}>{user.email || ''}</p>
+                </div>
+              </div>
+
+
+
+
+
+            
             <button 
               style={{
                 ...styles.viewBtn,
