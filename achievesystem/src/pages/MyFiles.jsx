@@ -739,7 +739,7 @@ const styles = {
     /*border: '1px solid #dadce0',*/
     border:'1px solid green',
    /* borderRadius: '6px',*/
-   padding: 0,
+   padding: '5px',
     backgroundColor: 'white',
     color: '#5f6368',
     cursor: 'pointer',
