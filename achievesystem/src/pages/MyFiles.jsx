@@ -729,7 +729,7 @@ const styles = {
     display: 'flex',
     flexShrink: 0,
     justifyContent:'center',
-    gap:'5px',
+    gap:'10px',
     border:'1px solid red'
     
     
