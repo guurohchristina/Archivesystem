@@ -191,7 +191,7 @@ const Upload = () => {
         // Success - redirect after delay
         setTimeout(() => {
           resetForm();
-          navigate('/myfiles');
+          navigate('/my-files');
         }, 2000);
       } else {
         throw new Error(result.message || `Upload failed with status: ${response.status}`);
