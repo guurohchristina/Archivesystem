@@ -632,7 +632,7 @@ const Dashboard = () => {
             </button>*/}
         
             
-            <button 
+          {/*  <button 
               style={{
                 ...styles.viewBtn,
                 backgroundColor: viewMode === 'list' ? 'white' : 'transparent',
@@ -643,7 +643,7 @@ const Dashboard = () => {
               title="List view"
             >
               <List size={20} />
-            </button>
+            </button>*/}
             
             <div style={styles.breadcrumb}>
             <span style={styles.breadcrumbActive}>{getPageTitle()}</span>
