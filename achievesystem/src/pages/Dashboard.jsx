@@ -30,7 +30,7 @@ import {
 import MyFilesContent from "./MyFiles.jsx"; // This will be your original dashboard content
 import UploadContent from "./Upload.jsx";
 import SharedContent from "./SharedwithMe.jsx";
-import Myprofile from "./Profile.jsx";
+import MyProfile from "./Profile.jsx";
 
 
 const Dashboard = () => {
@@ -93,7 +93,7 @@ const Dashboard = () => {
   
   const userItems = [
   
-    { id: "profile", label: "Profile", icon: <User size={20} />, path: "/Profile" },
+    { id: "profile", label: "Profile", icon: <User size={20} />, path: "/profile" },
     { id: "settings", label: "Settings", icon: <Settings size={20} />, action: () => navigate("/settings") },
     { id: "logout", label: "Logout", icon: <LogOut size={20} />, action: () => {
       logout();
@@ -278,7 +278,7 @@ const Dashboard = () => {
       case "shared":
         return <SharedContent />;
         case "profile":
-          return <Myprofile />;
+          return <MyProfile />;
       case "my-files":
       default:
         return <MyFilesContent />;
@@ -290,7 +290,9 @@ const Dashboard = () => {
       case "upload":
         return "Upload Files";
       case "shared":
-        return "Shared Files";
+         return "Shared Files";
+      case "profile":
+        return "profile";
       default:
         return "My Files";
     }
