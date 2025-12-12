@@ -1165,3 +1165,40 @@ const styles = {
     fontWeight: '600',
     color: '#202124',
     marginBottom: '2px',
+  },
+  userEmail: {
+    fontSize: '14px',
+    color: '#5f6368',
+  },
+  userStats: {
+    display: 'flex',
+    gap: '20px',
+    borderTop: '1px solid #d2e3fc',
+    paddingTop: '16px',
+  },
+  statItem: {
+    flex: 1,
+    textAlign: 'center',
+  },
+  statValue: {
+    fontSize: '18px',
+    fontWeight: '600',
+    color: '#202124',
+    marginBottom: '4px',
+  },
+  statLabel: {
+    fontSize: '12px',
+    color: '#5f6368',
+  },
+};
+
+// Add CSS animation
+const styleSheet = document.styleSheets[0];
+styleSheet.insertRule(`
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`, styleSheet.cssRules.length);
+
+export default Upload;
