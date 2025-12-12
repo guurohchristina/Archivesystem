@@ -644,6 +644,9 @@ const Dashboard = () => {
             >
               <List size={20} />
             </button>*/}
+              <div style={styles.userAvatar}>
+                {user?.name?.charAt(0) || "U"}
+              </div>
             
             <div style={styles.breadcrumb}>
             <span style={styles.breadcrumbActive}>{getPageTitle()}</span>
