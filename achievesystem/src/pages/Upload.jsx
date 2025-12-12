@@ -1,4 +1,4 @@
-import { useState, useContext, useRef } from "react";
+import { useState, useContext, useRef, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 
@@ -13,6 +13,7 @@ const Upload = () => {
   const [uploadError, setUploadError] = useState("");
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadResponse, setUploadResponse] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
   
   // Document metadata state
   const [fileDescription, setFileDescription] = useState("");
@@ -45,6 +46,18 @@ const Upload = () => {
   ];
   
   const fileInputRef = useRef(null);
+
+  // Check for mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
@@ -258,19 +271,86 @@ const Upload = () => {
 
   const totalFileSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
 
+  // Dynamic styles based on screen size
+  const containerStyle = {
+    display: 'flex',
+    flexDirection: isMobile ? 'column' : 'row',
+    gap: isMobile ? '20px' : '30px',
+    maxWidth: '1400px',
+    margin: '0 auto',
+    alignItems: 'flex-start',
+  };
+
+  const leftColumnStyle = {
+    flex: 1,
+    width: isMobile ? '100%' : '500px',
+    position: isMobile ? 'static' : 'sticky',
+    top: isMobile ? 'auto' : '20px',
+  };
+
+  const rightColumnStyle = {
+    flex: 1,
+    width: '100%',
+    maxWidth: isMobile ? '100%' : '600px',
+  };
+
   return (
-    <div style={styles.pageContainer}>
+    <div style={{
+      flex: 1,
+      padding: isMobile ? '16px' : '20px',
+      backgroundColor: '#f8f9fa',
+      minHeight: '100vh',
+      overflowX: 'hidden',
+    }}>
       {/* Header */}
-      <div style={styles.header}>
-        <div style={styles.headerLeft}>
-          <h1 style={styles.title}>Upload Files</h1>
-          <p style={styles.subtitle}>Upload documents to the archive system</p>
+      <div style={{
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        justifyContent: 'space-between',
+        alignItems: isMobile ? 'flex-start' : 'center',
+        marginBottom: '30px',
+        gap: isMobile ? '12px' : '16px',
+      }}>
+        <div>
+          <h1 style={{
+            fontSize: isMobile ? '24px' : '28px',
+            fontWeight: '700',
+            color: '#202124',
+            margin: '0 0 4px 0',
+          }}>Upload Files</h1>
+          <p style={{
+            fontSize: isMobile ? '14px' : '15px',
+            color: '#5f6368',
+            margin: 0,
+          }}>Upload documents to the archive system</p>
         </div>
         
-        <div style={styles.headerRight}>
+        <div style={{
+          display: 'flex',
+          gap: '10px',
+          width: isMobile ? '100%' : 'auto',
+        }}>
           <button
             onClick={() => navigate('/myfiles')}
-            style={styles.backButton}
+            style={{
+              padding: isMobile ? '10px 16px' : '10px 20px',
+              backgroundColor: '#f8f9fa',
+              color: '#5f6368',
+              border: '1px solid #dadce0',
+              borderRadius: '8px',
+              fontSize: isMobile ? '13px' : '14px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.2s',
+              flex: isMobile ? 1 : 'auto',
+              width: isMobile ? '100%' : 'auto',
+              '&:hover': {
+                backgroundColor: '#f1f3f4',
+              },
+            }}
           >
             ← Back to My Files
           </button>
@@ -279,16 +359,36 @@ const Upload = () => {
 
       {/* Success Message */}
       {uploadSuccess && (
-        <div style={styles.successCard}>
-          <div style={styles.successHeader}>
-            <span style={styles.successIcon}>✅</span>
-            <div style={styles.successText}>
-              <h3 style={styles.successTitle}>
+        <div style={{
+          backgroundColor: '#d4edda',
+          border: '1px solid #c3e6cb',
+          borderRadius: '12px',
+          padding: isMobile ? '16px' : '20px',
+          marginBottom: '20px',
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '12px',
+          }}>
+            <span style={{ fontSize: '24px', color: '#155724' }}>✅</span>
+            <div style={{ flex: 1 }}>
+              <h3 style={{
+                fontSize: isMobile ? '15px' : '16px',
+                fontWeight: '600',
+                color: '#155724',
+                margin: '0 0 4px 0',
+              }}>
                 {uploadResponse?.files?.length === 1 
                   ? 'File uploaded successfully!' 
                   : `${uploadResponse?.files?.length || selectedFiles.length} files uploaded successfully!`}
               </h3>
-              <p style={styles.successMessage}>Redirecting to My Files...</p>
+              <p style={{
+                fontSize: isMobile ? '13px' : '14px',
+                color: '#155724',
+                margin: 0,
+                opacity: 0.8,
+              }}>Redirecting to My Files...</p>
             </div>
           </div>
         </div>
@@ -296,25 +396,67 @@ const Upload = () => {
       
       {/* Error Message */}
       {uploadError && (
-        <div style={styles.errorCard}>
-          <div style={styles.errorHeader}>
-            <span style={styles.errorIcon}>⚠️</span>
-            <div style={styles.errorText}>
-              <h3 style={styles.errorTitle}>Upload Failed</h3>
-              <p style={styles.errorMessage}>{uploadError}</p>
+        <div style={{
+          backgroundColor: '#fce8e6',
+          border: '1px solid #fadbd8',
+          borderRadius: '12px',
+          padding: isMobile ? '16px' : '20px',
+          marginBottom: '20px',
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '12px',
+          }}>
+            <span style={{ fontSize: '24px', color: '#c5221f' }}>⚠️</span>
+            <div style={{ flex: 1 }}>
+              <h3 style={{
+                fontSize: isMobile ? '15px' : '16px',
+                fontWeight: '600',
+                color: '#c5221f',
+                margin: '0 0 4px 0',
+              }}>Upload Failed</h3>
+              <p style={{
+                fontSize: isMobile ? '13px' : '14px',
+                color: '#c5221f',
+                margin: 0,
+                opacity: 0.8,
+              }}>{uploadError}</p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Main Content - Split Layout */}
-      <div style={styles.container}>
+      {/* Main Content */}
+      <div style={containerStyle}>
         {/* Left Column - File Selection */}
-        <div style={styles.leftColumn}>
-          <div style={styles.uploadCard}>
-            <div style={styles.cardHeader}>
-              <h2 style={styles.cardTitle}>1. Select Files</h2>
-              <span style={styles.cardCounter}>{selectedFiles.length} selected</span>
+        <div style={leftColumnStyle}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: isMobile ? '20px' : '25px',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+            marginBottom: '20px',
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '20px',
+            }}>
+              <h2 style={{
+                fontSize: isMobile ? '16px' : '18px',
+                fontWeight: '600',
+                color: '#202124',
+                margin: 0,
+              }}>1. Select Files</h2>
+              <span style={{
+                fontSize: isMobile ? '12px' : '14px',
+                color: '#5f6368',
+                backgroundColor: '#f1f3f4',
+                padding: '4px 12px',
+                borderRadius: '20px',
+              }}>{selectedFiles.length} selected</span>
             </div>
             
             <input
@@ -329,25 +471,46 @@ const Upload = () => {
             {/* Drop Zone */}
             <div 
               style={{
-                ...styles.dropZone,
-                borderColor: selectedFiles.length > 0 ? '#4285F4' : '#dadce0',
-                backgroundColor: selectedFiles.length > 0 ? '#f0f7ff' : '#f8f9fa',
+                border: '2px dashed #dadce0',
+                borderRadius: '12px',
+                padding: isMobile ? '16px' : '20px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'flex',
+                flexDirection: 'column',
                 minHeight: selectedFiles.length > 0 ? '100px' : '200px',
-                justifyContent: selectedFiles.length > 0 ? 'flex-start' : 'center',
+                backgroundColor: selectedFiles.length > 0 ? '#f0f7ff' : '#f8f9fa',
+                borderColor: selectedFiles.length > 0 ? '#4285F4' : '#dadce0',
+                overflow: 'hidden',
               }}
               onClick={triggerFileInput}
             >
               {selectedFiles.length > 0 ? (
-                <div style={styles.filesList}>
-                  <div style={styles.filesContainer}>
+                <div style={{ width: '100%', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                  <div style={{ flex: 1, maxHeight: '300px', overflowY: 'auto', marginBottom: '15px' }}>
                     {selectedFiles.map((file, index) => (
-                      <div key={index} style={styles.fileItem}>
-                        <div style={styles.fileIcon}>
+                      <div key={index} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '10px',
+                        borderBottom: '1px solid #f1f3f4',
+                        backgroundColor: 'white',
+                        '&:last-child': { borderBottom: 'none' },
+                      }}>
+                        <div style={{ fontSize: '20px', marginRight: '12px' }}>
                           {getFileIcon(file.type)}
                         </div>
-                        <div style={styles.fileInfo}>
-                          <div style={styles.fileName}>{file.name}</div>
-                          <div style={styles.fileMeta}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            color: '#202124',
+                            marginBottom: '4px',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}>{file.name}</div>
+                          <div style={{ fontSize: '12px', color: '#5f6368' }}>
                             {formatFileSize(file.size)} • {file.type.split('/')[1]?.toUpperCase() || 'FILE'}
                           </div>
                         </div>
@@ -357,7 +520,16 @@ const Upload = () => {
                             e.stopPropagation();
                             removeFile(index);
                           }}
-                          style={styles.removeButton}
+                          style={{
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            color: '#ea4335',
+                            fontSize: '20px',
+                            cursor: 'pointer',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            flexShrink: 0,
+                          }}
                           title="Remove file"
                         >
                           ×
@@ -366,16 +538,30 @@ const Upload = () => {
                     ))}
                   </div>
                   
-                  <div style={styles.fileActions}>
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         triggerFileInput();
                       }}
-                      style={styles.addButton}
+                      style={{
+                        padding: isMobile ? '10px 12px' : '10px 16px',
+                        backgroundColor: '#4285F4',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: isMobile ? '13px' : '14px',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        flex: 1,
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                          backgroundColor: '#3367d6',
+                        },
+                      }}
                     >
-                      + Add More Files
+                      + Add More
                     </button>
                     <button
                       type="button"
@@ -383,55 +569,110 @@ const Upload = () => {
                         e.stopPropagation();
                         clearAllFiles();
                       }}
-                      style={styles.clearButton}
+                      style={{
+                        padding: isMobile ? '10px 12px' : '10px 16px',
+                        backgroundColor: '#fce8e6',
+                        color: '#ea4335',
+                        border: '1px solid #fadbd8',
+                        borderRadius: '8px',
+                        fontSize: isMobile ? '13px' : '14px',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        flex: 1,
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                          backgroundColor: '#fadbd8',
+                        },
+                      }}
                     >
                       Clear All
                     </button>
                   </div>
                 </div>
               ) : (
-                <div style={styles.emptyDropZone}>
-                  <div style={styles.uploadIcon}>📁</div>
-                  <p style={styles.dropZoneText}>Click to select files</p>
-                  <p style={styles.dropZoneHint}>
+                <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+                  <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.7 }}>📁</div>
+                  <p style={{ fontSize: '16px', fontWeight: '500', color: '#202124', margin: '0 0 8px 0' }}>
+                    Click to select files
+                  </p>
+                  <p style={{ fontSize: '14px', color: '#5f6368', margin: '0 0 4px 0' }}>
                     Supports multiple files (PDF, Word, Excel, Images, etc.)
                   </p>
-                  <p style={styles.dropZoneLimit}>Max 50MB per file</p>
+                  <p style={{ fontSize: '12px', color: '#9aa0a6', margin: 0 }}>Max 50MB per file</p>
                 </div>
               )}
             </div>
             
             {/* File Summary */}
             {selectedFiles.length > 0 && (
-              <div style={styles.fileSummary}>
-                <div style={styles.summaryItem}>
-                  <span style={styles.summaryLabel}>Total files:</span>
-                  <span style={styles.summaryValue}>{selectedFiles.length}</span>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginTop: '15px',
+                paddingTop: '15px',
+                borderTop: '1px solid #f1f3f4',
+              }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
+                  <span style={{ fontSize: '12px', color: '#5f6368', marginBottom: '4px' }}>Total files:</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#202124' }}>{selectedFiles.length}</span>
                 </div>
-                <div style={styles.summaryItem}>
-                  <span style={styles.summaryLabel}>Total size:</span>
-                  <span style={styles.summaryValue}>{formatFileSize(totalFileSize)}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
+                  <span style={{ fontSize: '12px', color: '#5f6368', marginBottom: '4px' }}>Total size:</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#202124' }}>{formatFileSize(totalFileSize)}</span>
                 </div>
               </div>
             )}
           </div>
           
-          {/* Progress Bar - Fixed position at bottom of left column */}
+          {/* Progress Bar */}
           {uploading && (
-            <div style={styles.progressCard}>
-              <h3 style={styles.cardTitle}>Upload Progress</h3>
-              <div style={styles.progressContainer}>
-                <div style={styles.progressBar}>
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: isMobile ? '20px' : '25px',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+              marginTop: '20px',
+            }}>
+              <h3 style={{
+                fontSize: isMobile ? '16px' : '18px',
+                fontWeight: '600',
+                color: '#202124',
+                margin: '0 0 16px 0',
+              }}>Upload Progress</h3>
+              <div>
+                <div style={{
+                  height: '12px',
+                  backgroundColor: '#f1f3f4',
+                  borderRadius: '6px',
+                  overflow: 'hidden',
+                  marginBottom: '8px',
+                }}>
                   <div 
                     style={{
-                      ...styles.progressFill,
-                      width: `${uploadProgress}%`
+                      height: '100%',
+                      backgroundColor: '#4285F4',
+                      width: `${uploadProgress}%`,
+                      transition: 'width 0.3s',
+                      position: 'relative',
                     }}
                   >
-                    <span style={styles.progressText}>{uploadProgress}%</span>
+                    <span style={{
+                      fontSize: '10px',
+                      color: 'white',
+                      fontWeight: '600',
+                      position: 'absolute',
+                      right: '8px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                    }}>{uploadProgress}%</span>
                   </div>
                 </div>
-                <p style={styles.progressStatus}>
+                <p style={{
+                  fontSize: '14px',
+                  color: '#5f6368',
+                  textAlign: 'center',
+                  margin: 0,
+                }}>
                   {uploadProgress < 100 ? "Uploading files..." : "Processing..."}
                 </p>
               </div>
@@ -439,35 +680,88 @@ const Upload = () => {
           )}
         </div>
 
-        {/* Right Column - Form (ALWAYS VISIBLE) */}
-        <div style={styles.rightColumn}>
-          <form onSubmit={handleUpload} style={styles.form}>
-            <div style={styles.formCard}>
-              <h2 style={styles.cardTitle}>2. Document Information</h2>
+        {/* Right Column - Form */}
+        <div style={rightColumnStyle}>
+          <form onSubmit={handleUpload} style={{ width: '100%' }}>
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: isMobile ? '20px' : '25px',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+              marginBottom: '20px',
+            }}>
+              <h2 style={{
+                fontSize: isMobile ? '16px' : '18px',
+                fontWeight: '600',
+                color: '#202124',
+                margin: '0 0 20px 0',
+              }}>2. Document Information</h2>
               
               {/* Description */}
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Description *</label>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#202124',
+                  marginBottom: '8px',
+                }}>Description *</label>
                 <textarea
                   value={fileDescription}
                   onChange={(e) => setFileDescription(e.target.value)}
                   placeholder="Describe the contents of these files..."
                   rows="3"
                   required
-                  style={styles.textarea}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: '1px solid #dadce0',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    backgroundColor: 'white',
+                    outline: 'none',
+                    transition: 'all 0.2s',
+                    minHeight: '80px',
+                    resize: 'vertical',
+                    fontFamily: 'inherit',
+                    boxSizing: 'border-box',
+                  }}
                 />
-                <small style={styles.hint}>This description applies to all uploaded files</small>
+                <small style={{ display: 'block', fontSize: '12px', color: '#5f6368', marginTop: '6px' }}>
+                  This description applies to all uploaded files
+                </small>
               </div>
               
               {/* Document Type & Date */}
-              <div style={styles.formRow}>
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Document Type *</label>
+              <div style={{
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                gap: isMobile ? '16px' : '20px',
+                marginBottom: '20px',
+              }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#202124',
+                    marginBottom: '8px',
+                  }}>Document Type *</label>
                   <select 
                     value={documentType} 
                     onChange={(e) => setDocumentType(e.target.value)}
                     required
-                    style={styles.select}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      border: '1px solid #dadce0',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      backgroundColor: 'white',
+                      outline: 'none',
+                      transition: 'all 0.2s',
+                      boxSizing: 'border-box',
+                    }}
                   >
                     <option value="">Select type...</option>
                     {documentTypes.map((type) => (
@@ -476,61 +770,137 @@ const Upload = () => {
                   </select>
                 </div>
                 
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Document Date</label>
+                <div style={{ flex: 1 }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#202124',
+                    marginBottom: '8px',
+                  }}>Document Date</label>
                   <input
                     type="date"
                     value={documentDate}
                     onChange={(e) => setDocumentDate(e.target.value)}
                     max={new Date().toISOString().split('T')[0]}
-                    style={styles.input}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      border: '1px solid #dadce0',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      backgroundColor: 'white',
+                      outline: 'none',
+                      transition: 'all 0.2s',
+                      boxSizing: 'border-box',
+                    }}
                   />
-                  <small style={styles.hint}>Optional</small>
+                  <small style={{ display: 'block', fontSize: '12px', color: '#5f6368', marginTop: '6px' }}>
+                    Optional
+                  </small>
                 </div>
               </div>
               
               {/* Department & Owner */}
-              <div style={styles.formRow}>
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Department</label>
+              <div style={{
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                gap: isMobile ? '16px' : '20px',
+                marginBottom: '20px',
+              }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#202124',
+                    marginBottom: '8px',
+                  }}>Department</label>
                   <select 
                     value={department} 
                     onChange={(e) => setDepartment(e.target.value)}
-                    style={styles.select}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      border: '1px solid #dadce0',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      backgroundColor: 'white',
+                      outline: 'none',
+                      transition: 'all 0.2s',
+                      boxSizing: 'border-box',
+                    }}
                   >
                     <option value="">Select department...</option>
                     {departments.map((dept) => (
                       <option key={dept} value={dept}>{dept}</option>
                     ))}
                   </select>
-                  <small style={styles.hint}>Optional</small>
+                  <small style={{ display: 'block', fontSize: '12px', color: '#5f6368', marginTop: '6px' }}>
+                    Optional
+                  </small>
                 </div>
                 
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Owner *</label>
+                <div style={{ flex: 1 }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#202124',
+                    marginBottom: '8px',
+                  }}>Owner *</label>
                   <input
                     type="text"
                     value={owner}
                     onChange={(e) => setOwner(e.target.value)}
                     placeholder="Document owner"
                     required
-                    style={styles.input}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      border: '1px solid #dadce0',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      backgroundColor: 'white',
+                      outline: 'none',
+                      transition: 'all 0.2s',
+                      boxSizing: 'border-box',
+                    }}
                   />
                 </div>
               </div>
               
               {/* Classification & Privacy */}
-              <div style={styles.formRow}>
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Classification Level *</label>
+              <div style={{
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                gap: isMobile ? '16px' : '20px',
+                marginBottom: '20px',
+              }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#202124',
+                    marginBottom: '8px',
+                  }}>Classification Level *</label>
                   <select 
                     value={classificationLevel} 
                     onChange={(e) => setClassificationLevel(e.target.value)}
                     required
                     style={{
-                      ...styles.select,
+                      width: '100%',
+                      padding: '12px 16px',
+                      border: '1px solid #dadce0',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      backgroundColor: 'white',
+                      outline: 'none',
+                      transition: 'all 0.2s',
+                      boxSizing: 'border-box',
                       color: getClassificationColor(classificationLevel),
-                      fontWeight: '600'
+                      fontWeight: '600',
                     }}
                   >
                     {classificationLevels.map((level) => (
@@ -539,32 +909,58 @@ const Upload = () => {
                   </select>
                 </div>
                 
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Visibility</label>
-                  <div style={styles.checkboxGroup}>
-                    <label style={styles.checkboxLabel}>
+                <div style={{ flex: 1 }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#202124',
+                    marginBottom: '8px',
+                  }}>Visibility</label>
+                  <div style={{ paddingTop: '8px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginBottom: '6px' }}>
                       <input
                         type="checkbox"
                         checked={isPublic}
                         onChange={(e) => setIsPublic(e.target.checked)}
-                        style={styles.checkbox}
+                        style={{ marginRight: '10px', width: '18px', height: '18px', cursor: 'pointer' }}
                       />
-                      <span style={styles.checkboxText}>Make files public</span>
+                      <span style={{ fontSize: '14px', color: '#202124' }}>Make files public</span>
                     </label>
-                    <small style={styles.hint}>
+                    <small style={{ display: 'block', fontSize: '12px', color: '#5f6368', marginTop: '6px' }}>
                       {isPublic ? 'Files will be visible to other users' : 'Files will be private'}
                     </small>
                   </div>
                 </div>
               </div>
               
-              {/* UPLOAD BUTTON - NOW INSIDE FORM CARD */}
-              <div style={styles.actionButtons}>
+              {/* Action Buttons */}
+              <div style={{
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                gap: '12px',
+                marginTop: '30px',
+                paddingTop: '20px',
+                borderTop: '1px solid #f1f3f4',
+              }}>
                 <button 
                   type="button" 
                   onClick={resetForm}
                   disabled={uploading}
-                  style={styles.cancelButton}
+                  style={{
+                    padding: isMobile ? '14px 20px' : '14px 24px',
+                    backgroundColor: '#f8f9fa',
+                    color: '#5f6368',
+                    border: '1px solid #dadce0',
+                    borderRadius: '8px',
+                    fontSize: isMobile ? '13px' : '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    flex: 1,
+                    transition: 'all 0.2s',
+                    width: isMobile ? '100%' : 'auto',
+                    boxSizing: 'border-box',
+                  }}
                 >
                   Clear Form
                 </button>
@@ -572,11 +968,35 @@ const Upload = () => {
                 <button 
                   type="submit" 
                   disabled={uploading || selectedFiles.length === 0}
-                  style={selectedFiles.length === 0 ? styles.disabledButton : styles.submitButton}
+                  style={{
+                    padding: isMobile ? '14px 20px' : '14px 24px',
+                    backgroundColor: selectedFiles.length === 0 ? '#e0e0e0' : '#4285F4',
+                    color: selectedFiles.length === 0 ? '#9e9e9e' : 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: isMobile ? '13px' : '14px',
+                    fontWeight: '600',
+                    cursor: selectedFiles.length === 0 ? 'not-allowed' : 'pointer',
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s',
+                    width: isMobile ? '100%' : 'auto',
+                    boxSizing: 'border-box',
+                  }}
                 >
                   {uploading ? (
                     <>
-                      <div style={styles.spinner}></div>
+                      <div style={{
+                        border: '2px solid rgba(255, 255, 255, 0.3)',
+                        borderTopColor: 'white',
+                        borderRadius: '50%',
+                        width: '16px',
+                        height: '16px',
+                        animation: 'spin 1s linear infinite',
+                      }}></div>
                       Uploading...
                     </>
                   ) : (
@@ -586,25 +1006,48 @@ const Upload = () => {
               </div>
             </div>
             
-            {/* User Info Card - BELOW FORM */}
-            <div style={styles.userCard}>
-              <div style={styles.userHeader}>
-                <div style={styles.userAvatar}>
+            {/* User Info Card */}
+            <div style={{
+              backgroundColor: '#f0f7ff',
+              borderRadius: '12px',
+              padding: '20px',
+              border: '1px solid #d2e3fc',
+              marginTop: '20px',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  backgroundColor: '#4285F4',
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: '600',
+                  fontSize: '18px',
+                }}>
                   {user?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
                 </div>
                 <div>
-                  <div style={styles.userName}>{user?.name || "User"}</div>
-                  <div style={styles.userEmail}>{user?.email || ""}</div>
+                  <div style={{ fontSize: '16px', fontWeight: '600', color: '#202124', marginBottom: '2px' }}>
+                    {user?.name || "User"}
+                  </div>
+                  <div style={{ fontSize: '14px', color: '#5f6368' }}>{user?.email || ""}</div>
                 </div>
               </div>
-              <div style={styles.userStats}>
-                <div style={styles.statItem}>
-                  <div style={styles.statValue}>{selectedFiles.length}</div>
-                  <div style={styles.statLabel}>Files Selected</div>
+              <div style={{ display: 'flex', gap: '20px', borderTop: '1px solid #d2e3fc', paddingTop: '16px' }}>
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ fontSize: '18px', fontWeight: '600', color: '#202124', marginBottom: '4px' }}>
+                    {selectedFiles.length}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#5f6368' }}>Files Selected</div>
                 </div>
-                <div style={styles.statItem}>
-                  <div style={styles.statValue}>{formatFileSize(totalFileSize)}</div>
-                  <div style={styles.statLabel}>Total Size</div>
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ fontSize: '18px', fontWeight: '600', color: '#202124', marginBottom: '4px' }}>
+                    {formatFileSize(totalFileSize)}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#5f6368' }}>Total Size</div>
                 </div>
               </div>
             </div>
@@ -613,583 +1056,6 @@ const Upload = () => {
       </div>
     </div>
   );
-};
-
-const styles = {
-  pageContainer: {
-    flex: 1,
-    padding: '20px',
-    backgroundColor: '#f8f9fa',
-    minHeight: '100vh',
-    overflowX: 'hidden',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '30px',
-    flexWrap: 'wrap',
-    gap: '16px',
-  },
-  headerLeft: {
-    flex: 1,
-  },
-  headerRight: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: '#202124',
-    margin: '0 0 4px 0',
-  },
-  subtitle: {
-    fontSize: '15px',
-    color: '#5f6368',
-    margin: 0,
-  },
-  backButton: {
-    padding: '10px 20px',
-    backgroundColor: '#f8f9fa',
-    color: '#5f6368',
-    border: '1px solid #dadce0',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    transition: 'all 0.2s',
-    '&:hover': {
-      backgroundColor: '#f1f3f4',
-    },
-  },
-  container: {
-    display: 'flex',
-    gap: '30px',
-    maxWidth: '1400px',
-    margin: '0 auto',
-    alignItems: 'flex-start',
-  },
-  leftColumn: {
-    flex: 1,
-    maxWidth: '500px',
-    position: 'sticky',
-    top: '20px',
-  },
-  rightColumn: {
-    flex: 1,
-    maxWidth: '600px',
-  },
-  uploadCard: {
-    backgroundColor: 'white',
-    borderRadius: '12px',
-    padding: '25px',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-    marginBottom: '20px',
-  },
-  formCard: {
-    backgroundColor: 'white',
-    borderRadius: '12px',
-    padding: '25px',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-    marginBottom: '20px',
-  },
-  progressCard: {
-    backgroundColor: 'white',
-    borderRadius: '12px',
-    padding: '25px',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-    marginTop: '20px',
-  },
-  cardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '20px',
-  },
-  cardTitle: {
-    fontSize: '18px',
-    fontWeight: '600',
-    color: '#202124',
-    margin: 0,
-  },
-  cardCounter: {
-    fontSize: '14px',
-    color: '#5f6368',
-    backgroundColor: '#f1f3f4',
-    padding: '4px 12px',
-    borderRadius: '20px',
-  },
-  dropZone: {
-    border: '2px dashed #dadce0',
-    borderRadius: '12px',
-    padding: '20px',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '200px',
-    overflow: 'hidden',
-  },
-  emptyDropZone: {
-    textAlign: 'center',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  uploadIcon: {
-    fontSize: '48px',
-    marginBottom: '16px',
-    opacity: 0.7,
-  },
-  dropZoneText: {
-    fontSize: '16px',
-    fontWeight: '500',
-    color: '#202124',
-    margin: '0 0 8px 0',
-  },
-  dropZoneHint: {
-    fontSize: '14px',
-    color: '#5f6368',
-    margin: '0 0 4px 0',
-  },
-  dropZoneLimit: {
-    fontSize: '12px',
-    color: '#9aa0a6',
-    margin: 0,
-  },
-  filesList: {
-    width: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    flex: 1,
-  },
-  filesContainer: {
-    flex: 1,
-    maxHeight: '300px',
-    overflowY: 'auto',
-    marginBottom: '15px',
-    border: '1px solid #f1f3f4',
-    borderRadius: '8px',
-    padding: '5px',
-  },
-  fileItem: {
-    display: 'flex',
-    alignItems: 'center',
-    padding: '10px',
-    borderBottom: '1px solid #f1f3f4',
-    backgroundColor: 'white',
-    transition: 'all 0.2s',
-    '&:last-child': {
-      borderBottom: 'none',
-    },
-    '&:hover': {
-      backgroundColor: '#f8f9fa',
-    },
-  },
-  fileIcon: {
-    fontSize: '20px',
-    marginRight: '12px',
-    flexShrink: 0,
-  },
-  fileInfo: {
-    flex: 1,
-    minWidth: 0,
-  },
-  fileName: {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#202124',
-    marginBottom: '4px',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  fileMeta: {
-    fontSize: '12px',
-    color: '#5f6368',
-  },
-  removeButton: {
-    backgroundColor: 'transparent',
-    border: 'none',
-    color: '#ea4335',
-    fontSize: '20px',
-    cursor: 'pointer',
-    padding: '4px 8px',
-    borderRadius: '4px',
-    flexShrink: 0,
-    '&:hover': {
-      backgroundColor: '#fce8e6',
-    },
-  },
-  fileActions: {
-    display: 'flex',
-    gap: '10px',
-    marginTop: '10px',
-  },
-  addButton: {
-    padding: '10px 16px',
-    backgroundColor: '#4285F4',
-    color: 'white',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    flex: 1,
-    transition: 'all 0.2s',
-    '&:hover': {
-      backgroundColor: '#3367d6',
-    },
-  },
-  clearButton: {
-    padding: '10px 16px',
-    backgroundColor: '#fce8e6',
-    color: '#ea4335',
-    border: '1px solid #fadbd8',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    flex: 1,
-    transition: 'all 0.2s',
-    '&:hover': {
-      backgroundColor: '#fadbd8',
-    },
-  },
-  fileSummary: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    marginTop: '15px',
-    paddingTop: '15px',
-    borderTop: '1px solid #f1f3f4',
-  },
-  summaryItem: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    flex: 1,
-  },
-  summaryLabel: {
-    fontSize: '12px',
-    color: '#5f6368',
-    marginBottom: '4px',
-  },
-  summaryValue: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: '#202124',
-  },
-  form: {
-    width: '100%',
-  },
-  formGroup: {
-    marginBottom: '20px',
-    flex: 1,
-  },
-  formRow: {
-    display: 'flex',
-    gap: '20px',
-    marginBottom: '20px',
-  },
-  label: {
-    display: 'block',
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#202124',
-    marginBottom: '8px',
-  },
-  input: {
-    width: '100%',
-    padding: '12px 16px',
-    border: '1px solid #dadce0',
-    borderRadius: '8px',
-    fontSize: '14px',
-    backgroundColor: 'white',
-    outline: 'none',
-    transition: 'all 0.2s',
-    '&:focus': {
-      borderColor: '#4285F4',
-      boxShadow: '0 0 0 3px rgba(66, 133, 244, 0.1)',
-    },
-  },
-  textarea: {
-    width: '100%',
-    padding: '12px 16px',
-    border: '1px solid #dadce0',
-    borderRadius: '8px',
-    fontSize: '14px',
-    backgroundColor: 'white',
-    outline: 'none',
-    transition: 'all 0.2s',
-    minHeight: '80px',
-    resize: 'vertical',
-    fontFamily: 'inherit',
-    '&:focus': {
-      borderColor: '#4285F4',
-      boxShadow: '0 0 0 3px rgba(66, 133, 244, 0.1)',
-    },
-  },
-  select: {
-    width: '100%',
-    padding: '12px 16px',
-    border: '1px solid #dadce0',
-    borderRadius: '8px',
-    fontSize: '14px',
-    backgroundColor: 'white',
-    outline: 'none',
-    transition: 'all 0.2s',
-    '&:focus': {
-      borderColor: '#4285F4',
-      boxShadow: '0 0 0 3px rgba(66, 133, 244, 0.1)',
-    },
-  },
-  hint: {
-    display: 'block',
-    fontSize: '12px',
-    color: '#5f6368',
-    marginTop: '6px',
-  },
-  checkboxGroup: {
-    paddingTop: '8px',
-  },
-  checkboxLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    cursor: 'pointer',
-    marginBottom: '6px',
-  },
-  checkbox: {
-    marginRight: '10px',
-    width: '18px',
-    height: '18px',
-    cursor: 'pointer',
-  },
-  checkboxText: {
-    fontSize: '14px',
-    color: '#202124',
-  },
-  actionButtons: {
-    display: 'flex',
-    gap: '12px',
-    marginTop: '30px',
-    paddingTop: '20px',
-    borderTop: '1px solid #f1f3f4',
-  },
-  cancelButton: {
-    padding: '14px 24px',
-    backgroundColor: '#f8f9fa',
-    color: '#5f6368',
-    border: '1px solid #dadce0',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    flex: 1,
-    transition: 'all 0.2s',
-    '&:hover': {
-      backgroundColor: '#f1f3f4',
-    },
-    '&:disabled': {
-      opacity: 0.5,
-      cursor: 'not-allowed',
-    },
-  },
-  submitButton: {
-    padding: '14px 24px',
-    backgroundColor: '#4285F4',
-    color: 'white',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    flex: 1,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    transition: 'all 0.2s',
-    '&:hover': {
-      backgroundColor: '#3367d6',
-    },
-  },
-  disabledButton: {
-    padding: '14px 24px',
-    backgroundColor: '#e0e0e0',
-    color: '#9e9e9e',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '600',
-    flex: 1,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    cursor: 'not-allowed',
-  },
-  spinner: {
-    border: '2px solid rgba(255, 255, 255, 0.3)',
-    borderTopColor: 'white',
-    borderRadius: '50%',
-    width: '16px',
-    height: '16px',
-    animation: 'spin 1s linear infinite',
-  },
-  successCard: {
-    backgroundColor: '#d4edda',
-    border: '1px solid #c3e6cb',
-    borderRadius: '12px',
-    padding: '20px',
-    marginBottom: '20px',
-  },
-  successHeader: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: '12px',
-  },
-  successIcon: {
-    fontSize: '24px',
-    color: '#155724',
-  },
-  successText: {
-    flex: 1,
-  },
-  successTitle: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: '#155724',
-    margin: '0 0 4px 0',
-  },
-  successMessage: {
-    fontSize: '14px',
-    color: '#155724',
-    margin: 0,
-    opacity: 0.8,
-  },
-  errorCard: {
-    backgroundColor: '#fce8e6',
-    border: '1px solid #fadbd8',
-    borderRadius: '12px',
-    padding: '20px',
-    marginBottom: '20px',
-  },
-  errorHeader: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: '12px',
-  },
-  errorIcon: {
-    fontSize: '24px',
-    color: '#c5221f',
-  },
-  errorText: {
-    flex: 1,
-  },
-  errorTitle: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: '#c5221f',
-    margin: '0 0 4px 0',
-  },
-  errorMessage: {
-    fontSize: '14px',
-    color: '#c5221f',
-    margin: 0,
-    opacity: 0.8,
-  },
-  progressContainer: {
-    marginTop: '16px',
-  },
-  progressBar: {
-    height: '12px',
-    backgroundColor: '#f1f3f4',
-    borderRadius: '6px',
-    overflow: 'hidden',
-    marginBottom: '8px',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#4285F4',
-    transition: 'width 0.3s',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  progressText: {
-    fontSize: '10px',
-    color: 'white',
-    fontWeight: '600',
-    position: 'absolute',
-    right: '8px',
-  },
-  progressStatus: {
-    fontSize: '14px',
-    color: '#5f6368',
-    textAlign: 'center',
-    margin: 0,
-  },
-  userCard: {
-    backgroundColor: '#f0f7ff',
-    borderRadius: '12px',
-    padding: '20px',
-    border: '1px solid #d2e3fc',
-  },
-  userHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    marginBottom: '16px',
-  },
-  userAvatar: {
-    width: '48px',
-    height: '48px',
-    borderRadius: '50%',
-    backgroundColor: '#4285F4',
-    color: 'white',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontWeight: '600',
-    fontSize: '18px',
-  },
-  userName: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: '#202124',
-    marginBottom: '2px',
-  },
-  userEmail: {
-    fontSize: '14px',
-    color: '#5f6368',
-  },
-  userStats: {
-    display: 'flex',
-    gap: '20px',
-    borderTop: '1px solid #d2e3fc',
-    paddingTop: '16px',
-  },
-  statItem: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  statValue: {
-    fontSize: '18px',
-    fontWeight: '600',
-    color: '#202124',
-    marginBottom: '4px',
-  },
-  statLabel: {
-    fontSize: '12px',
-    color: '#5f6368',
-  },
 };
 
 // Add CSS animation
