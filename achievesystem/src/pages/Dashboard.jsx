@@ -343,9 +343,9 @@ const Dashboard = () => {
         zIndex: 9999
       }}>
         
-        Mobile: {isMobileView ? 'Yes' : 'No'}<br/>
+       {/* Mobile: {isMobileView ? 'Yes' : 'No'}<br/>
         Menu Open: {isMobileMenuOpen ? 'Yes' : 'No'}<br/>
-        Sidebar Width: {getSidebarWidth()}
+        Sidebar Width: {getSidebarWidth()}*/}
       </div>
 
       { /*Mobile Overlay - Only show when mobile menu is open*/ }
