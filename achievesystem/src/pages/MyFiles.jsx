@@ -258,7 +258,7 @@ const MyFiles = () => {
   return (
     <div style={styles.pageContainer}>
       {/* Debug info - remove in production */}
-      <div style={{
+     {/* <div style={{
         position: 'fixed',
         top: '10px',
         right: '10px',
@@ -269,8 +269,8 @@ const MyFiles = () => {
         fontSize: '12px',
         zIndex: 9999,
       }}>
-      {/*  Files: {files.length} | API Data loaded*/}
-      </div>
+       Files: {files.length} | API Data loaded
+      </div>*/}
 
       {/* Header */}
       <div style={styles.header}>
