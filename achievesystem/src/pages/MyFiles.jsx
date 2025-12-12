@@ -459,8 +459,8 @@ const MyFiles = () => {
                   style={{
                     ...styles.actionBtn,
                     color: file.starred ? '#FFD700' : '#5f6368',
-                    width: viewMode === 'grid' ? '14px' : '16px',
-                    height: viewMode === 'grid' ? '14px' : '16px',
+                    width: viewMode === 'grid' ? '32px' : '36px',
+                    height: viewMode === 'grid' ? '32px' : '36px',
                     fontSize: viewMode === 'grid' ? '14px' : '16px'
                   }}
                   title={file.starred ? "Unstar" : "Star"}
@@ -472,8 +472,8 @@ const MyFiles = () => {
                   style={{
                     ...styles.actionBtn,
                     color: file.shared ? '#4285F4' : '#5f6368',
-                    width: viewMode === 'grid' ? '14px' : '16px',
-                    height: viewMode === 'grid' ? '14px' : '16px',
+                    width: viewMode === 'grid' ? '32px' : '36px',
+                    height: viewMode === 'grid' ? '32px' : '36px',
                     fontSize: viewMode === 'grid' ? '14px' : '16px'
                   }}
                   title={file.shared ? "Shared" : "Share"}
@@ -738,7 +738,7 @@ const styles = {
     justifyContent: 'center',
     /*border: '1px solid #dadce0',*/
     border:'1px solid red',
-    borderRadius: '6px',
+   /* borderRadius: '6px',*/
     backgroundColor: 'white',
     color: '#5f6368',
     cursor: 'pointer',
