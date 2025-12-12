@@ -737,7 +737,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     /*border: '1px solid #dadce0',*/
-    border:'1px solid red',
+    border:'1px solid green',
    /* borderRadius: '6px',*/
     backgroundColor: 'white',
     color: '#5f6368',
