@@ -140,7 +140,7 @@ const Register = () => {
                 <input
                   id="name"
                   type="text"
-                  placeholder="John Doe"
+                  placeholder="guuroh Tina"
                   value={data.name}
                   onChange={(e) => handleChange("name", e.target.value)}
                   disabled={loading}
@@ -160,7 +160,7 @@ const Register = () => {
                 <input
                   id="email"
                   type="email"
-                  placeholder="john.doe@example.com"
+                  placeholder="guuroh.tina@example.com"
                   value={data.email}
                   onChange={(e) => handleChange("email", e.target.value)}
                   disabled={loading}
