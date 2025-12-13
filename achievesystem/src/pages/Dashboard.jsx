@@ -922,7 +922,7 @@ const styles = {
   categoryCount: {
     fontSize: '12px',
     color: '#5f6368',
-    background: '#f1f3f4',
+    /*background: '#f1f3f4',*/
     padding: '2px 8px',
     borderRadius: '12px',
     minWidth: '24px',
