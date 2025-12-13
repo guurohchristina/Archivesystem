@@ -179,7 +179,7 @@ const Login = () => {
                     onClick={togglePasswordVisibility}
                     style={styles.showPasswordButton}
                   >
-                    {showPassword ? "🙈 Hide" : "👁️ Show"}
+                    {showPassword ? " Hide" : "👁️ Show"}
                   </button>
                 </div>
                 <div style={styles.inputContainer}>
@@ -231,7 +231,7 @@ const Login = () => {
                   <span style={styles.quickButtonIcon}>👑</span>
                   Admin Login
                 </button>
-                <button 
+              {/*  <button 
                   type="button"
                   onClick={quickUserLogin}
                   style={styles.quickButton}
@@ -246,7 +246,7 @@ const Login = () => {
                 >
                   <span style={styles.quickButtonIcon}>🛠️</span>
                   Debug Admin
-                </button>
+                </button>*/}
               </div>
 
               <div style={styles.credentialsInfo}>
