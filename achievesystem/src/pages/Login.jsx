@@ -142,7 +142,7 @@ const Login = () => {
           <div style={styles.formContainer}>
             <div style={styles.formHeader}>
               <h2 style={styles.formTitle}>Welcome Back</h2>
-              <p style={styles.formSubtitle}>Sign in to access your files</p>
+              {/*<p style={styles.formSubtitle}>Sign in to access your files</p>*/}
             </div>
 
             {/* Login Error Display */}
