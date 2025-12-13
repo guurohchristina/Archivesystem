@@ -893,6 +893,7 @@ const styles = {
   },
   categoryItem: {
     display: 'flex',
+    gap:'10px',
     alignItems: 'center',
     padding: '8px 12px',
     margin: '4px 0',
