@@ -888,7 +888,8 @@ const styles = {
   },
   categoriesList: {
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    border:'1px solid red'
   },
   categoryItem: {
     display: 'flex',
@@ -897,7 +898,8 @@ const styles = {
     margin: '4px 0',
     borderRadius: '8px',
     cursor: 'pointer',
-    transition: 'background-color 0.2s'
+    transition: 'background-color 0.2s',
+    border:'1px solod green '
   },
   categoryIcon: {
     marginRight: '12px',
@@ -905,14 +907,16 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    flexShrink: 0
+    flexShrink: 0,
+    border:'1px solid yellow'
   },
   categoryLabel: {
     flex: 1,
     fontSize: '14px',
     color: '#202124',
     overflow: 'hidden',
-    textOverflow: 'ellipsis'
+    textOverflow: 'ellipsis',
+    border:'1px solid red'
   },
   categoryCount: {
     fontSize: '12px',
@@ -921,7 +925,8 @@ const styles = {
     padding: '2px 8px',
     borderRadius: '12px',
     minWidth: '24px',
-    textAlign: 'center'
+    textAlign: 'center',
+    border:'1px solid green'
   },
   storageSection: {
     padding: '20px 16px',
