@@ -899,7 +899,7 @@ const styles = {
     borderRadius: '8px',
     cursor: 'pointer',
     transition: 'background-color 0.2s',
-    border:'1px solod green '
+    border:'1px solid green '
   },
   categoryIcon: {
     marginRight: '12px',
