@@ -141,7 +141,7 @@ const Login = () => {
         <div style={styles.rightPanel}>
           <div style={styles.formContainer}>
             <div style={styles.formHeader}>
-              <h2 style={styles.formTitle}>Welcome Back</h2>
+              <h2>Welcome Back</h2>
               {/*<p style={styles.formSubtitle}>Sign in to access your files</p>*/}
             </div>
 
