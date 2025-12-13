@@ -1,10 +1,11 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -15,6 +16,15 @@ const Navbar = () => {
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
+  
+ // Helper function to check if a link is active
+  const isActive = (path) => {
+    if (path === "/" && location.pathname === "/") return true;
+    if (path !== "/" && location.pathname.startsWith(path)) return true;
+    return false;
+  }; 
+  
+  
 
   return (
     <nav style={styles.navbar}>
@@ -121,9 +131,23 @@ const Navbar = () => {
                   <span style={styles.linkIcon}>🏠</span>
                   Home
                 </Link>
-                <Link 
+              {/*  <Link 
                   to="/dashboard" 
                   style={styles.mobileLink}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span style={styles.linkIcon}>📊</span>
+                  Dashboard
+                </Link>*/}
+                
+                <Link 
+                  to="/dashboard" 
+                  style={{
+                    ...styles.mobileLink,
+                    backgroundColor: isActive("/dashboard") ? '#f1f3f4' : 'transparent',
+                    color: isActive("/dashboard") ? '#202124' : '#5f6368',
+                    fontWeight: isActive("/dashboard") ? '600' : '500',
+                  }}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <span style={styles.linkIcon}>📊</span>
