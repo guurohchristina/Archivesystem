@@ -255,11 +255,11 @@ const Login = () => {
                   <span style={styles.credentialValue}>archieveadmin@gmail.com</span>
                   <span style={styles.credentialPassword}>Admin@123</span>
                 </div>
-                <div style={styles.credentialItem}>
+               {/* <div style={styles.credentialItem}>
                   <span style={styles.credentialLabel}>Test User:</span>
                   <span style={styles.credentialValue}>test@example.com</span>
                   <span style={styles.credentialPassword}>password123</span>
-                </div>
+                </div>*/}
               </div>
             </div>
 
