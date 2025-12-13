@@ -456,7 +456,7 @@ const Dashboard = () => {
           <div style={styles.sectionHeader}>
             <h3 style={styles.sectionTitle}>Categories</h3>
             <span style={styles.totalFilesBadge}>
-              {totalFiles} {totalFiles === 1 ? '' : 'files'}
+              {totalFiles} {totalFiles === 1 ? 'file' : 'files'}
             </span>
           
           </div>
@@ -486,13 +486,14 @@ const Dashboard = () => {
                         {item.count} {item.count === 1 ? 'file' : 'files'}
                       </span>
                     </div>
+                    {/*}
                     <span style={{
                       ...styles.categoryBadge,
                       backgroundColor: `${item.color}20`,
                       color: item.color
                     }}>
                       {item.count}
-                    </span>
+                    </span>*/}
                   </div>
                 ))}
               
