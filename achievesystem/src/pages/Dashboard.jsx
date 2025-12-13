@@ -889,8 +889,8 @@ const styles = {
   },
   categoriesList: {
     display: 'flex',
-    flexDirection: 'column',
-    border:'1px solid red'
+    flexDirection: 'column'
+
   },
   categoryItem: {
     display: 'flex',
@@ -900,8 +900,8 @@ const styles = {
     margin: '4px 0',
     borderRadius: '8px',
     cursor: 'pointer',
-    transition: 'background-color 0.2s',
-    border:'1px solid green '
+    transition: 'background-color 0.2s'
+    
   },
   categoryIcon: {
     marginRight: '12px',
@@ -909,16 +909,16 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    flexShrink: 0,
-    border:'1px solid yellow'
+    flexShrink: 0
+    
   },
   categoryLabel: {
     flex: 1,
     fontSize: '14px',
     color: '#202124',
     overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    border:'1px solid red'
+    textOverflow: 'ellipsis'
+    
   },
   categoryCount: {
     fontSize: '12px',
@@ -927,8 +927,7 @@ const styles = {
     padding: '2px 8px',
     borderRadius: '12px',
     minWidth: '24px',
-    textAlign: 'center',
-    border:'1px solid green'
+    textAlign: 'center'
   },
   storageSection: {
     padding: '20px 16px',
@@ -1206,7 +1205,7 @@ const styles = {
   totalFilesBadge: {
     fontSize: '11px',
     color: '#5f6368',
-    /*backgroundColor: '#f1f3f4',*/
+    backgroundColor: '#f1f3f4',
     padding: '2px 8px',
     borderRadius: '12px',
     fontWeight: '500'
