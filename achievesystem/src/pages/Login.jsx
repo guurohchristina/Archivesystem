@@ -263,14 +263,14 @@ const Login = () => {
               </div>
             </div>
 
-            <div style={styles.registerLink}>
+         {/*   <div style={styles.registerLink}>
               <p style={styles.registerText}>
                 Don't have an account?{" "}
                 <Link to="/register" style={styles.registerLinkButton}>
                   Create account
                 </Link>
               </p>
-            </div>
+            </div>*/}
           </div>
         </div>
       </div>
