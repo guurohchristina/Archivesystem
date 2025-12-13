@@ -125,7 +125,7 @@ const Home = () => {
             ...styles.heroTitle,
             fontSize: getResponsiveStyle('48px', '32px'),
           }}>
-            Organize, Secure, and Access
+            Secure, and Access
             <span style={styles.highlight}> Your Files</span>
           </h1>
           
