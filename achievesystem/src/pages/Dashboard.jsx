@@ -1206,7 +1206,7 @@ const styles = {
   totalFilesBadge: {
     fontSize: '11px',
     color: '#5f6368',
-    backgroundColor: '#f1f3f4',
+    /*backgroundColor: '#f1f3f4',*/
     padding: '2px 8px',
     borderRadius: '12px',
     fontWeight: '500'
