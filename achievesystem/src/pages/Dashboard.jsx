@@ -482,18 +482,18 @@ const Dashboard = () => {
                     </span>
                     <div style={styles.categoryDetails}>
                       <span style={styles.categoryLabel}>{item.label}</span>
-                    <span style={styles.categoryFileCount}>
+                 {/*   <span style={styles.categoryFileCount}>
                         {item.count} {item.count === 1 ? 'file' : 'files'}
-                      </span>
+                      </span>*/}
                     </div>
-                    {/*}
+                    
                     <span style={{
                       ...styles.categoryBadge,
                       backgroundColor: `${item.color}20`,
                       color: item.color
                     }}>
                       {item.count}
-                    </span>*/}
+                    </span>
                   </div>
                 ))}
               
