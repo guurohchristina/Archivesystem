@@ -456,7 +456,7 @@ const Dashboard = () => {
           <div style={styles.sectionHeader}>
             <h3 style={styles.sectionTitle}>Categories</h3>
             <span style={styles.totalFilesBadge}>
-              {totalFiles} {totalFiles === 1 ? 'file' : 'files'}
+              {totalFiles} {totalFiles === 1 ? '' : 'files'}
             </span>
           
           </div>
