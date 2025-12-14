@@ -241,7 +241,7 @@ const ManageFiles = () => {
   const [error, setError] = useState("");
   const [totalFiles, setTotalFiles] = useState(0);
 
-  const API_BASE = 'http://localhost:3000';
+  const API_BASE = 'https://archivesystembackend.onrender.com';
 
   useEffect(() => {
     fetchFiles();

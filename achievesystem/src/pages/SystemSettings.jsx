@@ -49,7 +49,7 @@ const SystemSettings = () => {
   const [saveStatus, setSaveStatus] = useState("");
   const [activeTab, setActiveTab] = useState("preservation");
   
-  const API_BASE = 'https://improved-memory-xjpqw5rr799fvw5x-3000.app.github.dev';
+  const API_BASE = 'https://archivesystembackend.onrender.com';
 
   useEffect(() => {
     fetchSettings();

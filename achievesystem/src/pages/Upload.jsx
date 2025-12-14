@@ -152,7 +152,7 @@ const Upload = () => {
         throw new Error('Please login again to upload files.');
       }
 
-      const API_URL = 'http://localhost:3000';
+      const API_URL = 'https://archivesystembackend.onrender.com';
       
       const response = await fetch(`${API_URL}/api/upload`, {
         method: 'POST',

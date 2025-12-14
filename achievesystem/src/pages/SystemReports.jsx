@@ -279,7 +279,7 @@ const SystemReports = () => {
   const [timeRange, setTimeRange] = useState("7days");
   const [error, setError] = useState("");
 
-  const API_BASE = 'http://localhost:3000';
+  const API_BASE = 'https://archivesystembackend.onrender.com';
 
   useEffect(() => {
     fetchStats();

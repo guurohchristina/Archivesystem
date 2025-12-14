@@ -14,7 +14,7 @@ const SharedWithMe = () => {
   const [error, setError] = useState("");
   const [viewMode, setViewMode] = useState("grid");
 
-  const API_BASE = 'http://localhost:3000';
+  const API_BASE = 'https://archivesystembackend.onrender.com';
 
   useEffect(() => {
     if (user) {

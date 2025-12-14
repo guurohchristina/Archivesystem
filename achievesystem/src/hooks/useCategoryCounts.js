@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const API_BASE = 'http://localhost:3000';
+const API_BASE = 'https://archivesystembackend.onrender.com';
 
 export const useCategoryCounts = () => {
   const [categoryData, setCategoryData] = useState({

@@ -14,7 +14,7 @@ const MyFiles = () => {
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const API_BASE = 'http://localhost:3000';
+  const API_BASE = 'https://archivesystembackend.onrender.com';
 
   useEffect(() => {
     fetchUserFiles();
