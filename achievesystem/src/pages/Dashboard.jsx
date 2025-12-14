@@ -12,7 +12,6 @@ import {
   Music,
   Archive,
   User,
-  Settings,
   LogOut,
   ChevronLeft,
   ChevronRight,

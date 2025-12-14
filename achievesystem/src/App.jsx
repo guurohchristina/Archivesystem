@@ -40,7 +40,7 @@ function App() {
           <Route path="/register" element={<Register />} />
 
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/" element={<Dashboard />} />
+      {/*    <Route path="/" element={<Dashboard />} />*/}
           
           
           <Route path="/my-files" element={<Dashboard />} />
