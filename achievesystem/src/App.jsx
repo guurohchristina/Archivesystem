@@ -38,9 +38,11 @@ function App() {
         <Route path="/" element={<Home />} />
          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          
+          
 
           <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/" element={<Dashboard />} />
+      {/*  <Route path="/" element={<Dashboard />} />*/}
           
           
           <Route path="/my-files" element={<Dashboard />} />
@@ -53,13 +55,13 @@ function App() {
          
           
           
-          <Route path="/upload" element={<Upload />} />
+       {/*   <Route path="/upload" element={<Upload />} />*/}
           
         
 
 
 
-          // In your App.jsx, make sure you have these routes:
+     {/*     // In your App.jsx, make sure you have these routes:
 <Route path="/upload" element={<Upload />} />
 <Route path="/manage-users" element={<ManageUsers />} />
 <Route path="/manage-files" element={<ManageFiles />} />
@@ -67,7 +69,8 @@ function App() {
 <Route path="/my-files" element={<MyFiles />} />
 <Route path="/profile" element={<Profile />} />
 <Route path="/system-settings" element={<SystemSetting />} />
-<Route path="/shared-files" element={<SharedwithMe />} />
+<Route path="/shared-files" element={<SharedwithMe />} />*/}
+<Route path="*" element={<div>Page not found</div>} />
         
       </Routes>
       </AuthProvider>
