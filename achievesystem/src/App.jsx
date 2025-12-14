@@ -55,7 +55,7 @@ function App() {
           
           <Route path="/upload" element={<Upload />} />
           
-          <Route path="*" element={<Navigate to="/" replace />} />
+        
 
 
 
