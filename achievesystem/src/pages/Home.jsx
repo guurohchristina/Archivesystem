@@ -525,12 +525,13 @@ const styles = {
     marginBottom: '32px',
     lineHeight: '1.6',
   },
+  /*
   ctaButtons: {
     display: 'flex',
     gap: '12px',
     marginBottom: '24px',
     flexWrap: 'wrap',
-  },
+  },*/
   primaryButton: {
     backgroundColor: '#4285F4',
     color: 'white',
