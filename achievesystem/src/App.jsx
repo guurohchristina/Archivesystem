@@ -1,4 +1,4 @@
-/*import React from "react";
+import React from "react";
 import { BrowserRouter, Routes, Route, Link} from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext.jsx";
 
@@ -75,109 +75,12 @@ function App() {
   );
 }
 
-export default App;*/
-
-
-
-
-
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext.jsx";
-import { useContext } from "react";
-
-import Navbar from "./components/Navbar.jsx";
-import Home from "./pages/Home.jsx";
-import Login from "./pages/Login.jsx";
-import Register from "./pages/Register.jsx";
-import Dashboard from "./pages/Dashboard.jsx";  // This is the layout wrapper
-import Profile from "./pages/Profile.jsx";
-import Upload from "./pages/Upload.jsx";
-import ManageUsers from "./pages/ManageUsers.jsx";
-import ManageFiles from "./pages/ManageFiles.jsx";
-import SystemReports from "./pages/SystemReports.jsx";
-import MyFiles from "./pages/MyFiles.jsx";
-import SystemSetting from "./pages/SystemSettings.jsx";
-import SharedwithMe from "./pages/SharedwithMe.jsx";
-
-// Protected Route Component
-const ProtectedRoute = ({ children }) => {
-  const { user } = useContext(AuthContext);
-  
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  return children;
-};
-
-// Dashboard Layout Wrapper
-const DashboardLayout = () => {
-  return (
-    <div className="dashboard-container">
-      {/* Dashboard sidebar/navigation */}
-      <div className="dashboard-sidebar">
-        <h3>Dashboard</h3>
-        <nav>
-          <Link to="/dashboard/my-files">My Files</Link>
-          <Link to="/dashboard/shared-files">Shared Files</Link>
-          <Link to="/dashboard/upload">Upload</Link>
-          <Link to="/dashboard/profile">Profile</Link>
-          {/* Admin links if needed */}
-        </nav>
-      </div>
-      
-      {/* Main content area where nested routes render */}
-      <div className="dashboard-content">
-        <Outlet />  {/* ← THIS IS WHERE MyFiles, SharedwithMe, etc. RENDER */}
-      </div>
-    </div>
-  );
-};
-
-function App() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Navbar />
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          
-          {/* Dashboard Protected Route with Nested Routes */}
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <DashboardLayout />
-              </ProtectedRoute>
-            } 
-          >
-            {/* Nested routes render inside DashboardLayout's <Outlet /> */}
-            <Route index element={<div>Select an option from sidebar</div>} />
-            <Route path="my-files" element={<MyFiles />} />
-            <Route path="shared-files" element={<SharedwithMe />} />
-            <Route path="upload" element={<Upload />} />
-            <Route path="profile" element={<Profile />} />
-            
-            {/* Admin nested routes */}
-            <Route path="manage-users" element={<ManageUsers />} />
-            <Route path="manage-files" element={<ManageFiles />} />
-            <Route path="system-reports" element={<SystemReports />} />
-            <Route path="system-settings" element={<SystemSetting />} />
-          </Route>
-          
-          {/* Catch-all for undefined routes */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
-  );
-}
-
 export default App;
+
+
+
+
+
 
 
 
