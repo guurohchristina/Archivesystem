@@ -10,11 +10,15 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.21.2",
-    "jsonwebtoken": "^9.0.2",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.556.0",
     "multer": "^2.0.2",
-    "pg": "^8.11.1"
+    "pg": "^8.16.3",
+    "pg-pool": "^3.10.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
   }
 }
