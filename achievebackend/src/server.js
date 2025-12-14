@@ -529,7 +529,7 @@ app.use((req, res, next) => {
 // =========== MIDDLEWARE ===========
 // CORS
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173'],
+  origin: ['https://archivesystembackend.onrender.com', 'https://archivesystem.onrender.com'],
   credentials: true
 }));
 
