@@ -33,6 +33,11 @@ function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/my-files" element={<Dashboard />} />
+          <Route path="/upload" element={<Dashboard />} />
+          <Route path="/shared-files" element={<Dashboard />} />
+          <Route path="/profile" element={<Dashboard />} />
+          
         {/* Add all your other routes here */}
         <Route path="*" element={<div>Page not found</div>} />
       </Routes>
