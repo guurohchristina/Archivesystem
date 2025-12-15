@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import Navbar from "./components/Navbar.jsx"
 
 const Home = () => {
   const [expandedService, setExpandedService] = useState(null);
@@ -109,7 +110,10 @@ const Home = () => {
   };
 
   return (
-    <div style={styles.container}>
+    <div>
+    <Navbar />
+      <div 
+    style={styles.container}>
       {/* Hero Section - Single column on mobile, side-by-side on desktop */}
       <section style={{
         ...styles.heroSection,
@@ -472,6 +476,7 @@ const Home = () => {
           <p>© 2024 Archive System. All rights reserved. Empowering secure file management worldwide.</p>
         </div>
       </footer>
+    </div>
     </div>
   );
 };
