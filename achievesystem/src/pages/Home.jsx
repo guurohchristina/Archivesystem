@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Navbar from "./components/Navbar.jsx";
+import Navbar from "../components/Navbar.jsx";
 
 const Home = () => {
   const [expandedService, setExpandedService] = useState(null);
