@@ -70,7 +70,7 @@ function App() {
 <Route path="/profile" element={<Profile />} />
 <Route path="/system-settings" element={<SystemSetting />} />
 <Route path="/shared-files" element={<SharedwithMe />} />*/}
-<Route path="*" element={<div>Page not found</div>} />
+
         
       </Routes>
       </AuthProvider>
