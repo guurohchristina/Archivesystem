@@ -31,7 +31,7 @@ import SharedwithMe from "./pages/SharedwithMe.jsx";
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/">
     <AuthProvider>
   <Navbar />
       <Routes>
