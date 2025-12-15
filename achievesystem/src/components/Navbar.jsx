@@ -63,10 +63,10 @@ const Navbar = () => {
             </div>
           ) : (
             <div style={styles.navLinks}>
-             {/* <Link to="/" style={styles.navLink}>
+              <Link to="/" style={styles.navLink}>
                 <span style={styles.linkIcon}>🏠</span>
                 Home
-              </Link>*/}
+              </Link>
               <Link to="/dashboard" style={styles.navLink}>
                 <span style={styles.linkIcon}>📊</span>
                 Dashboard
