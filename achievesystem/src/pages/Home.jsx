@@ -112,7 +112,7 @@ const Home = () => {
 
   return (
     <div>
-    <Navbar />
+    
       <div 
     style={styles.container}>
       {/* Hero Section - Single column on mobile, side-by-side on desktop */}

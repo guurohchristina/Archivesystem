@@ -109,7 +109,7 @@ const Register = () => {
 
   return (
     <div>
-      <Navbar />
+      
     
     <div style={styles.pageContainer}>
       <div style={styles.registerContainer}>

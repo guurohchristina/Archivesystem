@@ -33,7 +33,7 @@ function App() {
   return (
     <BrowserRouter>
     <AuthProvider>
-  
+  <Navbar />
       <Routes>
         <Route exact path="/" element={<Home />} />
          <Route path="/login" element={<Login />} />

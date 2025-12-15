@@ -96,7 +96,7 @@ const Login = () => {
 
   return (
     <div>
-      <Navbar />
+    
     <div 
     
     style={styles.pageContainer}>
