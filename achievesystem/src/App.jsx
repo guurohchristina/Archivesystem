@@ -33,9 +33,9 @@ function App() {
   return (
     <BrowserRouter>
     <AuthProvider>
-    
+    <Navbar />
       <Routes>
-        <Route  path="/" element={<Home />} />
+        <Route exact path="/" element={<Home />} />
          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           
@@ -70,7 +70,7 @@ function App() {
 <Route path="/profile" element={<Profile />} />
 <Route path="/system-settings" element={<SystemSetting />} />
 <Route path="/shared-files" element={<SharedwithMe />} />*/}
-
+<Route path="*" element={<div>Page not found</div>} />
         
       </Routes>
       </AuthProvider>
