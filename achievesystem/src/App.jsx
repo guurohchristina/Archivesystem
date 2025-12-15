@@ -1,164 +1,53 @@
-import React from "react";
-import { BrowserRouter, Routes, Route, Link} from "react-router-dom";
+import React, { useEffect } from "react";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext.jsx";
-
-
 import Navbar from "./components/Navbar.jsx";
 
+// Import all your page components
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+// ... import other pages
 
+// Router wrapper component
+function AppRouter() {
+  const location = useLocation();
+  const navigate = useNavigate();
 
-import Profile from "./pages/Profile.jsx";
-import Upload from "./pages/Upload.jsx";
+  useEffect(() => {
+    console.log("Current pathname:", location.pathname);
+    
+    // If the pathname contains 'index.html', redirect to root
+    if (location.pathname.includes('index.html')) {
+      console.log("Redirecting from index.html to /");
+      navigate('/', { replace: true });
+    }
+  }, [location.pathname, navigate]);
 
-
-import ManageUsers from "./pages/ManageUsers.jsx";
-import ManageFiles from "./pages/ManageFiles.jsx";
-import SystemReports from "./pages/SystemReports.jsx";
-
-
-
-import MyFiles from "./pages/MyFiles.jsx";
-import SystemSetting from "./pages/SystemSettings.jsx";
-import SharedwithMe from "./pages/SharedwithMe.jsx";
-
-
-
-
+  return (
+    <>
+      <Navbar />
+      <Routes location={location}>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        {/* Add all your other routes here */}
+        <Route path="*" element={<div>Page not found</div>} />
+      </Routes>
+    </>
+  );
+}
 
 function App() {
   return (
-    <BrowserRouter basename="/">
-    <AuthProvider>
-  <Navbar />
-      <Routes>
-        <Route exact path="/" element={<Home />} />
-         <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          
-          
-
-          <Route path="/dashboard" element={<Dashboard />} />
-      {/*  <Route path="/" element={<Dashboard />} />*/}
-          
-          
-          <Route path="/my-files" element={<Dashboard />} />
-          <Route path="/upload" element={<Dashboard />} />
-          <Route path="/shared-files" element={<Dashboard />} />
-          <Route path="/profile" element={<Dashboard />} />
-          
-          
-         
-         
-          
-          
-       {/*   <Route path="/upload" element={<Upload />} />*/}
-          
-        
-
-
-
-     {/*     // In your App.jsx, make sure you have these routes:
-<Route path="/upload" element={<Upload />} />
-<Route path="/manage-users" element={<ManageUsers />} />
-<Route path="/manage-files" element={<ManageFiles />} />
-<Route path="/system-reports" element={<SystemReports />} />
-<Route path="/my-files" element={<MyFiles />} />
-<Route path="/profile" element={<Profile />} />
-<Route path="/system-settings" element={<SystemSetting />} />
-<Route path="/shared-files" element={<SharedwithMe />} />*/}
-<Route path="*" element={<div>Page not found</div>} />
-        
-      </Routes>
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRouter />
       </AuthProvider>
     </BrowserRouter>
   );
 }
 
 export default App;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{/*
-import React, { useContext } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthContext } from "./context/AuthContext.jsx";
-
-// ... your imports
-
-// Protected Route Component
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useContext(AuthContext);
-  return isAuthenticated ? children : <Navigate to="/login" />;
-};
-
-// Public Route Component (redirect to dashboard if already logged in)
-const PublicRoute = ({ children }) => {
-  const { isAuthenticated } = useContext(AuthContext);
-  return !isAuthenticated ? children : <Navigate to="/dashboard" />;
-};
-
-function App() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          
-          {/* Public routes - only accessible when NOT logged in *
-          <Route path="/login" element={
-            <PublicRoute>
-              <Login />
-            </PublicRoute>
-          } />
-          <Route path="/register" element={
-            <PublicRoute>
-              <Register />
-            </PublicRoute>
-          } />
-
-          {/* Protected routes - only accessible*
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/profile" element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          } />
-          <Route path="/upload" element={
-            <ProtectedRoute>
-              <Upload />
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
-  );
-
-
-export default App;
-}*/}
