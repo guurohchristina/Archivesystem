@@ -1,6 +1,7 @@
 import { useState, useContext, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { useNavigate, Link } from "react-router-dom";
+import Navbar from "../components/Navbar.jsx";
 
 const Login = () => {
   const { login, isAuthenticated } = useContext(AuthContext);
@@ -94,7 +95,11 @@ const Login = () => {
   };
 
   return (
-    <div style={styles.pageContainer}>
+    <div>
+      <Navbar />
+    <div 
+    
+    style={styles.pageContainer}>
       <div style={styles.loginContainer}>
         {/* Left Panel - Branding/Info */}
         <div style={styles.leftPanel}>
@@ -274,6 +279,7 @@ const Login = () => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

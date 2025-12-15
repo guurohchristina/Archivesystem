@@ -1,6 +1,7 @@
 import { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { useNavigate, Link } from "react-router-dom";
+import Navbar from "../components/Navbar.jsx";
 
 const Register = () => {
   const { register } = useContext(AuthContext);
@@ -107,6 +108,9 @@ const Register = () => {
   const passwordStrength = checkPasswordStrength();
 
   return (
+    <div>
+      <Navbar />
+    
     <div style={styles.pageContainer}>
       <div style={styles.registerContainer}>
         {/* Left Panel - Form */}
@@ -363,6 +367,7 @@ const Register = () => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };
