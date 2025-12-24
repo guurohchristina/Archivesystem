@@ -400,7 +400,7 @@ const Dashboard = () => {
         </div>
 
         {/* Search - Only shown when expanded */}
-        
+        {/*
         {(!sidebarCollapsed || isMobileView) && (
           <div style={styles.sidebarSearch}>
             <Search size={18} />
@@ -412,7 +412,7 @@ const Dashboard = () => {
               style={styles.searchInput}
             />
           </div>
-        )}
+        )}*/}
 
         {/* Main Navigation */}
         
