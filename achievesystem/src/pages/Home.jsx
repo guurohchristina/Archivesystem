@@ -494,6 +494,7 @@ const styles = {
     color: '#202124',
     lineHeight: 1.6,
     overflowX: 'hidden',
+    marginTop:'50px',
   },
   heroSection: {
     display: 'flex',
