@@ -122,10 +122,10 @@ const Home = () => {
         padding: getResponsiveStyle('80px 40px', '40px 20px'),
         gap: getResponsiveStyle('60px', '40px'),
       }}>
-        <div style={styles.heroContent}>
-          <div style={styles.heroBadge}>
+       <div style={styles.heroContent}>
+          {/*<div style={styles.heroBadge}>
             <span>🔒 Trusted Archive Platform</span>
-          </div>
+          </div>*/}
           <h1 style={{
             ...styles.heroTitle,
             fontSize: getResponsiveStyle('48px', '32px'),
