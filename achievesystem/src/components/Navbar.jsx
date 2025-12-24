@@ -92,7 +92,7 @@ const Navbar = () => {
               </div>*/}
               
               <button onClick={handleLogout} style={styles.logoutButton}>
-                <span style={styles.linkIcon}>🚪</span>
+                <span style={styles.linkIcon}></span>
                 Logout
               </button>
             </div>
@@ -184,7 +184,7 @@ const Navbar = () => {
                   }} 
                   style={styles.mobileLogoutButton}
                 >
-                  <span style={styles.linkIcon}>🚪</span>
+                  <span style={styles.linkIcon}></span>
                   Logout
                 </button>
               </>
