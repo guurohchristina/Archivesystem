@@ -798,6 +798,7 @@ const styles = {
     display: 'none'
   },*/
   sidebar: {
+    marginTop:'50px',
     background: 'white',
     borderRight: '1px solid #e0e0e0',
     display: 'flex',
