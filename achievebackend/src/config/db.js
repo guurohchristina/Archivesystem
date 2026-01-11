@@ -55,21 +55,21 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// For Neon, SSL is ALWAYS required
+
 const sslConfig = process.env.NODE_ENV === 'production' 
   ? { rejectUnauthorized: false }
   : { rejectUnauthorized: false }; // Same for development!
 
-// Create connection pool with Neon-specific settings
+
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: sslConfig, // ALWAYS use SSL with Neon
-  max: 10, // Lower for Neon (serverless)
-  idleTimeoutMillis: 10000, // Shorter for Neon
+  ssl: sslConfig, 
+  max: 10, 
+  idleTimeoutMillis: 10000, 
   connectionTimeoutMillis: 5000,
 });
 
-// Enhanced connection test
+
 export const testConnection = async () => {
   console.log('🔗 Testing Neon PostgreSQL connection...');
   console.log('SSL enabled:', pool.options.ssl ? 'Yes' : 'No');

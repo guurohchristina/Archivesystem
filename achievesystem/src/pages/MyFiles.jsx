@@ -320,7 +320,7 @@ const MyFiles = () => {
       {/* Search */}
       <div style={styles.searchSection}>
         <div style={styles.searchContainer}>
-          <span style={styles.searchIcon}>{/*🔍*/}☃️🎄</span>
+          <span style={styles.searchIcon}>🔍</span>
           <input
             type="text"
             placeholder="Search files..."
