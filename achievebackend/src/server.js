@@ -487,6 +487,7 @@ import { fileURLToPath } from 'url';
 // Routes
 import authRoutes from './routes/authRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import folderRoutes from './routes/folderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 
 dotenv.config();
@@ -554,6 +555,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/folders', folderRoutes); // Add folder routes
 
 // Health check
 app.get('/health', (req, res) => {
