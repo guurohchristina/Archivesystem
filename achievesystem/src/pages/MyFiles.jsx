@@ -1,26 +1,38 @@
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ShareModal from '../components/ShareModal.jsx';
 
 const MyFiles = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+  const { folderId } = useParams(); // Get folder ID from URL
   const [files, setFiles] = useState([]);
+  const [folders, setFolders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState("grid");
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [currentFolder, setCurrentFolder] = useState(null);
+  const [breadcrumbs, setBreadcrumbs] = useState([]);
 
   const API_BASE = 'https://archivesystembackend.onrender.com';
 
   useEffect(() => {
-    fetchUserFiles();
-  }, []);
+    if (folderId) {
+      fetchFolderContents(folderId);
+      fetchFolderInfo(folderId);
+    } else {
+      fetchRootContents();
+    }
+    fetchBreadcrumbs();
+  }, [folderId]);
 
-  const fetchUserFiles = async () => {
+  const fetchRootContents = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -30,104 +42,288 @@ const MyFiles = () => {
         throw new Error("Please log in to view your files");
       }
 
-      const response = await fetch(`${API_BASE}/api/upload`, {
+      // Fetch files in root
+      const filesResponse = await fetch(`${API_BASE}/api/upload?folder_id=root`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
       });
 
-      const result = await response.json();
-      console.log("API Response:", result);
+      // Fetch folders in root
+      const foldersResponse = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
 
-      if (result.success) {
-        // Transform API data to the format we need
-        const transformedFiles = (result.files || []).map(file => {
-          // Determine file type from filename or filetype
-          let fileType = "document";
-          const fileName = file.original_name?.toLowerCase() || "";
-          const fileMime = file.filetype?.toLowerCase() || "";
-          
-          if (fileName.includes('.pdf') || fileMime.includes('pdf')) fileType = "pdf";
-          else if (fileName.includes('.doc') || fileName.includes('.docx') || fileMime.includes('word')) fileType = "doc";
-          else if (fileName.includes('.xls') || fileName.includes('.xlsx') || fileName.includes('.csv') || fileMime.includes('excel') || fileMime.includes('sheet')) fileType = "spreadsheet";
-          else if (fileName.includes('.jpg') || fileName.includes('.jpeg') || fileName.includes('.png') || fileName.includes('.gif') || fileName.includes('.bmp') || fileMime.includes('image')) fileType = "image";
-          else if (fileName.includes('.mp4') || fileName.includes('.mov') || fileName.includes('.avi') || fileName.includes('.mkv') || fileMime.includes('video')) fileType = "video";
-          else if (fileName.includes('.mp3') || fileName.includes('.wav') || fileName.includes('.aac') || fileMime.includes('audio')) fileType = "audio";
-          else if (fileName.includes('.zip') || fileName.includes('.rar') || fileName.includes('.7z') || fileMime.includes('archive') || fileMime.includes('compressed')) fileType = "archive";
-          
-          // Format relative date
-          let relativeDate = "Recently";
-          if (file.uploaded_at) {
-            const date = new Date(file.uploaded_at);
-            const now = new Date();
-            const diffTime = Math.abs(now - date);
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            
-            if (diffDays === 0) relativeDate = "Today";
-            else if (diffDays === 1) relativeDate = "Yesterday";
-            else if (diffDays < 7) relativeDate = `${diffDays} days ago`;
-            else if (diffDays < 30) relativeDate = `${Math.floor(diffDays / 7)} weeks ago`;
-            else {
-              relativeDate = date.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric"
-              });
-            }
-          }
-          
-          // Format file size
-          let formattedSize = "0 Bytes";
-          if (file.file_size) {
-            const bytes = parseInt(file.file_size);
-            if (bytes > 0) {
-              const k = 1024;
-              const sizes = ["Bytes", "KB", "MB", "GB"];
-              const i = Math.floor(Math.log(bytes) / Math.log(k));
-              formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-            }
-          }
-          
-          return {
-            id: file.id,
-            name: file.original_name || "Unnamed File",
-            type: fileType,
-            size: formattedSize,
-            date: relativeDate,
-            starred: false, // You can implement starring later
-            shared: file.is_public || false,
-            owner: file.owner || "Unknown",
-            department: file.department || "General",
-            classification: file.classification_level || "Unclassified",
-            description: file.description || "",
-            fileSizeBytes: file.file_size || 0,
-            uploadedAt: file.uploaded_at,
-            documentType: file.document_type,
-            isPublic: file.is_public,
-            // Keep original API data for download/delete
-            _apiData: file
-          };
-        });
-        
-        console.log("Transformed files:", transformedFiles);
+      const filesResult = await filesResponse.json();
+      const foldersResult = await foldersResponse.json();
+
+      console.log("API Responses:", { filesResult, foldersResult });
+
+      if (filesResult.success) {
+        const transformedFiles = (filesResult.files || []).map(file => transformFileData(file));
         setFiles(transformedFiles);
-      } else {
-        throw new Error(result.message || "Failed to load files");
       }
+
+      if (foldersResult.success) {
+        setFolders(foldersResult.folders || []);
+      }
+
+      setCurrentFolder(null); // Root folder
+
     } catch (error) {
-      console.error("Error fetching files:", error);
+      console.error("Error fetching contents:", error);
       setError(error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Filter files based on search term
+  const fetchFolderContents = async (folderId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem("token");
+
+      // Fetch files in folder
+      const filesResponse = await fetch(`${API_BASE}/api/upload?folder_id=${folderId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      // Fetch subfolders
+      const foldersResponse = await fetch(`${API_BASE}/api/folders?parent_id=${folderId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      const filesResult = await filesResponse.json();
+      const foldersResult = await foldersResponse.json();
+
+      if (filesResult.success) {
+        const transformedFiles = (filesResult.files || []).map(file => transformFileData(file));
+        setFiles(transformedFiles);
+      }
+
+      if (foldersResult.success) {
+        setFolders(foldersResult.folders || []);
+      }
+
+    } catch (error) {
+      console.error("Error fetching folder contents:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchFolderInfo = async (folderId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE}/api/folders/${folderId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setCurrentFolder(result.folder);
+      }
+    } catch (error) {
+      console.error("Error fetching folder info:", error);
+    }
+  };
+
+  const fetchBreadcrumbs = async () => {
+    if (!folderId) {
+      setBreadcrumbs([{ id: 'root', name: 'My Files' }]);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE}/api/folders/${folderId}/breadcrumbs`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setBreadcrumbs([{ id: 'root', name: 'My Files' }, ...result.breadcrumbs]);
+      }
+    } catch (error) {
+      console.error("Error fetching breadcrumbs:", error);
+    }
+  };
+
+  const transformFileData = (file) => {
+    // Determine file type from filename or filetype
+    let fileType = "document";
+    const fileName = file.original_name?.toLowerCase() || "";
+    const fileMime = file.filetype?.toLowerCase() || "";
+    
+    if (fileName.includes('.pdf') || fileMime.includes('pdf')) fileType = "pdf";
+    else if (fileName.includes('.doc') || fileName.includes('.docx') || fileMime.includes('word')) fileType = "doc";
+    else if (fileName.includes('.xls') || fileName.includes('.xlsx') || fileName.includes('.csv') || fileMime.includes('excel') || fileMime.includes('sheet')) fileType = "spreadsheet";
+    else if (fileName.includes('.jpg') || fileName.includes('.jpeg') || fileName.includes('.png') || fileName.includes('.gif') || fileName.includes('.bmp') || fileMime.includes('image')) fileType = "image";
+    else if (fileName.includes('.mp4') || fileName.includes('.mov') || fileName.includes('.avi') || fileName.includes('.mkv') || fileMime.includes('video')) fileType = "video";
+    else if (fileName.includes('.mp3') || fileName.includes('.wav') || fileName.includes('.aac') || fileMime.includes('audio')) fileType = "audio";
+    else if (fileName.includes('.zip') || fileName.includes('.rar') || fileName.includes('.7z') || fileMime.includes('archive') || fileMime.includes('compressed')) fileType = "archive";
+    
+    // Format relative date
+    let relativeDate = "Recently";
+    if (file.uploaded_at) {
+      const date = new Date(file.uploaded_at);
+      const now = new Date();
+      const diffTime = Math.abs(now - date);
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) relativeDate = "Today";
+      else if (diffDays === 1) relativeDate = "Yesterday";
+      else if (diffDays < 7) relativeDate = `${diffDays} days ago`;
+      else if (diffDays < 30) relativeDate = `${Math.floor(diffDays / 7)} weeks ago`;
+      else {
+        relativeDate = date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric"
+        });
+      }
+    }
+    
+    // Format file size
+    let formattedSize = "0 Bytes";
+    if (file.file_size) {
+      const bytes = parseInt(file.file_size);
+      if (bytes > 0) {
+        const k = 1024;
+        const sizes = ["Bytes", "KB", "MB", "GB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+      }
+    }
+    
+    return {
+      id: file.id,
+      name: file.original_name || "Unnamed File",
+      type: fileType,
+      size: formattedSize,
+      date: relativeDate,
+      starred: false,
+      shared: file.is_public || false,
+      owner: file.owner || "Unknown",
+      department: file.department || "General",
+      classification: file.classification_level || "Unclassified",
+      description: file.description || "",
+      fileSizeBytes: file.file_size || 0,
+      uploadedAt: file.uploaded_at,
+      documentType: file.document_type,
+      isPublic: file.is_public,
+      folderId: file.folder_id,
+      _apiData: file
+    };
+  };
+
+  const handleCreateFolder = async () => {
+    if (!newFolderName.trim()) {
+      alert("Please enter a folder name");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE}/api/folders`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: newFolderName.trim(),
+          parent_id: folderId || "root"
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        alert("Folder created successfully");
+        setShowCreateFolderModal(false);
+        setNewFolderName("");
+        
+        // Refresh the current view
+        if (folderId) {
+          fetchFolderContents(folderId);
+        } else {
+          fetchRootContents();
+        }
+      } else {
+        alert(result.message || "Failed to create folder");
+      }
+    } catch (error) {
+      console.error("Error creating folder:", error);
+      alert("Error creating folder. Please try again.");
+    }
+  };
+
+  const handleDeleteFolder = async (folder) => {
+    if (!window.confirm(`Are you sure you want to delete folder "${folder.name}"? This will also delete all contents inside.`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE}/api/folders/${folder.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        alert("Folder deleted successfully");
+        
+        // Refresh the current view
+        if (folderId) {
+          fetchFolderContents(folderId);
+        } else {
+          fetchRootContents();
+        }
+      } else {
+        alert(result.message || "Failed to delete folder");
+      }
+    } catch (error) {
+      console.error("Error deleting folder:", error);
+      alert("Error deleting folder. Please try again.");
+    }
+  };
+
+  const handleNavigateToFolder = (folderId) => {
+    navigate(`/files/folder/${folderId}`);
+  };
+
+  const handleUploadToCurrentFolder = () => {
+    navigate(`/upload${folderId ? `?folder=${folderId}` : ''}`);
+  };
+
+  // Filter files and folders based on search term
   const filteredFiles = files.filter(file => 
     file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     file.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
     file.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
     file.department.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredFolders = folders.filter(folder => 
+    folder.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleDelete = async (file) => {
@@ -147,7 +343,12 @@ const MyFiles = () => {
       const result = await response.json();
       if (result.success) {
         alert("File deleted successfully");
-        fetchUserFiles(); // Refresh the list
+        // Refresh the current view
+        if (folderId) {
+          fetchFolderContents(folderId);
+        } else {
+          fetchRootContents();
+        }
       } else {
         alert(result.message || "Failed to delete file");
       }
@@ -246,7 +447,7 @@ const MyFiles = () => {
         <h3 style={styles.errorTitle}>Error Loading Files</h3>
         <p style={styles.errorMessage}>{error}</p>
         <button 
-          onClick={fetchUserFiles}
+          onClick={() => folderId ? fetchFolderContents(folderId) : fetchRootContents()}
           style={styles.retryButton}
         >
           Try Again
@@ -257,27 +458,29 @@ const MyFiles = () => {
 
   return (
     <div style={styles.pageContainer}>
-      {/* Debug info - remove in production */}
-     {/* <div style={{
-        position: 'fixed',
-        top: '10px',
-        right: '10px',
-        background: 'rgba(0,0,0,0.8)',
-        color: 'white',
-        padding: '10px',
-        borderRadius: '5px',
-        fontSize: '12px',
-        zIndex: 9999,
-      }}>
-       Files: {files.length} | API Data loaded
-      </div>*/}
+      {/* Breadcrumbs */}
+      <div style={styles.breadcrumbContainer}>
+        {breadcrumbs.map((crumb, index) => (
+          <span key={crumb.id}>
+            <button
+              onClick={() => crumb.id === 'root' ? navigate('/files') : navigate(`/files/folder/${crumb.id}`)}
+              style={styles.breadcrumbLink}
+            >
+              {crumb.name}
+            </button>
+            {index < breadcrumbs.length - 1 && <span style={styles.breadcrumbSeparator}>/</span>}
+          </span>
+        ))}
+      </div>
 
       {/* Header */}
       <div style={styles.header}>
         <div style={styles.headerLeft}>
-          <h1 style={styles.title}>My Files</h1>
+          <h1 style={styles.title}>
+            {currentFolder ? currentFolder.name : 'My Files'}
+          </h1>
           <div style={styles.filesStats}>
-            <span>{files.length} files • {formatTotalStorage(totalStorageUsed)} used</span>
+            <span>{files.length + folders.length} items • {formatTotalStorage(totalStorageUsed)} used</span>
           </div>
         </div>
         
@@ -308,11 +511,19 @@ const MyFiles = () => {
           </div>
           
           <button
-            onClick={() => navigate("/upload")}
+            onClick={() => setShowCreateFolderModal(true)}
+            style={styles.createFolderButton}
+          >
+            <span style={{ marginRight: '8px' }}>📁</span>
+            New Folder
+          </button>
+          
+          <button
+            onClick={handleUploadToCurrentFolder}
             style={styles.uploadButton}
           >
             <span style={{ marginRight: '8px' }}>📤</span>
-            Upload New File
+            Upload File
           </button>
         </div>
       </div>
@@ -323,7 +534,7 @@ const MyFiles = () => {
           <span style={styles.searchIcon}>🔍</span>
           <input
             type="text"
-            placeholder="Search files..."
+            placeholder="Search files and folders..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={styles.searchInput}
@@ -331,30 +542,139 @@ const MyFiles = () => {
         </div>
       </div>
 
+      {/* Folders Grid/List */}
+      {filteredFolders.length > 0 && (
+        <div style={styles.sectionHeader}>
+          <h3 style={styles.sectionTitle}>Folders</h3>
+        </div>
+      )}
+      <div style={{
+        ...styles.filesContainer,
+        display: viewMode === 'grid' ? 'grid' : 'block',
+        gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(220px, 1fr))' : 'none',
+        marginBottom: filteredFolders.length > 0 ? '30px' : '0'
+      }}>
+        {filteredFolders.map((folder) => (
+          <div key={folder.id} style={{
+            ...styles.fileItem,
+            flexDirection: viewMode === 'grid' ? 'column' : 'row',
+            alignItems: viewMode === 'grid' ? 'stretch' : 'center',
+            minHeight: viewMode === 'grid' ? '200px' : 'auto',
+            padding: viewMode === 'grid' ? '16px' : '12px 16px',
+            width: viewMode === 'list' ? '100%' : 'auto',
+            maxWidth: viewMode === 'list' ? '100%' : 'none',
+            boxSizing: 'border-box',
+            cursor: 'pointer'
+          }} onClick={() => handleNavigateToFolder(folder.id)}>
+            <div style={{
+              ...styles.fileIconContainer,
+              marginRight: viewMode === 'grid' ? '0' : '12px',
+              marginBottom: viewMode === 'grid' ? '12px' : '0',
+            }}>
+              <span style={{ ...styles.fileTypeIcon, fontSize: viewMode === 'grid' ? '36px' : '24px' }}>📁</span>
+            </div>
+            
+            <div style={{
+              ...styles.fileInfo,
+              flex: viewMode === 'list' ? 1 : 'none',
+              minWidth: 0,
+              overflow: 'hidden'
+            }}>
+              <h3 style={{
+                ...styles.fileName,
+                whiteSpace: viewMode === 'list' ? 'nowrap' : 'normal',
+                overflow: viewMode === 'list' ? 'hidden' : 'visible',
+                textOverflow: viewMode === 'list' ? 'ellipsis' : 'clip'
+              }}>
+                {folder.name}
+              </h3>
+              <div style={{
+                ...styles.fileMeta,
+                display: 'flex',
+                alignItems: 'center',
+                gap: viewMode === 'list' ? '12px' : '6px',
+                flexWrap: viewMode === 'grid' ? 'wrap' : 'nowrap'
+              }}>
+                <span style={{
+                  ...styles.fileTypeBadge,
+                  background: viewMode === 'list' ? 'none' : '#e8f0fe',
+                  padding: viewMode === 'list' ? '0' : '3px 8px',
+                  fontSize: viewMode === 'grid' ? '11px' : '12px',
+                  color: '#4285F4'
+                }}>
+                  FOLDER
+                </span>
+                <span style={styles.fileDate}>
+                  Created: {new Date(folder.created_at).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+            
+            <div style={{
+              ...styles.fileActions,
+              flexDirection: viewMode === 'grid' ? 'row' : 'row',
+              gap: viewMode === 'grid' ? '6px' : '8px',
+              marginTop: viewMode === 'grid' ? 'auto' : '0',
+              marginLeft: viewMode === 'list' ? '12px' : '0'
+            }} onClick={(e) => e.stopPropagation()}>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteFolder(folder);
+                }}
+                style={{
+                  ...styles.actionBtn,
+                  color: '#ea4335',
+                  width: viewMode === 'grid' ? '32px' : '36px',
+                  height: viewMode === 'grid' ? '32px' : '36px',
+                  fontSize: viewMode === 'grid' ? '14px' : '16px'
+                }}
+                title="Delete Folder"
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Files Grid/List */}
+      {filteredFiles.length > 0 && filteredFolders.length > 0 && (
+        <div style={styles.sectionHeader}>
+          <h3 style={styles.sectionTitle}>Files</h3>
+        </div>
+      )}
       <div style={{
         ...styles.filesContainer,
         display: viewMode === 'grid' ? 'grid' : 'block',
         gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(220px, 1fr))' : 'none',
         overflowX: viewMode === 'list' ? 'hidden' : 'visible'
       }}>
-        {filteredFiles.length === 0 ? (
+        {filteredFiles.length === 0 && filteredFolders.length === 0 ? (
           <div style={styles.emptyState}>
             <span style={{ fontSize: '48px' }}>📁</span>
             <h3 style={styles.emptyTitle}>
-              {files.length === 0 ? "No files uploaded yet" : "No matching files found"}
+              {files.length + folders.length === 0 ? "No files or folders yet" : "No matching items found"}
             </h3>
             <p style={styles.emptyText}>
               {searchTerm 
                 ? "Try a different search term." 
-                : "Upload your first file to get started."}
+                : "Upload your first file or create a folder to get started."}
             </p>
-            <button
-              onClick={() => navigate("/upload")}
-              style={styles.uploadButton}
-            >
-              Upload Your First File
-            </button>
+            <div style={styles.emptyActions}>
+              <button
+                onClick={() => setShowCreateFolderModal(true)}
+                style={styles.createFolderButton}
+              >
+                Create First Folder
+              </button>
+              <button
+                onClick={handleUploadToCurrentFolder}
+                style={styles.uploadButton}
+              >
+                Upload First File
+              </button>
+            </div>
           </div>
         ) : (
           filteredFiles.map((file) => (
@@ -514,12 +834,46 @@ const MyFiles = () => {
       {/* Footer */}
       <div style={styles.footer}>
         <div style={styles.footerStats}>
-          Showing {filteredFiles.length} of {files.length} files
+          Showing {filteredFiles.length + filteredFolders.length} of {files.length + folders.length} items
           {searchTerm && (
             <span style={styles.filteredText}> • Filtered</span>
           )}
         </div>
       </div>
+
+      {/* Create Folder Modal */}
+      {showCreateFolderModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
+            <h3 style={styles.modalTitle}>Create New Folder</h3>
+            <input
+              type="text"
+              placeholder="Enter folder name"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              style={styles.modalInput}
+              autoFocus
+            />
+            <div style={styles.modalActions}>
+              <button
+                onClick={() => {
+                  setShowCreateFolderModal(false);
+                  setNewFolderName("");
+                }}
+                style={styles.modalCancel}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateFolder}
+                style={styles.modalConfirm}
+              >
+                Create Folder
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Share Modal */}
       <ShareModal
@@ -531,14 +885,35 @@ const MyFiles = () => {
   );
 };
 
-// Keep your existing styles object (same as before)
+// Updated styles
 const styles = {
   pageContainer: {
     flex: 1,
     padding: '20px',
     overflowX: 'hidden',
-    width:'100%',
+    width: '100%',
     maxWidth: '100%',
+  },
+  breadcrumbContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '20px',
+    flexWrap: 'wrap',
+    gap: '4px',
+    padding: '8px 0',
+  },
+  breadcrumbLink: {
+    background: 'none',
+    border: 'none',
+    color: '#4285F4',
+    cursor: 'pointer',
+    fontSize: '14px',
+    padding: '4px 8px',
+    borderRadius: '4px',
+  },
+  breadcrumbSeparator: {
+    color: '#5f6368',
+    margin: '0 4px',
   },
   header: {
     display: 'flex',
@@ -571,135 +946,132 @@ const styles = {
   viewControls: {
     display: 'flex',
     gap: '4px',
-    backgroundColor: '#f8f9fa',
+    background: '#f1f3f4',
     padding: '4px',
     borderRadius: '8px',
-    border: '1px solid #dadce0',
-    
   },
   viewBtn: {
+    border: 'none',
+    background: 'transparent',
+    cursor: 'pointer',
+    width: '36px',
+    height: '36px',
+    borderRadius: '6px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '36px',
-    height: '36px',
-    border: '1px solid #dadce0',
-    borderRadius: '6px',
-    background: 'none',
-    cursor: 'pointer',
-    fontSize: '18px',
+    transition: 'all 0.2s',
   },
-  uploadButton: {
-    backgroundColor: '#4285F4',
-    color: 'white',
-    border: 'none',
+  createFolderButton: {
+    background: '#ffffff',
+    border: '1px solid #dadce0',
+    color: '#3c4043',
     padding: '10px 16px',
     borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '500',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
-    whiteSpace: 'nowrap',
+    fontWeight: '500',
+    fontSize: '14px',
+    transition: 'all 0.2s',
+  },
+  uploadButton: {
+    background: '#4285F4',
+    border: 'none',
+    color: 'white',
+    padding: '10px 16px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    fontWeight: '500',
+    fontSize: '14px',
+    transition: 'all 0.2s',
   },
   searchSection: {
     marginBottom: '20px',
   },
   searchContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    backgroundColor: '#f1f3f4',
-    borderRadius: '8px',
-    padding: '10px 16px',
+    position: 'relative',
+    maxWidth: '600px',
   },
   searchIcon: {
-    marginRight: '10px',
-    fontSize: '16px',
+    position: 'absolute',
+    left: '12px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    fontSize: '18px',
+    color: '#5f6368',
   },
   searchInput: {
-    flex: 1,
-    border: 'none',
-    backgroundColor: 'transparent',
-    fontSize: '14px',
-    color: '#202124',
+    width: '100%',
+    padding: '12px 12px 12px 42px',
+    borderRadius: '8px',
+    border: '1px solid #dadce0',
+    fontSize: '16px',
     outline: 'none',
-    minWidth: 0,
+    boxSizing: 'border-box',
+  },
+  sectionHeader: {
+    marginBottom: '12px',
+  },
+  sectionTitle: {
+    fontSize: '16px',
+    fontWeight: '500',
+    color: '#202124',
+    margin: 0,
   },
   filesContainer: {
     gap: '12px',
-    width:'100%',
-    maxWidth: '100%',
-    boxSizing: 'border-box'
-  
-    
-  
   },
   fileItem: {
-    backgroundColor: 'white',
-    border: '1px solid #e0e0e0',
-    borderRadius: '10px',
+    background: 'white',
+    borderRadius: '12px',
+    border: '1px solid #dadce0',
     display: 'flex',
     transition: 'all 0.2s',
-    boxSizing: 'border-box',
-    overflow: 'hidden',
-    '&:hover': {
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      borderColor: '#4285F4',
-    
-  
-    },
+    position: 'relative',
   },
   fileIconContainer: {
     position: 'relative',
     display: 'flex',
-    justifyContent: 'center',
     alignItems: 'center',
-    flexShrink: 0
-  
-  
+    justifyContent: 'center',
   },
   fileTypeIcon: {
-    fontSize: '32px',
+    fontSize: '24px',
   },
   fileStar: {
     position: 'absolute',
     top: '-4px',
     right: '-4px',
     fontSize: '12px',
-    color: '#FFD700',
-    backgroundColor: 'white',
-    borderRadius: '50%',
-    padding: '1px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
   },
   fileShared: {
     position: 'absolute',
-    bottom: '-2px',
-    right: '-2px',
-    fontSize: '10px',
-    color: '#4285F4',
-    backgroundColor: 'white',
-    borderRadius: '50%',
-    padding: '1px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    bottom: '-4px',
+    right: '-4px',
+    fontSize: '12px',
   },
   fileInfo: {
-    minWidth: 0,
+    flex: 1,
   },
   fileName: {
     fontSize: '14px',
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#202124',
-    margin: '0 0 8px 0',
+    margin: '0 0 4px 0',
   },
   fileMeta: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
     marginBottom: '4px',
   },
   fileTypeBadge: {
+    borderRadius: '4px',
     fontSize: '11px',
     fontWeight: '500',
-    color: '#4285F4',
-    borderRadius: '10px',
   },
   fileSize: {
     fontSize: '12px',
@@ -712,103 +1084,141 @@ const styles = {
   fileDetails: {
     fontSize: '12px',
     color: '#5f6368',
-    marginTop: '4px',
   },
   fileOwner: {
     fontWeight: '500',
   },
   fileDepartment: {
-    color: '#34A853',
     marginLeft: '4px',
   },
   fileClassification: {
-    fontWeight: '500',
     marginLeft: '4px',
+    fontWeight: '500',
   },
   fileActions: {
     display: 'flex',
-    flexShrink: 0,
-    justifyContent:'center'
-    
-    
-    
-  
   },
   actionBtn: {
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    borderRadius: '4px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    border: '1px solid #dadce0',
-  
-   /* borderRadius: '6px',*/
-   padding: 0,
-    backgroundColor: 'white',
-    color: '#5f6368',
-    cursor: 'pointer',
-    '&:hover': {
-      backgroundColor: '#f8f9fa',
-      borderColor: '#4285F4',
-      color: '#4285F4',
-    },
+    transition: 'all 0.2s',
   },
   emptyState: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '40px 20px',
-    backgroundColor: 'white',
-    border: '2px dashed #e0e0e0',
-    borderRadius: '12px',
-    textAlign: 'center',
     gridColumn: '1 / -1',
-    marginTop: '20px',
+    textAlign: 'center',
+    padding: '60px 20px',
   },
   emptyTitle: {
-    fontSize: '18px',
-    fontWeight: '600',
+    fontSize: '20px',
+    fontWeight: '400',
     color: '#202124',
-    margin: '16px 0 8px 0',
+    margin: '16px 0 8px',
   },
   emptyText: {
     fontSize: '14px',
     color: '#5f6368',
-    margin: '0 0 20px 0',
-    maxWidth: '300px',
+    marginBottom: '24px',
+  },
+  emptyActions: {
+    display: 'flex',
+    gap: '12px',
+    justifyContent: 'center',
   },
   footer: {
-    marginTop: '20px',
-    paddingTop: '16px',
-    borderTop: '1px solid #e0e0e0',
+    marginTop: '30px',
+    paddingTop: '20px',
+    borderTop: '1px solid #dadce0',
   },
   footerStats: {
     fontSize: '14px',
     color: '#5f6368',
-    textAlign: 'center',
   },
   filteredText: {
     color: '#4285F4',
-    fontStyle: 'italic',
+    fontWeight: '500',
+  },
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+  },
+  modalContent: {
+    background: 'white',
+    borderRadius: '12px',
+    padding: '24px',
+    width: '90%',
+    maxWidth: '400px',
+  },
+  modalTitle: {
+    fontSize: '18px',
+    fontWeight: '500',
+    color: '#202124',
+    margin: '0 0 16px',
+  },
+  modalInput: {
+    width: '100%',
+    padding: '12px',
+    borderRadius: '8px',
+    border: '1px solid #dadce0',
+    fontSize: '16px',
+    outline: 'none',
+    boxSizing: 'border-box',
+    marginBottom: '20px',
+  },
+  modalActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '12px',
+  },
+  modalCancel: {
+    background: 'transparent',
+    border: '1px solid #dadce0',
+    color: '#3c4043',
+    padding: '10px 16px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '500',
+  },
+  modalConfirm: {
+    background: '#4285F4',
+    border: 'none',
+    color: 'white',
+    padding: '10px 16px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '500',
   },
   loadingContainer: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '60px 20px',
-    textAlign: 'center',
+    minHeight: '400px',
   },
   spinner: {
     width: '40px',
     height: '40px',
-    border: '3px solid #f3f3f3',
-    borderTop: '3px solid #4285F4',
+    border: '4px solid #f1f3f4',
+    borderTop: '4px solid #4285F4',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite',
-    marginBottom: '20px',
   },
   loadingText: {
-    fontSize: '16px',
+    marginTop: '16px',
     color: '#5f6368',
   },
   errorContainer: {
@@ -816,48 +1226,35 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '40px 20px',
-    backgroundColor: '#fef2f2',
-    border: '1px solid #fecaca',
-    borderRadius: '12px',
+    minHeight: '400px',
     textAlign: 'center',
   },
   errorIcon: {
     fontSize: '48px',
-    color: '#dc2626',
     marginBottom: '16px',
   },
   errorTitle: {
-    fontSize: '18px',
-    fontWeight: '600',
-    color: '#991b1b',
-    margin: '0 0 8px 0',
+    fontSize: '20px',
+    fontWeight: '500',
+    color: '#202124',
+    margin: '0 0 8px',
   },
   errorMessage: {
     fontSize: '14px',
-    color: '#b91c1c',
-    margin: '0 0 20px 0',
+    color: '#5f6368',
+    marginBottom: '20px',
     maxWidth: '400px',
   },
   retryButton: {
-    backgroundColor: '#dc2626',
-    color: 'white',
+    background: '#4285F4',
     border: 'none',
+    color: 'white',
     padding: '10px 20px',
     borderRadius: '8px',
+    cursor: 'pointer',
     fontSize: '14px',
     fontWeight: '500',
-    cursor: 'pointer',
   },
 };
-
-// Add CSS animation
-const styleSheet = document.styleSheets[0];
-styleSheet.insertRule(`
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-`, styleSheet.cssRules.length);
 
 export default MyFiles;
