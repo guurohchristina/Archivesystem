@@ -228,6 +228,7 @@ const Home = () => {
       </section>
 
       {/* Services Section - Single column on mobile, grid on desktop */}
+      {/*
       <section style={{
         ...styles.servicesSection,
         padding: getResponsiveStyle('80px 40px', '40px 20px'),
@@ -288,6 +289,7 @@ const Home = () => {
       </section>
 
       {/* Features Section - Single column on mobile, grid on desktop */}
+      {/*
       <section style={{
         ...styles.featuresSection,
         padding: getResponsiveStyle('80px 40px', '40px 20px'),
@@ -326,6 +328,8 @@ const Home = () => {
       </section>
 
       {/* Stats Section - Single column on mobile, grid on desktop */}
+      
+      {/*
       <section style={{
         ...styles.statsSection,
         padding: getResponsiveStyle('60px 40px', '40px 20px'),
@@ -353,6 +357,8 @@ const Home = () => {
       </section>
 
       {/* CTA Section - Single column always */}
+      
+      {/*
       <section style={{
         ...styles.ctaSection,
         padding: getResponsiveStyle('80px 40px', '40px 20px'),
@@ -410,6 +416,7 @@ const Home = () => {
                   <span style={styles.buttonIcon}>👥</span>
                   Schedule Demo
                 </button>*/}
+                {/*
                 
               </Link>
             </div>
@@ -418,10 +425,12 @@ const Home = () => {
       </section>
 
       {/* Footer - Single column on mobile, grid on desktop */}
+      
       <footer style={{
         ...styles.footer,
         padding: getResponsiveStyle('60px 40px 30px', '40px 20px 20px'),
       }}>
+      {/*
         <div style={{
           display: 'grid',
           gridTemplateColumns: getResponsiveStyle('repeat(auto-fit, minmax(250px, 1fr))', '1fr'),
@@ -473,6 +482,8 @@ const Home = () => {
             <p style={styles.contactEmail}>support@archivesystem.com</p>
           </div>
         </div>
+        
+        */}
         <div style={styles.footerBottom}>
           <p>© 2024 Archive System. All rights reserved. Empowering secure file management worldwide.</p>
         </div>
