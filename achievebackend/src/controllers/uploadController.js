@@ -1,1197 +1,3 @@
-/*import pool from "../config/db.js";
-
-export const uploadFiles = async (req, res) => {
-  try {
-    const { title, department, owner, type, classification, date } = req.body;
-    const files = req.files;
-
-    if (!files || files.length === 0) {
-      return res.status(400).json({ message: "No files uploaded" });
-    }
-
-    const uploadedFiles = [];
-
-    for (let file of files) {
-      const filePath = `/uploads/${file.filename}`;
-
-      const query = `
-        INSERT INTO files (title, department, owner, type, classification, date, file_path)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING *
-      `;
-      const values = [title, department, owner, type, classification, date, filePath];
-      const result = await pool.query(query, values);
-
-      uploadedFiles.push(result.rows[0]);
-    }
-
-    res.status(201).json({
-      message: "Files uploaded successfully",
-      files: uploadedFiles,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-};*/
-
-
-// src/controllers/uploadController.js fall back on
-
-/*import { FileModel } from '../models/File.js';
-
-export const uploadController = {
-  uploadFile: async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({
-          success: false,
-          message: 'No file uploaded'
-        });
-      }
-
-      const fileData = {
-        filename: req.file.filename,
-        originalname: req.file.originalname,
-        mimetype: req.file.mimetype,
-        size: req.file.size,
-        path: req.file.path,
-        userId: req.user?.id || 1 // Get from auth middleware
-      };
-
-      const savedFile = await FileModel.create(fileData);
-
-      res.status(201).json({
-        success: true,
-        message: 'File uploaded successfully',
-        data: {
-          id: savedFile.id,
-          filename: savedFile.filename,
-          originalname: savedFile.originalname,
-          size: savedFile.size,
-          url: `/uploads/${savedFile.filename}`
-        }
-      });
-    } catch (error) {
-      console.error('Upload error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error uploading file',
-        error: error.message
-      });
-    }
-  },
-
-  getFiles: async (req, res) => {
-    try {
-      const userId = req.user?.id || 1; // Get from auth middleware
-      const files = await FileModel.findByUser(userId);
-      
-      res.json({
-        success: true,
-        data: files,
-        count: files.length
-      });
-    } catch (error) {
-      console.error('Get files error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error fetching files',
-        error: error.message
-      });
-    }
-  },
-
-  deleteFile: async (req, res) => {
-    try {
-      const { id } = req.params;
-      const deletedFile = await FileModel.delete(id);
-      
-      if (!deletedFile) {
-        return res.status(404).json({
-          success: false,
-          message: 'File not found'
-        });
-      }
-
-      // TODO: Delete actual file from storage
-
-      res.json({
-        success: true,
-        message: 'File deleted successfully',
-        data: deletedFile
-      });
-    } catch (error) {
-      console.error('Delete file error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error deleting file',
-        error: error.message
-      });
-    }
-  }
-};*/
-
-
-
-
-
-
-
-
-// src/controllers/uploadController.js
-/*import { query } from '../config/db.js';
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-
-// Configure storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = 'uploads/';
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-// File filter
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|txt|mp4|mp3/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
-  
-  if (mimetype && extname) {
-    return cb(null, true);
-  } else {
-    cb(new Error('Error: File type not allowed!'));
-  }
-};
-
-export const upload = multer({
-  storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
-  fileFilter: fileFilter
-});
-
-export const uploadController = {
-  uploadFile: async (req, res) => {
-    try {
-      const { description, isPublic } = req.body;
-      const userId = req.user.userId;
-      
-      if (!req.file) {
-        return res.status(400).json({
-          success: false,
-          message: 'No file uploaded'
-        });
-      }
-
-      // Save to database
-      const result = await query(
-        `INSERT INTO files (filename, original_name, file_type, file_size, file_path, user_id, description, is_public) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-        [
-          req.file.filename,
-          req.file.originalname,
-          req.file.mimetype,
-          req.file.size,
-          req.file.path,
-          userId,
-          description || '',
-          isPublic === 'true'
-        ]
-      );
-
-      res.status(201).json({
-        success: true,
-        message: 'File uploaded successfully',
-        data: {
-          file: result.rows[0],
-          url: `/uploads/${req.file.filename}`
-        }
-      });
-    } catch (error) {
-      console.error('Upload error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error uploading file',
-        error: error.message
-      });
-    }
-  },
-
-  getUserFiles: async (req, res) => {
-    try {
-      const userId = req.user.userId;
-      const { page = 1, limit = 10, sort = 'newest' } = req.query;
-      const offset = (page - 1) * limit;
-
-      let sortQuery = 'ORDER BY uploaded_at DESC';
-      if (sort === 'oldest') sortQuery = 'ORDER BY uploaded_at ASC';
-      if (sort === 'name') sortQuery = 'ORDER BY original_name ASC';
-      if (sort === 'size') sortQuery = 'ORDER BY file_size DESC';
-
-      // Get files
-      const filesResult = await query(
-        `SELECT f.*, 
-                u.name as user_name,
-                u.email as user_email
-         FROM files f
-         LEFT JOIN users u ON f.user_id = u.id
-         WHERE f.user_id = $1
-         ${sortQuery}
-         LIMIT $2 OFFSET $3`,
-        [userId, limit, offset]
-      );
-
-      // Get total count
-      const countResult = await query(
-        'SELECT COUNT(*) FROM files WHERE user_id = $1',
-        [userId]
-      );
-
-      const total = parseInt(countResult.rows[0].count);
-      const totalPages = Math.ceil(total / limit);
-
-      res.json({
-        success: true,
-        data: {
-          files: filesResult.rows,
-          pagination: {
-            currentPage: parseInt(page),
-            totalPages,
-            totalFiles: total,
-            hasNextPage: page < totalPages,
-            hasPrevPage: page > 1
-          }
-        }
-      });
-    } catch (error) {
-      console.error('Get files error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error fetching files'
-      });
-    }
-  },
-
-  deleteFile: async (req, res) => {
-    try {
-      const { fileId } = req.params;
-      const userId = req.user.userId;
-
-      // Check if file exists and belongs to user
-      const fileResult = await query(
-        'SELECT * FROM files WHERE id = $1 AND user_id = $2',
-        [fileId, userId]
-      );
-
-      if (fileResult.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'File not found or access denied'
-        });
-      }
-
-      const file = fileResult.rows[0];
-
-      // Delete from filesystem
-      fs.unlinkSync(file.file_path);
-
-      // Delete from database
-      await query('DELETE FROM files WHERE id = $1', [fileId]);
-
-      res.json({
-        success: true,
-        message: 'File deleted successfully'
-      });
-    } catch (error) {
-      console.error('Delete error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error deleting file'
-      });
-    }
-  },
-
-  updateFile: async (req, res) => {
-    try {
-      const { fileId } = req.params;
-      const userId = req.user.userId;
-      const { description, isPublic } = req.body;
-
-      const result = await query(
-        `UPDATE files 
-         SET description = $1, is_public = $2, updated_at = CURRENT_TIMESTAMP
-         WHERE id = $3 AND user_id = $4
-         RETURNING *`,
-        [description, isPublic === 'true', fileId, userId]
-      );
-
-      if (result.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'File not found or access denied'
-        });
-      }
-
-      res.json({
-        success: true,
-        message: 'File updated successfully',
-        data: result.rows[0]
-      });
-    } catch (error) {
-      console.error('Update error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error updating file'
-      });
-    }
-  },
-
-  shareFile: async (req, res) => {
-    try {
-      const { fileId } = req.params;
-      const userId = req.user.userId;
-      const { sharedWith, permission = 'view' } = req.body;
-
-      // Check if file exists and belongs to user
-      const fileResult = await query(
-        'SELECT * FROM files WHERE id = $1 AND user_id = $2',
-        [fileId, userId]
-      );
-
-      if (fileResult.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'File not found or access denied'
-        });
-      }
-
-      // Check if user exists
-      const userResult = await query(
-        'SELECT id FROM users WHERE id = $1',
-        [sharedWith]
-      );
-
-      if (userResult.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
-      }
-
-      // Check if already shared
-      const existingShare = await query(
-        'SELECT * FROM shared_files WHERE file_id = $1 AND shared_with = $2',
-        [fileId, sharedWith]
-      );
-
-      if (existingShare.rows.length > 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'File already shared with this user'
-        });
-      }
-
-      // Share file
-      const result = await query(
-        `INSERT INTO shared_files (file_id, shared_by, shared_with, permission) 
-         VALUES ($1, $2, $3, $4) RETURNING *`,
-        [fileId, userId, sharedWith, permission]
-      );
-
-      res.status(201).json({
-        success: true,
-        message: 'File shared successfully',
-        data: result.rows[0]
-      });
-    } catch (error) {
-      console.error('Share error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error sharing file'
-      });
-    }
-  },
-
-  getSharedFiles: async (req, res) => {
-    try {
-      const userId = req.user.userId;
-
-      const result = await query(
-        `SELECT f.*, 
-                u.name as shared_by_name,
-                u.email as shared_by_email,
-                sf.permission,
-                sf.shared_at
-         FROM shared_files sf
-         JOIN files f ON sf.file_id = f.id
-         JOIN users u ON sf.shared_by = u.id
-         WHERE sf.shared_with = $1
-         ORDER BY sf.shared_at DESC`,
-        [userId]
-      );
-
-      res.json({
-        success: true,
-        data: result.rows
-      });
-    } catch (error) {
-      console.error('Get shared files error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error fetching shared files'
-      });
-    }
-  }
-};*/
-
-
-
-/*fall back on
-
-import { query } from '../config/db.js';
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-
-// Configure storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = 'uploads/';
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-// File filter
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|txt|mp4|mp3|zip|rar/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
-  
-  if (mimetype && extname) {
-    return cb(null, true);
-  } else {
-    cb(new Error('Error: File type not allowed!'));
-  }
-};
-
-export const upload = multer({
-  storage: storage,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
-  fileFilter: fileFilter
-});
-
-export const uploadController = {
-  uploadFile: async (req, res) => {
-    try {
-      console.log("📤 UPLOAD STARTED");
-      console.log("📦 File info:", req.file);
-      console.log("👤 User:", req.user);
-      console.log("📝 Body:", req.body);
-
-      const { 
-        description, 
-        isPublic,
-        document_type,
-        document_date,
-        department,
-        owner,
-        classification_level
-      } = req.body;
-      
-      const userId = req.user.userId;
-      
-      if (!req.file) {
-        console.log("❌ No file in request");
-        return res.status(400).json({
-          success: false,
-          message: 'No file uploaded'
-        });
-      }
-
-      // Prepare date for database (convert empty string to null)
-      const docDate = document_date ? new Date(document_date).toISOString().split('T')[0] : null;
-
-      console.log("💾 Saving to database...");
-      console.log("📅 Document date:", docDate);
-
-      // Save to database with new column structure
-      const result = await query(
-        `INSERT INTO files (
-          filename, 
-          filepath, 
-          filetype, 
-          original_name,
-          file_size,
-          user_id,
-          description, 
-          is_public,
-          document_type,
-          document_date,
-          department,
-          owner,
-          classification_level
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
-         RETURNING *`,
-        [
-          req.file.filename,                    // $1: filename (generated unique name)
-          req.file.path,                        // $2: filepath
-          req.file.mimetype,                    // $3: filetype
-          req.file.originalname,                // $4: original_name
-          req.file.size,                        // $5: file_size
-          userId,                               // $6: user_id
-          description || '',                    // $7: description
-          isPublic === 'true',                  // $8: is_public
-          document_type || '',                  // $9: document_type
-          docDate,                              // $10: document_date (converted to DATE format)
-          department || '',                     // $11: department
-          owner || '',                          // $12: owner
-          classification_level || 'Unclassified' // $13: classification_level
-        ]
-      );
-
-      console.log("✅ File saved to database with ID:", result.rows[0].id);
-
-      res.status(201).json({
-        success: true,
-        message: 'File uploaded successfully',
-        data: {
-          file: result.rows[0],
-          downloadUrl: `/uploads/${req.file.filename}`
-        }
-      });
-
-    } catch (error) {
-      console.error('❌ Upload database error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error saving file to database',
-        error: error.message
-      });
-    }
-  },
-
-  getUserFiles: async (req, res) => {
-    try {
-      const userId = req.user.userId;
-      const { page = 1, limit = 10, sort = 'newest', department, classification } = req.query;
-      const offset = (page - 1) * limit;
-
-      let sortQuery = 'ORDER BY uploaded_at DESC';
-      if (sort === 'oldest') sortQuery = 'ORDER BY uploaded_at ASC';
-      if (sort === 'name') sortQuery = 'ORDER BY original_name ASC';
-      if (sort === 'size') sortQuery = 'ORDER BY file_size DESC';
-      if (sort === 'type') sortQuery = 'ORDER BY document_type ASC';
-
-      let whereClause = 'WHERE f.user_id = $1';
-      const params = [userId];
-      let paramCount = 1;
-
-      if (department) {
-        paramCount++;
-        whereClause += ` AND f.department = $${paramCount}`;
-        params.push(department);
-      }
-
-      if (classification) {
-        paramCount++;
-        whereClause += ` AND f.classification_level = $${paramCount}`;
-        params.push(classification);
-      }
-
-      // Get files
-      const filesResult = await query(
-        `SELECT f.*, 
-                u.name as user_name,
-                u.email as user_email
-         FROM files f
-         LEFT JOIN users u ON f.user_id = u.id
-         ${whereClause}
-         ${sortQuery}
-         LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}`,
-        [...params, limit, offset]
-      );
-
-      // Get total count
-      const countResult = await query(
-        `SELECT COUNT(*) FROM files f ${whereClause}`,
-        params
-      );
-
-      const total = parseInt(countResult.rows[0].count);
-      const totalPages = Math.ceil(total / limit);
-
-      res.json({
-        success: true,
-        data: {
-          files: filesResult.rows,
-          pagination: {
-            currentPage: parseInt(page),
-            totalPages,
-            totalFiles: total,
-            hasNextPage: page < totalPages,
-            hasPrevPage: page > 1
-          }
-        }
-      });
-    } catch (error) {
-      console.error('Get files error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error fetching files'
-      });
-    }
-  },
-
-  deleteFile: async (req, res) => {
-    try {
-      const { fileId } = req.params;
-      const userId = req.user.userId;
-
-      // Check if file exists and belongs to user
-      const fileResult = await query(
-        'SELECT * FROM files WHERE id = $1 AND user_id = $2',
-        [fileId, userId]
-      );
-
-      if (fileResult.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'File not found or access denied'
-        });
-      }
-
-      const file = fileResult.rows[0];
-
-      // Delete from filesystem
-      try {
-        fs.unlinkSync(file.filepath);
-      } catch (fsError) {
-        console.warn('Could not delete file from filesystem:', fsError.message);
-      }
-
-      // Delete from database
-      await query('DELETE FROM files WHERE id = $1', [fileId]);
-
-      res.json({
-        success: true,
-        message: 'File deleted successfully'
-      });
-    } catch (error) {
-      console.error('Delete error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error deleting file'
-      });
-    }
-  },
-
-  updateFile: async (req, res) => {
-    try {
-      const { fileId } = req.params;
-      const userId = req.user.userId;
-      const { 
-        description, 
-        isPublic,
-        document_type,
-        document_date,
-        department,
-        owner,
-        classification_level
-      } = req.body;
-
-      // Prepare date for database
-      const docDate = document_date ? new Date(document_date).toISOString().split('T')[0] : null;
-
-      const result = await query(
-        `UPDATE files 
-         SET description = $1, 
-             is_public = $2,
-             document_type = $3,
-             document_date = $4,
-             department = $5,
-             owner = $6,
-             classification_level = $7,
-             updated_at = CURRENT_TIMESTAMP
-         WHERE id = $8 AND user_id = $9
-         RETURNING *`,
-        [
-          description,
-          isPublic === 'true',
-          document_type || '',
-          docDate,
-          department || '',
-          owner || '',
-          classification_level || 'Unclassified',
-          fileId,
-          userId
-        ]
-      );
-
-      if (result.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'File not found or access denied'
-        });
-      }
-
-      res.json({
-        success: true,
-        message: 'File updated successfully',
-        data: result.rows[0]
-      });
-    } catch (error) {
-      console.error('Update error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error updating file'
-      });
-    }
-  },
-
-  getFileDetails: async (req, res) => {
-    try {
-      const { fileId } = req.params;
-      const userId = req.user.userId;
-
-      const result = await query(
-        `SELECT f.*, 
-                u.name as user_name,
-                u.email as user_email
-         FROM files f
-         LEFT JOIN users u ON f.user_id = u.id
-         WHERE f.id = $1 AND (f.user_id = $2 OR f.is_public = true)`,
-        [fileId, userId]
-      );
-
-      if (result.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'File not found or access denied'
-        });
-      }
-
-      res.json({
-        success: true,
-        data: result.rows[0]
-      });
-    } catch (error) {
-      console.error('Get file details error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error fetching file details'
-      });
-    }
-  },
-
-  downloadFile: async (req, res) => {
-    try {
-      const { fileId } = req.params;
-      const userId = req.user.userId;
-
-      const result = await query(
-        'SELECT * FROM files WHERE id = $1 AND (user_id = $2 OR is_public = true)',
-        [fileId, userId]
-      );
-
-      if (result.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'File not found or access denied'
-        });
-      }
-
-      const file = result.rows[0];
-
-      // Check if file exists on disk
-      if (!fs.existsSync(file.filepath)) {
-        return res.status(404).json({
-          success: false,
-          message: 'File not found on server'
-        });
-      }
-
-      res.download(file.filepath, file.original_name);
-    } catch (error) {
-      console.error('Download error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error downloading file'
-      });
-    }
-  },
-
-  getDepartments: async (req, res) => {
-    try {
-      const result = await query(
-        'SELECT DISTINCT department FROM files WHERE department IS NOT NULL AND department != \'\' ORDER BY department'
-      );
-
-      res.json({
-        success: true,
-        data: result.rows.map(row => row.department)
-      });
-    } catch (error) {
-      console.error('Get departments error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error fetching departments'
-      });
-    }
-  },
-
-  getFileStats: async (req, res) => {
-    try {
-      const userId = req.user.userId;
-
-      // Get total files count
-      const totalResult = await query(
-        'SELECT COUNT(*) as total FROM files WHERE user_id = $1',
-        [userId]
-      );
-
-      // Get total storage used
-      const storageResult = await query(
-        'SELECT COALESCE(SUM(file_size), 0) as total_storage FROM files WHERE user_id = $1',
-        [userId]
-      );
-
-      // Get files by type
-      const typeResult = await query(
-        `SELECT document_type, COUNT(*) as count 
-         FROM files 
-         WHERE user_id = $1 AND document_type IS NOT NULL AND document_type != ''
-         GROUP BY document_type
-         ORDER BY count DESC`,
-        [userId]
-      );
-
-      // Get recent uploads
-      const recentResult = await query(
-        `SELECT id, original_name, uploaded_at 
-         FROM files 
-         WHERE user_id = $1 
-         ORDER BY uploaded_at DESC 
-         LIMIT 5`,
-        [userId]
-      );
-
-      res.json({
-        success: true,
-        data: {
-          totalFiles: parseInt(totalResult.rows[0].total),
-          totalStorage: parseInt(storageResult.rows[0].total_storage),
-          filesByType: typeResult.rows,
-          recentUploads: recentResult.rows
-        }
-      });
-    } catch (error) {
-      console.error('Get stats error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error fetching file statistics'
-      });
-    }
-  }
-};
-export const uploadFiles = uploadController.uploadFile;
-export const getFiles = uploadController.getFiles;*/
-
-
-
-
-
-
-/*
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-import { query } from '../config/db.js';
-
-// Multer configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = 'uploads/';
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
-    cb(null, uniqueName);
-  }
-});
-
-export const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 50 * 1024 * 1024 }
-});
-
-// Controller functions
-export const uploadController = {
-  uploadFile: async (req, res) => {
-    try {
-      console.log('📤 Upload request');
-      
-      if (!req.file) {
-        return res.status(400).json({
-          success: false,
-          message: 'No file uploaded'
-        });
-      }
-      
-      const { 
-        description = '', 
-        isPublic = 'false',
-        document_type = '',
-        document_date,
-        department = '',
-        owner = '',
-        classification_level = 'Unclassified'
-      } = req.body;
-      
-      // Insert into database
-      const result = await query(
-        `INSERT INTO files (
-          filename, filepath, filetype, original_name, file_size,
-          user_id, description, is_public, document_type, document_date,
-          department, owner, classification_level
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
-         RETURNING *`,
-        [
-          req.file.filename,
-          req.file.path,
-          req.file.mimetype,
-          req.file.originalname,
-          req.file.size,
-          req.user.userId,
-          description,
-          isPublic === 'true',
-          document_type,
-          document_date,
-          department,
-          owner,
-          classification_level
-        ]
-      );
-      
-      res.status(201).json({
-        success: true,
-        message: 'File uploaded successfully',
-        data: {
-          file: result.rows[0],
-          downloadUrl: `/uploads/${req.file.filename}`
-        }
-      });
-      
-    } catch (error) {
-      console.error('Upload error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Upload failed'
-      });
-    }
-  },
-  
-  getUserFiles: async (req, res) => {
-    try {
-      const result = await query(
-        'SELECT * FROM files WHERE user_id = $1 ORDER BY uploaded_at DESC',
-        [req.user.userId]
-      );
-      
-      res.json({
-        success: true,
-        files: result.rows
-      });
-    } catch (error) {
-      console.error('Get files error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to get files'
-      });
-    }
-  },
-  
-  getFileDetails: async (req, res) => {
-    try {
-      const { id } = req.params;
-      
-      const result = await query(
-        'SELECT * FROM files WHERE id = $1 AND user_id = $2',
-        [id, req.user.userId]
-      );
-      
-      if (result.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'File not found'
-        });
-      }
-      
-      res.json({
-        success: true,
-        file: result.rows[0]
-      });
-    } catch (error) {
-      console.error('Get file error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to get file'
-      });
-    }
-  },
-  
-  downloadFile: async (req, res) => {
-    try {
-      const { id } = req.params;
-      
-      const result = await query(
-        'SELECT * FROM files WHERE id = $1 AND user_id = $2',
-        [id, req.user.userId]
-      );
-      
-      if (result.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'File not found'
-        });
-      }
-      
-      const file = result.rows[0];
-      
-      if (!fs.existsSync(file.filepath)) {
-        return res.status(404).json({
-          success: false,
-          message: 'File not found on server'
-        });
-      }
-      
-      res.download(file.filepath, file.original_name);
-    } catch (error) {
-      console.error('Download error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to download file'
-      });
-    }
-  },
-  
-  updateFile: async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { description, isPublic, document_type, department, owner, classification_level } = req.body;
-      
-      const result = await query(
-        `UPDATE files 
-         SET description = $1, is_public = $2, document_type = $3, 
-             department = $4, owner = $5, classification_level = $6,
-             updated_at = CURRENT_TIMESTAMP
-         WHERE id = $7 AND user_id = $8
-         RETURNING *`,
-        [description, isPublic, document_type, department, owner, classification_level, id, req.user.userId]
-      );
-      
-      if (result.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'File not found'
-        });
-      }
-      
-      res.json({
-        success: true,
-        message: 'File updated successfully',
-        file: result.rows[0]
-      });
-    } catch (error) {
-      console.error('Update error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to update file'
-      });
-    }
-  },
-  
-  deleteFile: async (req, res) => {
-    try {
-      const { id } = req.params;
-      
-      // Get file info first
-      const fileResult = await query(
-        'SELECT * FROM files WHERE id = $1 AND user_id = $2',
-        [id, req.user.userId]
-      );
-      
-      if (fileResult.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'File not found'
-        });
-      }
-      
-      const file = fileResult.rows[0];
-      
-      // Delete from filesystem
-      if (fs.existsSync(file.filepath)) {
-        fs.unlinkSync(file.filepath);
-      }
-      
-      // Delete from database
-      await query('DELETE FROM files WHERE id = $1', [id]);
-      
-      res.json({
-        success: true,
-        message: 'File deleted successfully'
-      });
-    } catch (error) {
-      console.error('Delete error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to delete file'
-      });
-    }
-  }
-};
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-
-// controllers/uploadControllers.js - CORRECTED VERSION
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -1217,12 +23,842 @@ export const uploadMiddleware = multer({
   limits: { fileSize: 50 * 1024 * 1024 }
 });
 
+// =========== HELPER FUNCTIONS ===========
+
+// Helper to validate ID is a number
+const validateId = (id) => {
+  if (!id) return { valid: false, message: 'ID is required' };
+  
+  // Check if it's "root" keyword
+  if (id === 'root') return { valid: true, message: 'Valid root ID', isRoot: true };
+  
+  // Check if it's a number
+  const numId = parseInt(id);
+  if (isNaN(numId) || numId <= 0) {
+    return { valid: false, message: 'Invalid ID format' };
+  }
+  
+  return { valid: true, message: 'Valid numeric ID', id: numId };
+};
+
+// Helper to format file size
+const formatFileSize = (bytes) => {
+  if (!bytes || bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+};
+
+// Helper to determine file type
+const determineFileType = (fileName, fileMime) => {
+  const fileNameLower = fileName?.toLowerCase() || '';
+  const fileMimeLower = fileMime?.toLowerCase() || '';
+  
+  if (fileNameLower.includes('.pdf') || fileMimeLower.includes('pdf')) return "pdf";
+  else if (fileNameLower.includes('.doc') || fileNameLower.includes('.docx') || fileMimeLower.includes('word')) return "doc";
+  else if (fileNameLower.includes('.xls') || fileNameLower.includes('.xlsx') || fileNameLower.includes('.csv') || fileMimeLower.includes('excel') || fileMimeLower.includes('sheet')) return "spreadsheet";
+  else if (fileNameLower.includes('.jpg') || fileNameLower.includes('.jpeg') || fileNameLower.includes('.png') || fileNameLower.includes('.gif') || fileNameLower.includes('.bmp') || fileMimeLower.includes('image')) return "image";
+  else if (fileNameLower.includes('.mp4') || fileNameLower.includes('.mov') || fileNameLower.includes('.avi') || fileNameLower.includes('.mkv') || fileMimeLower.includes('video')) return "video";
+  else if (fileNameLower.includes('.mp3') || fileNameLower.includes('.wav') || fileNameLower.includes('.aac') || fileMimeLower.includes('audio')) return "audio";
+  else if (fileNameLower.includes('.zip') || fileNameLower.includes('.rar') || fileNameLower.includes('.7z') || fileMimeLower.includes('archive') || fileMimeLower.includes('compressed')) return "archive";
+  else return "document";
+};
+
 // =========== CONTROLLER FUNCTIONS ===========
 
-// Get all files for user (rename to getFiles)
-export const getFiles = async (req, res) => {
+// Get user files with folder support
+export const getUserFiles = async (req, res) => {
+  const startTime = Date.now();
+  
   try {
-    console.log('📂 GET /api/upload - Fetching files for user:', req.user.userId);
+    const userId = req.user.userId;
+    const { folder_id } = req.query;
+
+    console.log('📂 ========= GET USER FILES REQUEST =========');
+    console.log('👤 User ID:', userId);
+    console.log('📦 Folder ID from query:', folder_id || 'root');
+
+    // Validate user ID
+    if (!userId) {
+      console.error('❌ No user ID provided');
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    let sql;
+    let params;
+    let folderInfo = null;
+    
+    // Handle different folder scenarios
+    if (folder_id === 'root' || !folder_id) {
+      // Get files in root (folder_id is NULL)
+      console.log('🔍 Fetching files from root folder');
+      sql = `
+        SELECT 
+          f.*,
+          u.username as owner_name
+        FROM files f
+        LEFT JOIN users u ON f.user_id = u.id
+        WHERE f.user_id = $1 
+        AND (f.folder_id IS NULL)
+        ORDER BY f.uploaded_at DESC
+      `;
+      params = [userId];
+    } 
+    else if (folder_id) {
+      // Parse folder_id to integer
+      const folderIdNum = parseInt(folder_id);
+      
+      if (isNaN(folderIdNum) || folderIdNum <= 0) {
+        console.error(`❌ Invalid folder ID format: ${folder_id}`);
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid folder ID format'
+        });
+      }
+
+      console.log(`🔍 Fetching files from folder ID: ${folderIdNum}`);
+
+      // First, verify the folder exists and belongs to user
+      try {
+        const folderCheck = await query(
+          'SELECT id, name, created_at FROM folders WHERE id = $1 AND owner_id = $2',
+          [folderIdNum, userId]
+        );
+        
+        console.log('📋 Folder check result:', {
+          rowCount: folderCheck.rowCount,
+          rows: folderCheck.rows
+        });
+        
+        if (folderCheck.rows.length === 0) {
+          console.log(`❌ Folder ${folderIdNum} not found or access denied for user ${userId}`);
+          return res.status(404).json({
+            success: false,
+            message: 'Folder not found or access denied'
+          });
+        }
+        
+        // Store folder info
+        folderInfo = {
+          ...folderCheck.rows[0],
+          id: folderCheck.rows[0].id.toString() // Convert to string for consistency
+        };
+        
+        console.log(`✅ Folder verified: "${folderInfo.name}" (ID: ${folderInfo.id})`);
+        
+      } catch (folderError) {
+        console.error('❌ Error checking folder:', folderError.message);
+        console.error('Folder error stack:', folderError.stack);
+        
+        return res.status(500).json({
+          success: false,
+          message: 'Error verifying folder',
+          ...(process.env.NODE_ENV === 'development' && { error: folderError.message })
+        });
+      }
+
+      // Get files in the specified folder
+      sql = `
+        SELECT 
+          f.*,
+          u.username as owner_name
+        FROM files f
+        LEFT JOIN users u ON f.user_id = u.id
+        WHERE f.user_id = $1 
+        AND f.folder_id = $2
+        ORDER BY f.uploaded_at DESC
+      `;
+      params = [userId, folderIdNum];
+    }
+
+    console.log('📊 Executing SQL query:', sql.substring(0, 200) + '...');
+    console.log('📊 Query parameters:', params);
+
+    // Execute the query
+    const result = await query(sql, params);
+    
+    const duration = Date.now() - startTime;
+    console.log(`✅ Found ${result.rows.length} files in ${duration}ms`);
+    
+    // If we found files, log some details
+    if (result.rows.length > 0) {
+      console.log('📋 Sample files (first 3):');
+      result.rows.slice(0, 3).forEach((file, index) => {
+        console.log(`  ${index + 1}. ${file.original_name} (${file.filetype}, ${file.file_size} bytes)`);
+      });
+    }
+
+    // Format files for response
+    const formattedFiles = result.rows.map(file => {
+      // Determine file type
+      const fileType = determineFileType(file.original_name, file.filetype);
+      
+      // Format date
+      let formattedDate = "Unknown";
+      if (file.uploaded_at) {
+        const date = new Date(file.uploaded_at);
+        formattedDate = date.toLocaleDateString("en-US", {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+      
+      return {
+        ...file,
+        formatted_size: formatFileSize(file.file_size),
+        formatted_date: formattedDate,
+        file_type: fileType,
+        id: file.id.toString(), // Ensure ID is string
+        folder_id: file.folder_id ? file.folder_id.toString() : null
+      };
+    });
+
+    // Calculate storage stats
+    const totalStorage = result.rows.reduce((sum, file) => {
+      return sum + (parseInt(file.file_size) || 0);
+    }, 0);
+
+    console.log(`📊 Storage used in this folder: ${formatFileSize(totalStorage)}`);
+    
+    const response = {
+      success: true,
+      files: formattedFiles,
+      count: formattedFiles.length,
+      storage_used: formatFileSize(totalStorage),
+      storage_bytes: totalStorage,
+      current_folder_id: folder_id || 'root',
+      folder: folderInfo,
+      query_duration: `${duration}ms`
+    };
+
+    console.log('📤 Sending response with', formattedFiles.length, 'files');
+    
+    res.json(response);
+
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    console.error(`❌ ========= GET USER FILES FAILED (${duration}ms) =========`);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error code:', error.code);
+    console.error('Error stack:', error.stack);
+    
+    console.error('Request details:', {
+      user: req.user,
+      query: req.query,
+      method: req.method,
+      url: req.originalUrl
+    });
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch files',
+      ...(process.env.NODE_ENV === 'development' && {
+        error: error.message,
+        code: error.code
+      }),
+      query_duration: `${duration}ms`
+    });
+  }
+};
+
+// Get all user items (files + folders) for MyFiles page
+export const getAllUserItems = async (req, res) => {
+  const startTime = Date.now();
+  
+  try {
+    const userId = req.user.userId;
+    const { parent_id } = req.query;
+
+    console.log('📦 ========= GET ALL USER ITEMS REQUEST =========');
+    console.log('👤 User ID:', userId);
+    console.log('📦 Parent folder ID:', parent_id || 'root');
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    let parentFolderId = null;
+    let parentFolderInfo = null;
+
+    // Handle parent folder validation
+    if (parent_id && parent_id !== 'root') {
+      const parentIdNum = parseInt(parent_id);
+      
+      if (isNaN(parentIdNum) || parentIdNum <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid parent folder ID'
+        });
+      }
+
+      // Verify parent folder exists
+      const parentCheck = await query(
+        'SELECT id, name, created_at FROM folders WHERE id = $1 AND owner_id = $2',
+        [parentIdNum, userId]
+      );
+      
+      if (parentCheck.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Parent folder not found or access denied'
+        });
+      }
+      
+      parentFolderId = parentIdNum;
+      parentFolderInfo = {
+        ...parentCheck.rows[0],
+        id: parentCheck.rows[0].id.toString()
+      };
+    }
+
+    // Get files in current folder
+    let filesSql;
+    let filesParams;
+    
+    if (parent_id === 'root' || !parent_id) {
+      filesSql = `
+        SELECT f.*, u.username as owner_name 
+        FROM files f
+        LEFT JOIN users u ON f.user_id = u.id
+        WHERE f.user_id = $1 AND (f.folder_id IS NULL)
+        ORDER BY f.uploaded_at DESC
+      `;
+      filesParams = [userId];
+    } else {
+      filesSql = `
+        SELECT f.*, u.username as owner_name 
+        FROM files f
+        LEFT JOIN users u ON f.user_id = u.id
+        WHERE f.user_id = $1 AND f.folder_id = $2
+        ORDER BY f.uploaded_at DESC
+      `;
+      filesParams = [userId, parentFolderId];
+    }
+
+    // Get folders in current folder
+    let foldersSql;
+    let foldersParams;
+    
+    if (parent_id === 'root' || !parent_id) {
+      foldersSql = `
+        SELECT * FROM folders 
+        WHERE owner_id = $1 AND parent_id IS NULL
+        ORDER BY name ASC
+      `;
+      foldersParams = [userId];
+    } else {
+      foldersSql = `
+        SELECT * FROM folders 
+        WHERE owner_id = $1 AND parent_id = $2
+        ORDER BY name ASC
+      `;
+      foldersParams = [userId, parentFolderId];
+    }
+
+    console.log('📊 Executing parallel queries for files and folders...');
+    
+    // Execute both queries in parallel
+    const [filesResult, foldersResult] = await Promise.all([
+      query(filesSql, filesParams),
+      query(foldersSql, foldersParams)
+    ]);
+
+    const duration = Date.now() - startTime;
+    console.log(`✅ Found ${filesResult.rows.length} files and ${foldersResult.rows.length} folders in ${duration}ms`);
+
+    // Format files
+    const formattedFiles = filesResult.rows.map(file => {
+      return {
+        ...file,
+        formatted_size: formatFileSize(file.file_size),
+        id: file.id.toString(),
+        folder_id: file.folder_id ? file.folder_id.toString() : null,
+        is_file: true
+      };
+    });
+
+    // Format folders
+    const formattedFolders = foldersResult.rows.map(folder => ({
+      ...folder,
+      id: folder.id.toString(),
+      parent_id: folder.parent_id ? folder.parent_id.toString() : null,
+      is_folder: true
+    }));
+
+    // Calculate storage
+    const totalStorage = filesResult.rows.reduce((sum, file) => {
+      return sum + (parseInt(file.file_size) || 0);
+    }, 0);
+
+    res.json({
+      success: true,
+      files: formattedFiles,
+      folders: formattedFolders,
+      file_count: formattedFiles.length,
+      folder_count: formattedFolders.length,
+      total_items: formattedFiles.length + formattedFolders.length,
+      parent_folder: parentFolderInfo,
+      current_folder_id: parent_id || 'root',
+      storage_used: totalStorage,
+      query_duration: `${duration}ms`
+    });
+
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    console.error(`❌ Error fetching all items (${duration}ms):`, error.message);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch files and folders',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      query_duration: `${duration}ms`
+    });
+  }
+};
+
+// Upload file with folder support
+export const uploadFile = async (req, res) => {
+  try {
+    console.log('📤 Upload request received');
+    console.log('File:', req.file);
+    console.log('Body:', req.body);
+    console.log('User:', req.user);
+    
+    if (!req.file) {
+      console.log('❌ No file uploaded');
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded'
+      });
+    }
+    
+    const userId = req.user.userId;
+    const { 
+      description = '', 
+      is_public = 'false',
+      document_type = '',
+      document_date = new Date().toISOString().split('T')[0],
+      department = '',
+      owner = '',
+      classification_level = 'Unclassified',
+      folder_id 
+    } = req.body;
+    
+    console.log('📝 Metadata:', { 
+      description, 
+      document_type, 
+      department, 
+      folder_id: folder_id || 'root' 
+    });
+
+    // Handle folder_id validation
+    let finalFolderId = null;
+    if (folder_id && folder_id !== 'root') {
+      const folderIdNum = parseInt(folder_id);
+      
+      if (isNaN(folderIdNum) || folderIdNum <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid folder ID'
+        });
+      }
+      
+      // Verify folder exists and belongs to user
+      const folderCheck = await query(
+        'SELECT id FROM folders WHERE id = $1 AND owner_id = $2',
+        [folderIdNum, userId]
+      );
+      
+      if (folderCheck.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Folder not found or access denied'
+        });
+      }
+      
+      finalFolderId = folderIdNum;
+      console.log(`✅ File will be uploaded to folder ID: ${finalFolderId}`);
+    }
+
+    // Check for duplicate file name in the same folder
+    const duplicateCheck = await query(
+      'SELECT id FROM files WHERE original_name = $1 AND user_id = $2 AND folder_id IS NOT DISTINCT FROM $3',
+      [req.file.originalname, userId, finalFolderId]
+    );
+
+    if (duplicateCheck.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'A file with this name already exists in this folder'
+      });
+    }
+
+    // Insert into database with folder_id
+    const result = await query(
+      `INSERT INTO files (
+        filename, 
+        filepath, 
+        filetype, 
+        original_name, 
+        file_size,
+        user_id, 
+        description, 
+        is_public, 
+        document_type, 
+        document_date,
+        department, 
+        owner, 
+        classification_level,
+        folder_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
+       RETURNING *`,
+      [
+        req.file.filename,
+        `uploads/${req.file.filename}`,
+        req.file.mimetype,
+        req.file.originalname,
+        req.file.size,
+        userId,
+        description,
+        is_public === 'true',
+        document_type,
+        document_date,
+        department,
+        owner || req.user.name,
+        classification_level,
+        finalFolderId
+      ]
+    );
+
+    const uploadedFile = result.rows[0];
+    console.log('✅ File uploaded successfully:', uploadedFile.id);
+
+    const formattedFile = {
+      id: uploadedFile.id.toString(),
+      filename: uploadedFile.filename,
+      original_name: uploadedFile.original_name,
+      file_size: uploadedFile.file_size,
+      formatted_size: formatFileSize(uploadedFile.file_size),
+      file_type: determineFileType(uploadedFile.original_name, uploadedFile.filetype),
+      is_public: uploadedFile.is_public,
+      uploaded_at: uploadedFile.uploaded_at,
+      folder_id: uploadedFile.folder_id ? uploadedFile.folder_id.toString() : null,
+      description: uploadedFile.description,
+      document_type: uploadedFile.document_type,
+      department: uploadedFile.department,
+      classification_level: uploadedFile.classification_level
+    };
+
+    res.status(201).json({
+      success: true,
+      message: 'File uploaded successfully',
+      data: {
+        file: formattedFile,
+        files: [formattedFile]
+      },
+      count: {
+        total: 1,
+        success: 1,
+        failed: 0
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Upload failed: ' + error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+};
+
+// Move file to different folder
+export const moveFile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { folder_id } = req.body;
+    const userId = req.user.userId;
+
+    console.log(`🔄 Moving file ${id} to folder ${folder_id || 'root'}`);
+
+    // Validate file ID
+    const fileIdNum = parseInt(id);
+    if (isNaN(fileIdNum) || fileIdNum <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid file ID'
+      });
+    }
+
+    // Verify file exists and belongs to user
+    const file = await query(
+      'SELECT id, original_name FROM files WHERE id = $1 AND user_id = $2',
+      [fileIdNum, userId]
+    );
+
+    if (file.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found'
+      });
+    }
+
+    // Handle folder_id
+    let finalFolderId = null;
+    if (folder_id && folder_id !== 'root') {
+      const folderIdNum = parseInt(folder_id);
+      
+      if (isNaN(folderIdNum) || folderIdNum <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid folder ID'
+        });
+      }
+      
+      // Verify folder exists and belongs to user
+      const folder = await query(
+        'SELECT id FROM folders WHERE id = $1 AND owner_id = $2',
+        [folderIdNum, userId]
+      );
+      
+      if (folder.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Folder not found or access denied'
+        });
+      }
+      
+      finalFolderId = folderIdNum;
+    }
+
+    // Check if file with same name already exists in target folder
+    const duplicateCheck = await query(
+      'SELECT id FROM files WHERE original_name = $1 AND user_id = $2 AND folder_id IS NOT DISTINCT FROM $3 AND id != $4',
+      [file.rows[0].original_name, userId, finalFolderId, fileIdNum]
+    );
+
+    if (duplicateCheck.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'A file with this name already exists in the target folder'
+      });
+    }
+
+    // Move file
+    const result = await query(
+      'UPDATE files SET folder_id = $1 WHERE id = $2 AND user_id = $3 RETURNING *',
+      [finalFolderId, fileIdNum, userId]
+    );
+
+    console.log('✅ File moved successfully');
+
+    const movedFile = result.rows[0];
+    const formattedFile = {
+      ...movedFile,
+      id: movedFile.id.toString(),
+      folder_id: movedFile.folder_id ? movedFile.folder_id.toString() : null,
+      formatted_size: formatFileSize(movedFile.file_size)
+    };
+
+    res.json({
+      success: true,
+      message: 'File moved successfully',
+      file: formattedFile
+    });
+
+  } catch (error) {
+    console.error('❌ Error moving file:', error.message);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Server error while moving file',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
+  }
+};
+
+// Get single file by ID
+export const getFileById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+
+    console.log(`🔍 Getting file details for ${id}`);
+
+    const result = await query(
+      'SELECT * FROM files WHERE id = $1 AND user_id = $2',
+      [id, userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found'
+      });
+    }
+
+    const file = result.rows[0];
+    
+    // Get folder info if file is in a folder
+    let folderInfo = null;
+    if (file.folder_id) {
+      const folderResult = await query(
+        'SELECT id, name FROM folders WHERE id = $1 AND owner_id = $2',
+        [file.folder_id, userId]
+      );
+      
+      if (folderResult.rows.length > 0) {
+        folderInfo = {
+          ...folderResult.rows[0],
+          id: folderResult.rows[0].id.toString()
+        };
+      }
+    }
+
+    const formattedFile = {
+      ...file,
+      id: file.id.toString(),
+      folder_id: file.folder_id ? file.folder_id.toString() : null,
+      formatted_size: formatFileSize(file.file_size),
+      file_type: determineFileType(file.original_name, file.filetype)
+    };
+
+    res.json({
+      success: true,
+      file: formattedFile,
+      folder: folderInfo
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching file:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch file',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// Search files and folders
+export const searchItems = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { query: searchQuery, folder_id } = req.query;
+
+    console.log('🔍 Searching for:', searchQuery, 'in folder:', folder_id || 'all');
+
+    if (!searchQuery || searchQuery.trim() === '') {
+      return res.json({
+        success: true,
+        files: [],
+        folders: [],
+        file_count: 0,
+        folder_count: 0
+      });
+    }
+
+    const searchTerm = `%${searchQuery}%`;
+
+    // Build folder filter
+    let folderFilter = '';
+    let folderParams = [];
+    
+    if (folder_id && folder_id !== 'root') {
+      const folderIdNum = parseInt(folder_id);
+      if (!isNaN(folderIdNum)) {
+        folderFilter = 'AND f.folder_id = $3';
+        folderParams = [folderIdNum];
+      }
+    } else if (folder_id === 'root') {
+      folderFilter = 'AND (f.folder_id IS NULL)';
+    }
+
+    // Search files
+    const filesSql = `
+      SELECT f.*, u.username as owner_name 
+      FROM files f
+      LEFT JOIN users u ON f.user_id = u.id
+      WHERE f.user_id = $1 
+      AND (
+        f.original_name ILIKE $2 
+        OR f.description ILIKE $2 
+        OR f.department ILIKE $2
+        OR f.document_type ILIKE $2
+        OR u.username ILIKE $2
+      )
+      ${folderFilter}
+      ORDER BY f.uploaded_at DESC
+    `;
+
+    const filesParams = [userId, searchTerm, ...folderParams];
+    
+    // Search folders
+    const foldersSql = `
+      SELECT * FROM folders 
+      WHERE owner_id = $1 
+      AND name ILIKE $2
+      ${folder_id && folder_id !== 'root' ? 'AND parent_id = $3' : folder_id === 'root' ? 'AND parent_id IS NULL' : ''}
+      ORDER BY name ASC
+    `;
+
+    const foldersParams = folder_id && folder_id !== 'root' && folderParams.length > 0 
+      ? [userId, searchTerm, ...folderParams]
+      : [userId, searchTerm];
+
+    const [filesResult, foldersResult] = await Promise.all([
+      query(filesSql, filesParams),
+      query(foldersSql, foldersParams)
+    ]);
+
+    console.log(`✅ Found ${filesResult.rows.length} files and ${foldersResult.rows.length} folders matching search`);
+
+    res.json({
+      success: true,
+      files: filesResult.rows.map(f => ({
+        ...f,
+        id: f.id.toString(),
+        folder_id: f.folder_id ? f.folder_id.toString() : null,
+        formatted_size: formatFileSize(f.file_size)
+      })),
+      folders: foldersResult.rows.map(f => ({
+        ...f,
+        id: f.id.toString(),
+        parent_id: f.parent_id ? f.parent_id.toString() : null
+      })),
+      file_count: filesResult.rows.length,
+      folder_count: foldersResult.rows.length,
+      search_query: searchQuery
+    });
+
+  } catch (error) {
+    console.error('❌ Error searching items:', error.message);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to search items',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
+  }
+};
+
+// =========== EXISTING FUNCTIONS (updated for folder support) ===========
+
+// Get all files for user (backward compatibility - renamed from getFiles)
+export const getAllFiles = async (req, res) => {
+  try {
+    console.log('📂 GET /api/upload - Fetching all files for user:', req.user.userId);
     
     const result = await query(
       'SELECT * FROM files WHERE user_id = $1 ORDER BY uploaded_at DESC',
@@ -1231,10 +867,19 @@ export const getFiles = async (req, res) => {
     
     console.log(`✅ Found ${result.rows.length} files for user ${req.user.userId}`);
     
+    // Format files
+    const formattedFiles = result.rows.map(file => ({
+      ...file,
+      id: file.id.toString(),
+      folder_id: file.folder_id ? file.folder_id.toString() : null,
+      formatted_size: formatFileSize(file.file_size),
+      file_type: determineFileType(file.original_name, file.filetype)
+    }));
+    
     res.json({
       success: true,
-      files: result.rows,
-      count: result.rows.length
+      files: formattedFiles,
+      count: formattedFiles.length
     });
   } catch (error) {
     console.error('❌ Error fetching files:', error);
@@ -1245,9 +890,6 @@ export const getFiles = async (req, res) => {
     });
   }
 };
-
-
-
 
 export const getPublicFiles = async (req, res) => {
   try {
@@ -1335,16 +977,16 @@ export const getPublicFiles = async (req, res) => {
     const result = await query(mainQuery, mainParams);
     
     console.log(`✅ Success! Found ${result.rows.length} files`);
-    console.log('First file raw:', result.rows[0]);
     
     // Format the response for frontend
     const formattedFiles = result.rows.map(file => ({
-      id: file.id,
+      id: file.id.toString(),
       original_name: file.original_name,
       filename: file.filename,
       description: file.description,
       file_size: file.file_size,
-      file_type: file.filetype,
+      formatted_size: formatFileSize(file.file_size),
+      file_type: determineFileType(file.original_name, file.filetype),
       filepath: file.filepath,
       user_id: file.user_id,
       owner_name: file.owner_name,
@@ -1359,8 +1001,6 @@ export const getPublicFiles = async (req, res) => {
       department: file.department,
       classification_level: file.classification_level
     }));
-    
-    console.log('First file formatted:', formattedFiles[0]);
     
     res.json({
       success: true,
@@ -1387,6 +1027,9 @@ export const getPublicFiles = async (req, res) => {
       let fallbackConditions = ['is_public = true', 'user_id != $1'];
       let fallbackParams = [req.user.userId];
       let fallbackParamCounter = 1;
+      
+      const search = req.query.search || '';
+      const ownerFilter = req.query.owner || '';
       
       if (search) {
         fallbackParamCounter++;
@@ -1431,12 +1074,13 @@ export const getPublicFiles = async (req, res) => {
       const fallbackResult = await query(fallbackQuery, fallbackMainParams);
       
       const fallbackFiles = fallbackResult.rows.map(file => ({
-        id: file.id,
+        id: file.id.toString(),
         original_name: file.original_name,
         filename: file.filename,
         description: file.description,
         file_size: file.file_size,
-        file_type: file.filetype,
+        formatted_size: formatFileSize(file.file_size),
+        file_type: determineFileType(file.original_name, file.filetype),
         filepath: file.filepath,
         user_id: file.user_id,
         owner_name: file.owner_name,
@@ -1472,153 +1116,6 @@ export const getPublicFiles = async (req, res) => {
         error: error.message
       });
     }
-  }
-};
-
-
-
-
-
-// Upload file
-export const uploadFile = async (req, res) => {
-  try {
-    console.log('📤 Upload request received');
-    console.log('File:', req.file);
-    console.log('Body:', req.body);
-    console.log('User:', req.user);
-    
-    if (!req.files || req.files.length === 0) {
-      console.log('❌ No file uploaded');
-      return res.status(400).json({
-        success: false,
-        message: 'No file uploaded'
-      });
-    }
-    
-    const uploadedFiles = [];
-    const errors = [];
-    
-    
-    
-    const { 
-      description = '', 
-      is_public = 'false',
-      document_type = '',
-      document_date = new Date().toISOString().split('T')[0],
-      department = '',
-      owner = '',
-      classification_level = 'Unclassified'
-    } = req.body;
-    
-    console.log('📝 Metadata:', { description, document_type, department });
-    
-    
-    for (const file of req.files) {
-      try {
-        console.log(`📄 Processing file: ${file.originalname} (${file.size} bytes)`);
-    /*const isPublicBool = isPublic === 'true' || isPublic === true;
-    const publicSince = isPublicBool ? new Date().toISOString() : null;*/
-    
-    // Insert into database
-    const result = await query(
-      `INSERT INTO files (
-        filename, filepath, filetype, original_name, file_size,
-        user_id, description, is_public, document_type, document_date,
-        department, owner, classification_level
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
-       RETURNING *`,
-      [
-      file.filename,
-        `uploads/${file.filename}`,
-        file.mimetype,
-        file.originalname,
-        file.size,
-        req.user.userId,
-        description,
-        is_public === 'true',
-        document_type,
-        document_date,
-        department,
-        owner || req.user.name,
-        classification_level
-      ]
-    );
-    
-    const uploadedFile = result.rows[0];
-    console.log('✅ File uploaded successfully:', uploadedFile.id);
-    
-    const formattedFile = {
-          id: uploadedFile.id,
-          filename: uploadedFile.filename,
-          original_name: uploadedFile.original_name,
-          file_size: uploadedFile.file_size,
-          file_type: uploadedFile.filetype,
-          is_public: uploadedFile.is_public,
-          uploaded_at: uploadedFile.uploaded_at,
-          // Add other fields your frontend might need
-          description: uploadedFile.description,
-          document_type: uploadedFile.document_type,
-          department: uploadedFile.department,
-          classification_level: uploadedFile.classification_level
-        };
-        uploadedFiles.push(formattedFile);
-        console.log(`✅ File saved: ${uploadedFile.original_name} (ID: ${uploadedFile.id})`);
-    
-
-
-} catch (fileError) {
-        console.error(`❌ Error uploading file ${file.originalname}:`, fileError);
-        errors.push({
-          filename: file.originalname,
-          error: fileError.message
-        });
-      }
-    }
-    
-    if (uploadedFiles.length === 0) {
-      return res.status(500).json({
-        success: false,
-        message: 'All files failed to upload',
-        errors: errors
-      });
-    }
-    
-    
-    let message;
-    if (uploadedFiles.length === 1) {
-      message = 'File uploaded successfully';
-    } else {
-      message = `${uploadedFiles.length} files uploaded successfully`;
-      if (errors.length > 0) {
-        message += `, ${errors.length} failed`;
-      }
-    }
-    
-   const response = {
-      success: true,
-      message: message,
-      data: {
-        file: uploadedFiles[0], // First file for compatibility
-        files: uploadedFiles    // All files
-      },
-      count: {
-        total: req.files.length,
-        success: uploadedFiles.length,
-        failed: errors.length
-      }
-    };
-    
-    
-    
-    res.status(201).json(response);
-    
-  } catch (error) {
-    console.error('❌ Upload error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Upload failed: ' + error.message,
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
   }
 };
 
@@ -1663,11 +1160,19 @@ export const toggleFileVisibility = async (req, res) => {
     
     console.log(`✅ File ${id} visibility updated to: ${is_public}`);
     
+    const updatedFile = updateResult.rows[0];
+    const formattedFile = {
+      ...updatedFile,
+      id: updatedFile.id.toString(),
+      folder_id: updatedFile.folder_id ? updatedFile.folder_id.toString() : null,
+      formatted_size: formatFileSize(updatedFile.file_size)
+    };
+    
     res.json({
       success: true,
       message: is_public ? 'File is now public' : 'File is now private',
       data: {
-        file: updateResult.rows[0]
+        file: formattedFile
       }
     });
     
@@ -1681,7 +1186,7 @@ export const toggleFileVisibility = async (req, res) => {
   }
 };
 
-// Get file visibility status - NEW FUNCTION
+// Get file visibility status
 export const getFileVisibility = async (req, res) => {
   try {
     const { id } = req.params;
@@ -1708,7 +1213,7 @@ export const getFileVisibility = async (req, res) => {
     res.json({
       success: true,
       data: {
-        id: file.id,
+        id: file.id.toString(),
         is_public: file.is_public,
         public_since: file.public_since,
         can_toggle: isOwner
@@ -1725,45 +1230,7 @@ export const getFileVisibility = async (req, res) => {
   }
 };
 
-
-
-
-// Get single file details
-export const getFileDetails = async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    const result = await query(
-      'SELECT * FROM files WHERE id = $1 AND user_id = $2',
-      [id, req.user.userId]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'File not found'
-      });
-    }
-    
-    res.json({
-      success: true,
-      file: result.rows[0]
-    });
-  } catch (error) {
-    console.error('Get file error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get file'
-    });
-  }
-};
-
-
-
-// In uploadControllers.js - Add this function with your other controllers
-
 // Get advanced category counts with database query
-
 export const getCategoryCounts = async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -1886,7 +1353,7 @@ export const getCategoryCounts = async (req, res) => {
       }
     });
     
-  } catch (error) {
+ } catch (error) {
     console.error('❌ Error getting advanced category counts:', error);
     res.status(500).json({
       success: false,
@@ -1896,55 +1363,12 @@ export const getCategoryCounts = async (req, res) => {
   }
 };
 
-
-
-
-
-
-
-
-    
-    
-
 // Download file
 export const downloadFile = async (req, res) => {
   try {
     const { id } = req.params;
     
-    /*const result = await query(
-      'SELECT * FROM files WHERE id = $1 AND user_id = $2',
-      [id, req.user.userId]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'File not found'
-      });
-    }
-    
-    const file = result.rows[0];
-    const filePath = path.join(process.cwd(), file.filepath);
-    
-    if (!fs.existsSync(filePath)) {
-      console.log('❌ File not found on disk:', filePath);
-      return res.status(404).json({
-        success: false,
-        message: 'File not found on server'
-      });
-    }
-    
-    res.download(filePath, file.original_name);
-  } catch (error) {
-    console.error('Download error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to download file'
-    });
-  }
-};*/
-
-const fileResult = await query('SELECT * FROM files WHERE id = $1', [id]);
+    const fileResult = await query('SELECT * FROM files WHERE id = $1', [id]);
     
     if (fileResult.rows.length === 0) {
       return res.status(404).json({
@@ -1983,7 +1407,6 @@ const fileResult = await query('SELECT * FROM files WHERE id = $1', [id]);
   }
 };
 
-
 // Update file
 export const updateFile = async (req, res) => {
   try {
@@ -1994,10 +1417,8 @@ export const updateFile = async (req, res) => {
       `UPDATE files 
        SET description = $1, is_public = $2, document_type = $3, 
            department = $4, owner = $5, classification_level = $6,
-           updated_at = CURRENT_TIMESTAMP
-           
-          public_since = CASE WHEN $2 = true AND public_since IS NULL THEN NOW() ELSE public_since END 
-           
+           updated_at = CURRENT_TIMESTAMP,
+           public_since = CASE WHEN $2 = true AND public_since IS NULL THEN NOW() ELSE public_since END 
        WHERE id = $7 AND user_id = $8
        RETURNING *`,
       [description, is_public, document_type, department, owner, classification_level, id, req.user.userId]
@@ -2010,10 +1431,18 @@ export const updateFile = async (req, res) => {
       });
     }
     
+    const updatedFile = result.rows[0];
+    const formattedFile = {
+      ...updatedFile,
+      id: updatedFile.id.toString(),
+      folder_id: updatedFile.folder_id ? updatedFile.folder_id.toString() : null,
+      formatted_size: formatFileSize(updatedFile.file_size)
+    };
+    
     res.json({
       success: true,
       message: 'File updated successfully',
-      file: result.rows[0]
+      file: formattedFile
     });
   } catch (error) {
     console.error('Update error:', error);
@@ -2055,7 +1484,12 @@ export const deleteFile = async (req, res) => {
     
     res.json({
       success: true,
-      message: 'File deleted successfully'
+      message: 'File deleted successfully',
+      file: {
+        id: file.id.toString(),
+        original_name: file.original_name,
+        folder_id: file.folder_id ? file.folder_id.toString() : null
+      }
     });
   } catch (error) {
     console.error('Delete error:', error);
@@ -2123,7 +1557,6 @@ export const getDepartments = async (req, res) => {
   }
 };
 
-
 export const getSharedWithMe = async (req, res) => {
   try {
     console.log('📂 GET /api/upload/shared - Files shared with user:', req.user.userId);
@@ -2140,10 +1573,19 @@ export const getSharedWithMe = async (req, res) => {
     
     console.log(`✅ Found ${result.rows.length} files shared with user ${req.user.userId}`);
     
+    // Format files
+    const formattedFiles = result.rows.map(file => ({
+      ...file,
+      id: file.id.toString(),
+      folder_id: file.folder_id ? file.folder_id.toString() : null,
+      formatted_size: formatFileSize(file.file_size),
+      file_type: determineFileType(file.original_name, file.filetype)
+    }));
+    
     res.json({
       success: true,
-      files: result.rows,
-      count: result.rows.length
+      files: formattedFiles,
+      count: formattedFiles.length
     });
   } catch (error) {
     console.error('❌ Error fetching shared files:', error);
@@ -2155,33 +1597,23 @@ export const getSharedWithMe = async (req, res) => {
   }
 };
 
-
-
-
 // Default export for backward compatibility
 export default {
-  /*
-  getFiles,
-  uploadFile,
-  getFileDetails,
-  downloadFile,
-  updateFile,
-  deleteFile,
-  getFileStats,
-  getDepartments*/
-  
-  getFiles,
+  getUserFiles,
+  getAllUserItems,
+  getAllFiles, // Backward compatibility
   getPublicFiles,
   uploadFile,
+  moveFile,
   toggleFileVisibility,
   getFileVisibility,
-  getFileDetails,
+  getFileById,
   downloadFile,
   updateFile,
   deleteFile,
   getFileStats,
   getDepartments,
   getSharedWithMe,
-  getCategoryCounts
-  
+  getCategoryCounts,
+  searchItems
 };
