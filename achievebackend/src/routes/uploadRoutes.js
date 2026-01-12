@@ -3,7 +3,7 @@ import express from 'express';
 import { 
   getFiles, 
   uploadFile, 
-  getFileDetails,
+
   downloadFile,
   updateFile,
   deleteFile,

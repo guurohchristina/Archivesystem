@@ -1608,7 +1608,7 @@ export default {
   moveFile,
   toggleFileVisibility,
   getFileVisibility,
-  getFileDetails,
+  
   getFileById,
   downloadFile,
   updateFile,
