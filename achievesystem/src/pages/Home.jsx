@@ -485,7 +485,7 @@ const Home = () => {
         
         */}
         <div style={styles.footerBottom}>
-          <p>© 2024 Archive System. All rights reserved. Empowering secure file management worldwide.</p>
+          <p>© 2025 Archive System. All rights reserved. Empowering secure file management worldwide.</p>
         </div>
       </footer>
     </div>

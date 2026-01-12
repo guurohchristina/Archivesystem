@@ -140,6 +140,7 @@ const Navbar = () => {
                   Dashboard
                 </Link>*/}
                 
+                {/*
                 <Link 
                   to="/dashboard" 
                   style={{
@@ -153,6 +154,7 @@ const Navbar = () => {
                   <span style={styles.linkIcon}>📊</span>
                   Dashboard
                 </Link>
+                */}
               
             
                 {user.role === "admin" && (
