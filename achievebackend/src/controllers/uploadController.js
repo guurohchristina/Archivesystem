@@ -427,8 +427,102 @@ export const getAllUserItems = async (req, res) => {
   }
 };
 
-// Upload file with folder support
+
 export const uploadFile = async (req, res) => {
+  try {
+    const files = req.files; // Now an array of files
+    const {
+      description,
+      is_public,
+      document_type,
+      document_date,
+      department,
+      owner,
+      classification_level,
+      folder_id = 'root' // Default to root if not provided
+    } = req.body;
+
+    const userId = req.user.userId;
+
+    if (!files || files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No files uploaded'
+      });
+    }
+
+    const uploadResults = [];
+
+    // Process each file
+    for (const file of files) {
+      const fileName = `${Date.now()}-${file.originalname}`;
+      const filePath = `uploads/${fileName}`;
+      
+      // Save file to disk
+      // ... your file saving logic ...
+
+      // Insert into database with folder_id
+      const [result] = await db.query(
+        `INSERT INTO files (user_id, original_name, file_name, file_path, file_size, filetype, description, is_public, document_type, document_date, department, owner, classification_level, folder_id) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          userId,
+          file.originalname,
+          fileName,
+          filePath,
+          file.size,
+          file.mimetype,
+          description || '',
+          is_public === 'true',
+          document_type || '',
+          document_date || null,
+          department || '',
+          owner || '',
+          classification_level || 'Unclassified',
+          folder_id === 'root' ? null : folder_id // Store NULL for root
+        ]
+      );
+
+      uploadResults.push({
+        id: result.insertId,
+        original_name: file.originalname,
+        file_name: fileName,
+        file_path: filePath,
+        file_size: file.size,
+        filetype: file.mimetype,
+        description: description || '',
+        is_public: is_public === 'true',
+        document_type: document_type || '',
+        document_date: document_date || null,
+        department: department || '',
+        owner: owner || '',
+        classification_level: classification_level || 'Unclassified',
+        folder_id: folder_id,
+        uploaded_at: new Date()
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `${files.length} file(s) uploaded successfully`,
+      files: uploadResults
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+
+
+
+
+
+// Upload file with folder support
+{/*export const uploadFile = async (req, res) => {
   try {
     console.log('📤 Upload request received');
     console.log('File:', req.file);
@@ -582,7 +676,7 @@ export const uploadFile = async (req, res) => {
       details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
-};
+};*/}
 
 // Move file to different folder
 export const moveFile = async (req, res) => {
