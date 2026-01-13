@@ -428,7 +428,7 @@ export const getAllUserItems = async (req, res) => {
 };
 
 
-export const uploadFile = async (req, res) => {
+{/*export const uploadFile = async (req, res) => {
   try {
     const files = req.files; // Now an array of files
     const {
@@ -512,6 +512,129 @@ export const uploadFile = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message
+    });
+  }
+};*/}
+
+
+
+export const uploadFile = async (req, res) => {
+  try {
+    const files = req.files; // Array of files
+    const {
+      description,
+      is_public,
+      document_type,
+      document_date,
+      department,
+      owner,
+      classification_level,
+      folder_id = 'root' // Default to root if not provided
+    } = req.body;
+
+    const userId = req.user.userId;
+
+    if (!files || files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No files uploaded'
+      });
+    }
+
+    console.log('📤 Uploading files:', {
+      fileCount: files.length,
+      userId: userId,
+      folderId: folder_id,
+      description: description,
+      owner: owner
+    });
+
+    const uploadResults = [];
+
+    // Process each file
+    for (const file of files) {
+      console.log('📄 Processing file:', file.originalname);
+      
+      // Insert into database with folder_id
+      // Note: multer already saves the file to disk, so file.path is available
+      const result = await query(
+        `INSERT INTO files (
+          user_id, original_name, file_name, file_path, file_size, filetype, 
+          description, is_public, document_type, document_date, department, 
+          owner, classification_level, folder_id
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        RETURNING *`,
+        [
+          userId,
+          file.originalname,
+          file.filename, // Use the multer-generated filename
+          file.path, // Use the multer path
+          file.size,
+          file.mimetype,
+          description || '',
+          is_public === 'true' || is_public === true,
+          document_type || '',
+          document_date || null,
+          department || '',
+          owner || '',
+          classification_level || 'Unclassified',
+          folder_id === 'root' ? null : parseInt(folder_id) // Store NULL for root
+        ]
+      );
+
+      const uploadedFile = result.rows[0];
+      
+      // Format file for response
+      const formattedFile = {
+        ...uploadedFile,
+        id: uploadedFile.id.toString(),
+        folder_id: uploadedFile.folder_id ? uploadedFile.folder_id.toString() : null,
+        formatted_size: formatFileSize(uploadedFile.file_size),
+        file_type: determineFileType(uploadedFile.original_name, uploadedFile.filetype),
+        uploaded_at: new Date(uploadedFile.uploaded_at).toISOString()
+      };
+
+      uploadResults.push(formattedFile);
+      
+      console.log('✅ File uploaded:', {
+        id: uploadedFile.id,
+        name: uploadedFile.original_name,
+        folderId: uploadedFile.folder_id
+      });
+    }
+
+    console.log(`✅ Successfully uploaded ${uploadResults.length} files`);
+
+    res.json({
+      success: true,
+      message: `${files.length} file(s) uploaded successfully`,
+      files: uploadResults
+    });
+  } catch (error) {
+    console.error('❌ Upload error:', error.message);
+    console.error('Error stack:', error.stack);
+    
+    // Handle specific database errors
+    if (error.code === '23503') { // Foreign key violation
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid folder ID. Folder does not exist.',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+    
+    if (error.code === '23502') { // Not null violation
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields.',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload files. Please try again.',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
