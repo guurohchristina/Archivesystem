@@ -518,9 +518,31 @@ export const getAllUserItems = async (req, res) => {
 
 
 
+
 export const uploadFile = async (req, res) => {
+  console.log('📤 ========= UPLOAD FILE REQUEST STARTED =========');
+  
   try {
+    console.log('📋 Request body fields:', Object.keys(req.body));
+    console.log('📋 Request files:', req.files ? req.files.length : 'No files');
+    
     const files = req.files; // Array of files
+    
+    if (!files || files.length === 0) {
+      console.log('❌ No files in request');
+      return res.status(400).json({
+        success: false,
+        message: 'No files uploaded'
+      });
+    }
+
+    console.log('📄 File details:');
+    files.forEach((file, index) => {
+      console.log(`  ${index + 1}. ${file.originalname} (${file.mimetype}, ${file.size} bytes)`);
+      console.log(`     Saved as: ${file.filename}`);
+      console.log(`     Path: ${file.path}`);
+    });
+
     const {
       description,
       is_public,
@@ -529,112 +551,213 @@ export const uploadFile = async (req, res) => {
       department,
       owner,
       classification_level,
-      folder_id = 'root' // Default to root if not provided
+      folder_id = 'root'
     } = req.body;
 
+    console.log('📋 Request body parameters:');
+    console.log('   description:', description);
+    console.log('   is_public:', is_public);
+    console.log('   document_type:', document_type);
+    console.log('   document_date:', document_date);
+    console.log('   department:', department);
+    console.log('   owner:', owner);
+    console.log('   classification_level:', classification_level);
+    console.log('   folder_id:', folder_id);
+
     const userId = req.user.userId;
-
-    if (!files || files.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'No files uploaded'
-      });
-    }
-
-    console.log('📤 Uploading files:', {
-      fileCount: files.length,
-      userId: userId,
-      folderId: folder_id,
-      description: description,
-      owner: owner
-    });
+    console.log('👤 User ID:', userId);
 
     const uploadResults = [];
 
     // Process each file
     for (const file of files) {
-      console.log('📄 Processing file:', file.originalname);
+      console.log(`\n💾 Processing file: ${file.originalname}`);
       
-      // Insert into database with folder_id
-      // Note: multer already saves the file to disk, so file.path is available
-      const result = await query(
-        `INSERT INTO files (
-          user_id, original_name, file_name, file_path, file_size, filetype, 
-          description, is_public, document_type, document_date, department, 
-          owner, classification_level, folder_id
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-        RETURNING *`,
-        [
+      try {
+        // Determine folder_id value
+        let finalFolderId = null;
+        if (folder_id && folder_id !== 'root') {
+          finalFolderId = parseInt(folder_id);
+          if (isNaN(finalFolderId)) {
+            console.log(`⚠️ Invalid folder_id: ${folder_id}, using null (root)`);
+            finalFolderId = null;
+          } else {
+            console.log(`📁 Uploading to folder ID: ${finalFolderId}`);
+          }
+        } else {
+          console.log('📁 Uploading to root folder (null)');
+        }
+
+        // First, let's test the database connection
+        console.log('🔍 Testing database connection...');
+        try {
+          const testResult = await query('SELECT 1 as test');
+          console.log('✅ Database connection test passed');
+        } catch (dbError) {
+          console.error('❌ Database connection failed:', dbError.message);
+          throw new Error(`Database connection failed: ${dbError.message}`);
+        }
+
+        // Check if folder exists (if folder_id is provided)
+        if (finalFolderId !== null) {
+          console.log(`🔍 Checking if folder ${finalFolderId} exists...`);
+          try {
+            const folderCheck = await query(
+              'SELECT id, name FROM folders WHERE id = $1 AND owner_id = $2',
+              [finalFolderId, userId]
+            );
+            
+            if (folderCheck.rows.length === 0) {
+              console.log(`⚠️ Folder ${finalFolderId} not found or doesn't belong to user. Uploading to root instead.`);
+              finalFolderId = null;
+            } else {
+              console.log(`✅ Folder exists: "${folderCheck.rows[0].name}"`);
+            }
+          } catch (folderError) {
+            console.log('⚠️ Could not check folder (folders table might not exist):', folderError.message);
+            console.log('⚠️ Uploading to root instead');
+            finalFolderId = null;
+          }
+        }
+
+        console.log('💾 Inserting file into database...');
+        
+        const sql = `
+          INSERT INTO files (
+            user_id, original_name, file_name, file_path, file_size, filetype, 
+            description, is_public, document_type, document_date, department, 
+            owner, classification_level, folder_id
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+          RETURNING *
+        `;
+        
+        const params = [
           userId,
           file.originalname,
-          file.filename, // Use the multer-generated filename
-          file.path, // Use the multer path
+          file.filename,
+          file.path,
           file.size,
           file.mimetype,
           description || '',
-          is_public === 'true' || is_public === true,
+          is_public === 'true' || is_public === true || false,
           document_type || '',
           document_date || null,
           department || '',
           owner || '',
           classification_level || 'Unclassified',
-          folder_id === 'root' ? null : parseInt(folder_id) // Store NULL for root
-        ]
-      );
+          finalFolderId
+        ];
 
-      const uploadedFile = result.rows[0];
-      
-      // Format file for response
-      const formattedFile = {
-        ...uploadedFile,
-        id: uploadedFile.id.toString(),
-        folder_id: uploadedFile.folder_id ? uploadedFile.folder_id.toString() : null,
-        formatted_size: formatFileSize(uploadedFile.file_size),
-        file_type: determineFileType(uploadedFile.original_name, uploadedFile.filetype),
-        uploaded_at: new Date(uploadedFile.uploaded_at).toISOString()
-      };
+        console.log('📊 SQL Query:', sql.substring(0, 200) + '...');
+        console.log('📊 Query parameters:', params);
 
-      uploadResults.push(formattedFile);
-      
-      console.log('✅ File uploaded:', {
-        id: uploadedFile.id,
-        name: uploadedFile.original_name,
-        folderId: uploadedFile.folder_id
+        const result = await query(sql, params);
+        console.log('✅ Database insert successful');
+
+        const uploadedFile = result.rows[0];
+        
+        // Format file for response
+        const formattedFile = {
+          ...uploadedFile,
+          id: uploadedFile.id.toString(),
+          folder_id: uploadedFile.folder_id ? uploadedFile.folder_id.toString() : null,
+          formatted_size: formatFileSize(uploadedFile.file_size),
+          file_type: determineFileType(uploadedFile.original_name, uploadedFile.filetype),
+          uploaded_at: new Date(uploadedFile.uploaded_at).toISOString()
+        };
+
+        uploadResults.push(formattedFile);
+        
+        console.log('✅ File uploaded successfully:', {
+          id: uploadedFile.id,
+          name: uploadedFile.original_name,
+          folderId: uploadedFile.folder_id
+        });
+
+      } catch (fileError) {
+        console.error(`❌ Error processing file ${file.originalname}:`, fileError.message);
+        console.error('File error stack:', fileError.stack);
+        
+        // Continue with other files even if one fails
+        uploadResults.push({
+          error: true,
+          filename: file.originalname,
+          message: fileError.message
+        });
+      }
+    }
+
+    // Check if any files were successfully uploaded
+    const successfulUploads = uploadResults.filter(result => !result.error);
+    
+    if (successfulUploads.length === 0) {
+      console.log('❌ All files failed to upload');
+      return res.status(500).json({
+        success: false,
+        message: 'All files failed to upload',
+        errors: uploadResults
       });
     }
 
-    console.log(`✅ Successfully uploaded ${uploadResults.length} files`);
-
-    res.json({
+    console.log(`✅ Successfully uploaded ${successfulUploads.length} out of ${files.length} files`);
+    
+    const response = {
       success: true,
-      message: `${files.length} file(s) uploaded successfully`,
-      files: uploadResults
+      message: `${successfulUploads.length} file(s) uploaded successfully`,
+      files: successfulUploads
+    };
+
+    // Include error details if some files failed
+    const failedUploads = uploadResults.filter(result => result.error);
+    if (failedUploads.length > 0) {
+      response.partial_success = true;
+      response.failed_files = failedUploads;
+      response.message += ` (${failedUploads.length} failed)`;
+    }
+
+    console.log('📤 Sending response:', {
+      success: response.success,
+      message: response.message,
+      fileCount: response.files.length
     });
+
+    res.json(response);
+
   } catch (error) {
-    console.error('❌ Upload error:', error.message);
+    console.error('❌ ========= UPLOAD FILE FAILED =========');
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error code:', error.code);
     console.error('Error stack:', error.stack);
     
-    // Handle specific database errors
-    if (error.code === '23503') { // Foreign key violation
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid folder ID. Folder does not exist.',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+    console.error('Request details:', {
+      method: req.method,
+      url: req.originalUrl,
+      user: req.user?.userId,
+      filesCount: req.files?.length || 0
+    });
+
+    // Send more specific error messages based on error type
+    let errorMessage = 'Failed to upload files. Please try again.';
+    let statusCode = 500;
+
+    if (error.message.includes('database') || error.message.includes('connection')) {
+      errorMessage = 'Database connection error. Please try again.';
+    } else if (error.message.includes('folder')) {
+      errorMessage = 'Folder not found. Please check the folder ID.';
+      statusCode = 400;
+    } else if (error.message.includes('permission') || error.message.includes('access')) {
+      errorMessage = 'Permission denied. You may not have access to upload to this location.';
+      statusCode = 403;
     }
-    
-    if (error.code === '23502') { // Not null violation
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields.',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
-    }
-    
-    res.status(500).json({
+
+    res.status(statusCode).json({
       success: false,
-      message: 'Failed to upload files. Please try again.',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: errorMessage,
+      ...(process.env.NODE_ENV === 'development' && {
+        error: error.message,
+        error_code: error.code
+      })
     });
   }
 };
