@@ -54,7 +54,7 @@ const MyFiles = () => {
     });
 
     // OPTION 2: Try to get folders
-    const foldersResponse = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
+    {/*const foldersResponse = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -65,7 +65,7 @@ const MyFiles = () => {
     const foldersResult = await foldersResponse.json();
 
     console.log("📦 Files API Response:", filesResult);
-    console.log("📁 Folders API Response:", foldersResult);
+    console.log("📁 Folders API Response:", foldersResult);*/}
 
     // Process files - ALL user files
     if (filesResult.success) {
