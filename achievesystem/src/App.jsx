@@ -38,8 +38,7 @@ function AppRouter() {
           <Route path="/shared-files" element={<Dashboard />} />
           <Route path="/profile" element={<Dashboard />} />
           
-          <Route path="/files" element={<MyFiles />} />
-<Route path="/files/folder/:folderId" element={<MyFiles />} />
+          
           
         
         <Route path="*" element={<div>Page not found</div>} />
