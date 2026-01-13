@@ -1,10 +1,11 @@
 import { useState, useContext, useRef, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom"; // Add useSearchParams
 
 const Upload = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams(); // Get URL parameters
   
   // File state
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -23,6 +24,9 @@ const Upload = () => {
   const [department, setDepartment] = useState("");
   const [owner, setOwner] = useState(user?.name || "");
   const [classificationLevel, setClassificationLevel] = useState("Unclassified");
+  
+  // Get folder_id from URL parameters
+  const folderId = searchParams.get("folder");
   
   // Predefined options
   const documentTypes = [
@@ -58,6 +62,13 @@ const Upload = () => {
     
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Set owner from user context
+  useEffect(() => {
+    if (user?.name && !owner) {
+      setOwner(user.name);
+    }
+  }, [user]);
 
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
@@ -97,11 +108,6 @@ const Upload = () => {
     
     setSelectedFiles(prev => [...prev, ...validFiles]);
     setUploadError("");
-    
-    // Auto-set owner to current user's name
-    if (user?.name && !owner) {
-      setOwner(user.name);
-    }
   };
 
   const handleUpload = async (e) => {
@@ -133,6 +139,16 @@ const Upload = () => {
     formData.append('department', department);
     formData.append('owner', owner);
     formData.append('classification_level', classificationLevel);
+    
+    // Add folder_id if present
+    if (folderId) {
+      formData.append('folder_id', folderId);
+      console.log(`📁 Uploading to folder: ${folderId}`);
+    } else {
+      // If no folder_id, upload to root
+      formData.append('folder_id', 'root');
+      console.log('📁 Uploading to root folder');
+    }
 
     // Simulate progress
     const progressInterval = setInterval(() => {
@@ -153,6 +169,12 @@ const Upload = () => {
       }
 
       const API_URL = 'https://archivesystembackend.onrender.com';
+      
+      console.log('📤 Uploading files...', {
+        fileCount: selectedFiles.length,
+        folderId: folderId || 'root',
+        formDataEntries: Array.from(formData.entries())
+      });
       
       const response = await fetch(`${API_URL}/api/upload`, {
         method: 'POST',
@@ -179,7 +201,9 @@ const Upload = () => {
       let result;
       try {
         result = JSON.parse(responseText);
+        console.log('📥 Upload response:', result);
       } catch {
+        console.error('Failed to parse response:', responseText);
         throw new Error('Invalid server response.');
       }
 
@@ -191,13 +215,19 @@ const Upload = () => {
         // Success - redirect after delay
         setTimeout(() => {
           resetForm();
-          navigate('/my-files');
+          // Navigate back to the folder or root
+          if (folderId) {
+            navigate(`/files/folder/${folderId}`);
+          } else {
+            navigate('/files');
+          }
         }, 2000);
       } else {
         throw new Error(result.message || `Upload failed with status: ${response.status}`);
       }
       
     } catch (error) {
+      console.error('Upload error:', error);
       setUploadError(error.message || "Upload failed. Please try again.");
     } finally {
       setUploading(false);
@@ -317,12 +347,18 @@ const Upload = () => {
             fontWeight: '700',
             color: '#202124',
             margin: '0 0 4px 0',
-          }}>Upload Files</h1>
+          }}>
+            {folderId ? 'Upload to Folder' : 'Upload Files'}
+          </h1>
           <p style={{
             fontSize: isMobile ? '14px' : '15px',
             color: '#5f6368',
             margin: 0,
-          }}>Upload documents to the archive system</p>
+          }}>
+            {folderId 
+              ? 'Upload documents to the current folder' 
+              : 'Upload documents to the archive system'}
+          </p>
         </div>
         
         <div style={{
@@ -331,7 +367,13 @@ const Upload = () => {
           width: isMobile ? '100%' : 'auto',
         }}>
           <button
-            onClick={() => navigate('/myfiles')}
+            onClick={() => {
+              if (folderId) {
+                navigate(`/files/folder/${folderId}`);
+              } else {
+                navigate('/files');
+              }
+            }}
             style={{
               padding: isMobile ? '10px 16px' : '10px 20px',
               backgroundColor: '#f8f9fa',
@@ -347,12 +389,12 @@ const Upload = () => {
               transition: 'all 0.2s',
               flex: isMobile ? 1 : 'auto',
               width: isMobile ? '100%' : 'auto',
-              '&:hover': {
+              ':hover': {
                 backgroundColor: '#f1f3f4',
               },
             }}
           >
-            ← Back to My Files
+            ← {folderId ? 'Back to Folder' : 'Back to My Files'}
           </button>
         </div>
       </div>
@@ -388,7 +430,11 @@ const Upload = () => {
                 color: '#155724',
                 margin: 0,
                 opacity: 0.8,
-              }}>Redirecting to My Files...</p>
+              }}>
+                {folderId 
+                  ? 'Redirecting back to folder...' 
+                  : 'Redirecting to My Files...'}
+              </p>
             </div>
           </div>
         </div>
@@ -427,276 +473,272 @@ const Upload = () => {
         </div>
       )}
 
-      {/* Main Content */}
+      {/* Upload Progress Bar */}
+      {uploading && (
+        <div style={{
+          marginBottom: '20px',
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '6px',
+          }}>
+            <span style={{
+              fontSize: '14px',
+              color: '#5f6368',
+              fontWeight: '500',
+            }}>Uploading...</span>
+            <span style={{
+              fontSize: '14px',
+              color: '#4285F4',
+              fontWeight: '500',
+            }}>{uploadProgress}%</span>
+          </div>
+          <div style={{
+            height: '6px',
+            backgroundColor: '#e8f0fe',
+            borderRadius: '3px',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              width: `${uploadProgress}%`,
+              height: '100%',
+              backgroundColor: '#4285F4',
+              transition: 'width 0.3s ease',
+            }}></div>
+          </div>
+        </div>
+      )}
+
       <div style={containerStyle}>
-        {/* Left Column - File Selection */}
+        {/* Left Column: File Selection */}
         <div style={leftColumnStyle}>
           <div style={{
             backgroundColor: 'white',
             borderRadius: '12px',
-            padding: isMobile ? '20px' : '25px',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+            border: '1px solid #e0e0e0',
+            padding: isMobile ? '16px' : '20px',
             marginBottom: '20px',
           }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '20px',
-            }}>
-              <h2 style={{
-                fontSize: isMobile ? '16px' : '18px',
-                fontWeight: '600',
-                color: '#202124',
-                margin: 0,
-              }}>1. Select Files</h2>
-              <span style={{
-                fontSize: isMobile ? '12px' : '14px',
-                color: '#5f6368',
-                backgroundColor: '#f1f3f4',
-                padding: '4px 12px',
-                borderRadius: '20px',
-              }}>{selectedFiles.length} selected</span>
-            </div>
+            <h2 style={{
+              fontSize: isMobile ? '16px' : '18px',
+              fontWeight: '600',
+              color: '#202124',
+              margin: '0 0 16px 0',
+            }}>Select Files</h2>
             
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileSelect}
-              multiple
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.jpg,.jpeg,.png,.gif,.webp,.mp3,.mp4,.zip"
-              style={{ display: 'none' }}
-            />
-            
-            {/* Drop Zone */}
-            <div 
+            {/* File Drop Zone */}
+            <div
+              onClick={triggerFileInput}
               style={{
                 border: '2px dashed #dadce0',
                 borderRadius: '12px',
-                padding: isMobile ? '16px' : '20px',
+                padding: isMobile ? '40px 20px' : '60px 40px',
+                textAlign: 'center',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
-                display: 'flex',
-                flexDirection: 'column',
-                minHeight: selectedFiles.length > 0 ? '100px' : '200px',
-                backgroundColor: selectedFiles.length > 0 ? '#f0f7ff' : '#f8f9fa',
-                borderColor: selectedFiles.length > 0 ? '#4285F4' : '#dadce0',
-                overflow: 'hidden',
+                backgroundColor: '#f8f9fa',
+                marginBottom: '20px',
+                ':hover': {
+                  borderColor: '#4285F4',
+                  backgroundColor: '#f1f3f4',
+                },
               }}
-              onClick={triggerFileInput}
             >
-              {selectedFiles.length > 0 ? (
-                <div style={{ width: '100%', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                  <div style={{ flex: 1, maxHeight: '300px', overflowY: 'auto', marginBottom: '15px' }}>
-                    {selectedFiles.map((file, index) => (
-                      <div key={index} style={{
+              <div style={{
+                fontSize: isMobile ? '36px' : '48px',
+                color: '#5f6368',
+                marginBottom: '12px',
+              }}>
+                📤
+              </div>
+              <p style={{
+                fontSize: isMobile ? '14px' : '16px',
+                color: '#202124',
+                fontWeight: '500',
+                margin: '0 0 6px 0',
+              }}>
+                Click to browse or drag & drop files
+              </p>
+              <p style={{
+                fontSize: isMobile ? '12px' : '13px',
+                color: '#5f6368',
+                margin: 0,
+              }}>
+                Maximum file size: 50MB per file
+              </p>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                multiple
+                style={{ display: 'none' }}
+              />
+            </div>
+
+            {/* Selected Files List */}
+            {selectedFiles.length > 0 && (
+              <div>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '12px',
+                }}>
+                  <h3 style={{
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: '#202124',
+                    margin: 0,
+                  }}>
+                    Selected Files ({selectedFiles.length})
+                  </h3>
+                  <button
+                    onClick={clearAllFiles}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: 'transparent',
+                      color: '#ea4335',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      ':hover': {
+                        backgroundColor: '#fce8e6',
+                      },
+                    }}
+                  >
+                    Clear All
+                  </button>
+                </div>
+                
+                <div style={{
+                  maxHeight: '300px',
+                  overflowY: 'auto',
+                }}>
+                  {selectedFiles.map((file, index) => (
+                    <div
+                      key={index}
+                      style={{
                         display: 'flex',
                         alignItems: 'center',
-                        padding: '10px',
-                        borderBottom: '1px solid #f1f3f4',
-                        backgroundColor: 'white',
-                        '&:last-child': { borderBottom: 'none' },
+                        padding: '12px',
+                        backgroundColor: '#f8f9fa',
+                        borderRadius: '8px',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      <span style={{
+                        fontSize: '20px',
+                        marginRight: '12px',
                       }}>
-                        <div style={{ fontSize: '20px', marginRight: '12px' }}>
-                          {getFileIcon(file.type)}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            color: '#202124',
-                            marginBottom: '4px',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}>{file.name}</div>
-                          <div style={{ fontSize: '12px', color: '#5f6368' }}>
-                            {formatFileSize(file.size)} • {file.type.split('/')[1]?.toUpperCase() || 'FILE'}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeFile(index);
-                          }}
-                          style={{
-                            backgroundColor: 'transparent',
-                            border: 'none',
-                            color: '#ea4335',
-                            fontSize: '20px',
-                            cursor: 'pointer',
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            flexShrink: 0,
-                          }}
-                          title="Remove file"
-                        >
-                          ×
-                        </button>
+                        {getFileIcon(file.type)}
+                      </span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: '#202124',
+                          margin: '0 0 4px 0',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}>
+                          {file.name}
+                        </p>
+                        <p style={{
+                          fontSize: '12px',
+                          color: '#5f6368',
+                          margin: 0,
+                        }}>
+                          {formatFileSize(file.size)}
+                        </p>
                       </div>
-                    ))}
-                  </div>
-                  
-                  <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        triggerFileInput();
-                      }}
-                      style={{
-                        padding: isMobile ? '10px 12px' : '10px 16px',
-                        backgroundColor: '#4285F4',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        fontSize: isMobile ? '13px' : '14px',
-                        fontWeight: '500',
-                        cursor: 'pointer',
-                        flex: 1,
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          backgroundColor: '#3367d6',
-                        },
-                      }}
-                    >
-                      + Add More
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        clearAllFiles();
-                      }}
-                      style={{
-                        padding: isMobile ? '10px 12px' : '10px 16px',
-                        backgroundColor: '#fce8e6',
-                        color: '#ea4335',
-                        border: '1px solid #fadbd8',
-                        borderRadius: '8px',
-                        fontSize: isMobile ? '13px' : '14px',
-                        fontWeight: '500',
-                        cursor: 'pointer',
-                        flex: 1,
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          backgroundColor: '#fadbd8',
-                        },
-                      }}
-                    >
-                      Clear All
-                    </button>
-                  </div>
+                      <button
+                        onClick={() => removeFile(index)}
+                        style={{
+                          backgroundColor: 'transparent',
+                          border: 'none',
+                          color: '#ea4335',
+                          cursor: 'pointer',
+                          fontSize: '18px',
+                          padding: '4px',
+                        }}
+                        title="Remove file"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ) : (
-                <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-                  <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.7 }}>📁</div>
-                  <p style={{ fontSize: '16px', fontWeight: '500', color: '#202124', margin: '0 0 8px 0' }}>
-                    Click to select files
+                
+                <div style={{
+                  marginTop: '16px',
+                  padding: '12px',
+                  backgroundColor: '#e8f0fe',
+                  borderRadius: '8px',
+                  textAlign: 'center',
+                }}>
+                  <p style={{
+                    fontSize: '13px',
+                    color: '#4285F4',
+                    margin: 0,
+                    fontWeight: '500',
+                  }}>
+                    Total: {formatFileSize(totalFileSize)}
                   </p>
-                  <p style={{ fontSize: '14px', color: '#5f6368', margin: '0 0 4px 0' }}>
-                    Supports multiple files (PDF, Word, Excel, Images, etc.)
-                  </p>
-                  <p style={{ fontSize: '12px', color: '#9aa0a6', margin: 0 }}>Max 50MB per file</p>
-                </div>
-              )}
-            </div>
-            
-            {/* File Summary */}
-            {selectedFiles.length > 0 && (
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                marginTop: '15px',
-                paddingTop: '15px',
-                borderTop: '1px solid #f1f3f4',
-              }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
-                  <span style={{ fontSize: '12px', color: '#5f6368', marginBottom: '4px' }}>Total files:</span>
-                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#202124' }}>{selectedFiles.length}</span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
-                  <span style={{ fontSize: '12px', color: '#5f6368', marginBottom: '4px' }}>Total size:</span>
-                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#202124' }}>{formatFileSize(totalFileSize)}</span>
                 </div>
               </div>
             )}
           </div>
-          
-          {/* Progress Bar */}
-          {uploading && (
-            <div style={{
-              backgroundColor: 'white',
-              borderRadius: '12px',
-              padding: isMobile ? '20px' : '25px',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-              marginTop: '20px',
-            }}>
-              <h3 style={{
-                fontSize: isMobile ? '16px' : '18px',
-                fontWeight: '600',
-                color: '#202124',
-                margin: '0 0 16px 0',
-              }}>Upload Progress</h3>
-              <div>
-                <div style={{
-                  height: '12px',
-                  backgroundColor: '#f1f3f4',
-                  borderRadius: '6px',
-                  overflow: 'hidden',
-                  marginBottom: '8px',
-                }}>
-                  <div 
-                    style={{
-                      height: '100%',
-                      backgroundColor: '#4285F4',
-                      width: `${uploadProgress}%`,
-                      transition: 'width 0.3s',
-                      position: 'relative',
-                    }}
-                  >
-                    <span style={{
-                      fontSize: '10px',
-                      color: 'white',
-                      fontWeight: '600',
-                      position: 'absolute',
-                      right: '8px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                    }}>{uploadProgress}%</span>
-                  </div>
-                </div>
-                <p style={{
-                  fontSize: '14px',
-                  color: '#5f6368',
-                  textAlign: 'center',
-                  margin: 0,
-                }}>
-                  {uploadProgress < 100 ? "Uploading files..." : "Processing..."}
-                </p>
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Right Column - Form */}
+        {/* Right Column: Metadata Form */}
         <div style={rightColumnStyle}>
-          <form onSubmit={handleUpload} style={{ width: '100%' }}>
+          <form onSubmit={handleUpload}>
             <div style={{
               backgroundColor: 'white',
               borderRadius: '12px',
-              padding: isMobile ? '20px' : '25px',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-              marginBottom: '20px',
+              border: '1px solid #e0e0e0',
+              padding: isMobile ? '16px' : '20px',
             }}>
               <h2 style={{
                 fontSize: isMobile ? '16px' : '18px',
                 fontWeight: '600',
                 color: '#202124',
                 margin: '0 0 20px 0',
-              }}>2. Document Information</h2>
+              }}>File Information</h2>
               
+              {/* Folder Info (if uploading to folder) */}
+              {folderId && (
+                <div style={{
+                  backgroundColor: '#e8f0fe',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  marginBottom: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                }}>
+                  <span style={{ fontSize: '20px' }}>📁</span>
+                  <div>
+                    <p style={{
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#4285F4',
+                      margin: '0 0 2px 0',
+                    }}>Uploading to Folder</p>
+                    <p style={{
+                      fontSize: '12px',
+                      color: '#5f6368',
+                      margin: 0,
+                    }}>Files will be saved in the current folder</p>
+                  </div>
+                </div>
+              )}
+
               {/* Description */}
               <div style={{ marginBottom: '20px' }}>
                 <label style={{
@@ -705,351 +747,279 @@ const Upload = () => {
                   fontWeight: '500',
                   color: '#202124',
                   marginBottom: '8px',
-                }}>Description *</label>
+                }}>
+                  Description
+                </label>
                 <textarea
                   value={fileDescription}
                   onChange={(e) => setFileDescription(e.target.value)}
-                  placeholder="Describe the contents of these files..."
-                  rows="3"
-                  required
+                  placeholder="Enter a description for the files"
                   style={{
                     width: '100%',
-                    padding: '12px 16px',
+                    minHeight: '80px',
+                    padding: '12px',
+                    border: '1px solid #dadce0',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    resize: 'vertical',
+                    boxSizing: 'border-box',
+                    ':focus': {
+                      outline: 'none',
+                      borderColor: '#4285F4',
+                      boxShadow: '0 0 0 2px rgba(66, 133, 244, 0.2)',
+                    },
+                  }}
+                />
+              </div>
+
+              {/* Owner */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#202124',
+                  marginBottom: '8px',
+                }}>
+                  Owner
+                </label>
+                <input
+                  type="text"
+                  value={owner}
+                  onChange={(e) => setOwner(e.target.value)}
+                  placeholder="Enter owner name"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '1px solid #dadce0',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    boxSizing: 'border-box',
+                    ':focus': {
+                      outline: 'none',
+                      borderColor: '#4285F4',
+                      boxShadow: '0 0 0 2px rgba(66, 133, 244, 0.2)',
+                    },
+                  }}
+                />
+              </div>
+
+              {/* Department */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#202124',
+                  marginBottom: '8px',
+                }}>
+                  Department
+                </label>
+                <select
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
                     border: '1px solid #dadce0',
                     borderRadius: '8px',
                     fontSize: '14px',
                     backgroundColor: 'white',
-                    outline: 'none',
-                    transition: 'all 0.2s',
-                    minHeight: '80px',
-                    resize: 'vertical',
-                    fontFamily: 'inherit',
                     boxSizing: 'border-box',
+                    ':focus': {
+                      outline: 'none',
+                      borderColor: '#4285F4',
+                      boxShadow: '0 0 0 2px rgba(66, 133, 244, 0.2)',
+                    },
                   }}
-                />
-                <small style={{ display: 'block', fontSize: '12px', color: '#5f6368', marginTop: '6px' }}>
-                  This description applies to all uploaded files
-                </small>
+                >
+                  {departments.map((dept) => (
+                    <option key={dept || "empty"} value={dept}>
+                      {dept || "Select department"}
+                    </option>
+                  ))}
+                </select>
               </div>
-              
-              {/* Document Type & Date */}
-              <div style={{
-                display: 'flex',
-                flexDirection: isMobile ? 'column' : 'row',
-                gap: isMobile ? '16px' : '20px',
-                marginBottom: '20px',
-              }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    color: '#202124',
-                    marginBottom: '8px',
-                  }}>Document Type *</label>
-                  <select 
-                    value={documentType} 
-                    onChange={(e) => setDocumentType(e.target.value)}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      border: '1px solid #dadce0',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      backgroundColor: 'white',
-                      outline: 'none',
-                      transition: 'all 0.2s',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    <option value="">Select type...</option>
-                    {documentTypes.map((type) => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div style={{ flex: 1 }}>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    color: '#202124',
-                    marginBottom: '8px',
-                  }}>Document Date</label>
-                  <input
-                    type="date"
-                    value={documentDate}
-                    onChange={(e) => setDocumentDate(e.target.value)}
-                    max={new Date().toISOString().split('T')[0]}
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      border: '1px solid #dadce0',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      backgroundColor: 'white',
-                      outline: 'none',
-                      transition: 'all 0.2s',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                  <small style={{ display: 'block', fontSize: '12px', color: '#5f6368', marginTop: '6px' }}>
-                    Optional
-                  </small>
-                </div>
-              </div>
-              
-              {/* Department & Owner */}
-              <div style={{
-                display: 'flex',
-                flexDirection: isMobile ? 'column' : 'row',
-                gap: isMobile ? '16px' : '20px',
-                marginBottom: '20px',
-              }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    color: '#202124',
-                    marginBottom: '8px',
-                  }}>Department</label>
-                  <select 
-                    value={department} 
-                    onChange={(e) => setDepartment(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      border: '1px solid #dadce0',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      backgroundColor: 'white',
-                      outline: 'none',
-                      transition: 'all 0.2s',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    <option value="">Select department...</option>
-                    {departments.map((dept) => (
-                      <option key={dept} value={dept}>{dept}</option>
-                    ))}
-                  </select>
-                  <small style={{ display: 'block', fontSize: '12px', color: '#5f6368', marginTop: '6px' }}>
-                    Optional
-                  </small>
-                </div>
-                
-                <div style={{ flex: 1 }}>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    color: '#202124',
-                    marginBottom: '8px',
-                  }}>Owner *</label>
-                  <input
-                    type="text"
-                    value={owner}
-                    onChange={(e) => setOwner(e.target.value)}
-                    placeholder="Document owner"
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      border: '1px solid #dadce0',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      backgroundColor: 'white',
-                      outline: 'none',
-                      transition: 'all 0.2s',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
-              </div>
-              
-              {/* Classification & Privacy */}
-              <div style={{
-                display: 'flex',
-                flexDirection: isMobile ? 'column' : 'row',
-                gap: isMobile ? '16px' : '20px',
-                marginBottom: '20px',
-              }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    color: '#202124',
-                    marginBottom: '8px',
-                  }}>Classification Level *</label>
-                  <select 
-                    value={classificationLevel} 
-                    onChange={(e) => setClassificationLevel(e.target.value)}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      border: '1px solid #dadce0',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      backgroundColor: 'white',
-                      outline: 'none',
-                      transition: 'all 0.2s',
-                      boxSizing: 'border-box',
-                      color: getClassificationColor(classificationLevel),
-                      fontWeight: '600',
-                    }}
-                  >
-                    {classificationLevels.map((level) => (
-                      <option key={level} value={level}>{level}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div style={{ flex: 1 }}>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    color: '#202124',
-                    marginBottom: '8px',
-                  }}>Visibility</label>
-                  <div style={{ paddingTop: '8px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginBottom: '6px' }}>
-                      <input
-                        type="checkbox"
-                        checked={isPublic}
-                        onChange={(e) => setIsPublic(e.target.checked)}
-                        style={{ marginRight: '10px', width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
-                      <span style={{ fontSize: '14px', color: '#202124' }}>Make files public</span>
-                    </label>
-                    <small style={{ display: 'block', fontSize: '12px', color: '#5f6368', marginTop: '6px' }}>
-                      {isPublic ? 'Files will be visible to other users' : 'Files will be private'}
-                    </small>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Action Buttons */}
-              <div style={{
-                display: 'flex',
-                flexDirection: isMobile ? 'column' : 'row',
-                gap: '12px',
-                marginTop: '30px',
-                paddingTop: '20px',
-                borderTop: '1px solid #f1f3f4',
-              }}>
-                <button 
-                  type="button" 
-                  onClick={resetForm}
-                  disabled={uploading}
+
+              {/* Document Type */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#202124',
+                  marginBottom: '8px',
+                }}>
+                  Document Type
+                </label>
+                <select
+                  value={documentType}
+                  onChange={(e) => setDocumentType(e.target.value)}
                   style={{
-                    padding: isMobile ? '14px 20px' : '14px 24px',
-                    backgroundColor: '#f8f9fa',
-                    color: '#5f6368',
+                    width: '100%',
+                    padding: '12px',
                     border: '1px solid #dadce0',
                     borderRadius: '8px',
-                    fontSize: isMobile ? '13px' : '14px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    flex: 1,
-                    transition: 'all 0.2s',
-                    width: isMobile ? '100%' : 'auto',
+                    fontSize: '14px',
+                    backgroundColor: 'white',
                     boxSizing: 'border-box',
+                    ':focus': {
+                      outline: 'none',
+                      borderColor: '#4285F4',
+                      boxShadow: '0 0 0 2px rgba(66, 133, 244, 0.2)',
+                    },
                   }}
                 >
-                  Clear Form
-                </button>
-                
-                <button 
-                  type="submit" 
-                  disabled={uploading || selectedFiles.length === 0}
-                  style={{
-                    padding: isMobile ? '14px 20px' : '14px 24px',
-                    backgroundColor: selectedFiles.length === 0 ? '#e0e0e0' : '#4285F4',
-                    color: selectedFiles.length === 0 ? '#9e9e9e' : 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: isMobile ? '13px' : '14px',
-                    fontWeight: '600',
-                    cursor: selectedFiles.length === 0 ? 'not-allowed' : 'pointer',
-                    flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    transition: 'all 0.2s',
-                    width: isMobile ? '100%' : 'auto',
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  {uploading ? (
-                    <>
-                      <div style={{
-                        border: '2px solid rgba(255, 255, 255, 0.3)',
-                        borderTopColor: 'white',
-                        borderRadius: '50%',
-                        width: '16px',
-                        height: '16px',
-                        animation: 'spin 1s linear infinite',
-                      }}></div>
-                      Uploading...
-                    </>
-                  ) : (
-                    `Upload ${selectedFiles.length} File${selectedFiles.length !== 1 ? 's' : ''}`
-                  )}
-                </button>
+                  {documentTypes.map((type) => (
+                    <option key={type || "empty"} value={type}>
+                      {type || "Select document type"}
+                    </option>
+                  ))}
+                </select>
               </div>
-            </div>
-            
-            {/* User Info Card */}
-            <div style={{
-              backgroundColor: '#f0f7ff',
-              borderRadius: '12px',
-              padding: '20px',
-              border: '1px solid #d2e3fc',
-              marginTop: '20px',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+
+              {/* Document Date */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#202124',
+                  marginBottom: '8px',
+                }}>
+                  Document Date
+                </label>
+                <input
+                  type="date"
+                  value={documentDate}
+                  onChange={(e) => setDocumentDate(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '1px solid #dadce0',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    boxSizing: 'border-box',
+                    ':focus': {
+                      outline: 'none',
+                      borderColor: '#4285F4',
+                      boxShadow: '0 0 0 2px rgba(66, 133, 244, 0.2)',
+                    },
+                  }}
+                />
+              </div>
+
+              {/* Classification Level */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#202124',
+                  marginBottom: '8px',
+                }}>
+                  Classification Level
+                </label>
                 <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '50%',
-                  backgroundColor: '#4285F4',
-                  color: 'white',
+                  display: 'flex',
+                  gap: '8px',
+                  flexWrap: 'wrap',
+                }}>
+                  {classificationLevels.map((level) => (
+                    <button
+                      key={level}
+                      type="button"
+                      onClick={() => setClassificationLevel(level)}
+                      style={{
+                        flex: 1,
+                        minWidth: '100px',
+                        padding: '10px',
+                        border: `2px solid ${getClassificationColor(level)}`,
+                        backgroundColor: classificationLevel === level ? getClassificationColor(level) : 'white',
+                        color: classificationLevel === level ? 'white' : getClassificationColor(level),
+                        borderRadius: '8px',
+                        fontSize: '13px',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {level}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Public Access Toggle */}
+              <div style={{ marginBottom: '30px' }}>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={isPublic}
+                    onChange={(e) => setIsPublic(e.target.checked)}
+                    style={{
+                      marginRight: '10px',
+                      width: '18px',
+                      height: '18px',
+                    }}
+                  />
+                  <div>
+                    <span style={{
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#202124',
+                    }}>
+                      Make files publicly accessible
+                    </span>
+                    <p style={{
+                      fontSize: '12px',
+                      color: '#5f6368',
+                      margin: '4px 0 0 0',
+                    }}>
+                      Anyone with the link can view/download these files
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              {/* Upload Button */}
+              <button
+                type="submit"
+                disabled={uploading || selectedFiles.length === 0}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  backgroundColor: uploading || selectedFiles.length === 0 ? '#f1f3f4' : '#4285F4',
+                  color: uploading || selectedFiles.length === 0 ? '#9aa0a6' : 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: uploading || selectedFiles.length === 0 ? 'not-allowed' : 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontWeight: '600',
-                  fontSize: '18px',
-                }}>
-                  {user?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
-                </div>
-                <div>
-                  <div style={{ fontSize: '16px', fontWeight: '600', color: '#202124', marginBottom: '2px' }}>
-                    {user?.name || "User"}
-                  </div>
-                  <div style={{ fontSize: '14px', color: '#5f6368' }}>{user?.email || ""}</div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '20px', borderTop: '1px solid #d2e3fc', paddingTop: '16px' }}>
-                <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: '18px', fontWeight: '600', color: '#202124', marginBottom: '4px' }}>
-                    {selectedFiles.length}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#5f6368' }}>Files Selected</div>
-                </div>
-                <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: '18px', fontWeight: '600', color: '#202124', marginBottom: '4px' }}>
-                    {formatFileSize(totalFileSize)}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#5f6368' }}>Total Size</div>
-                </div>
-              </div>
+                  gap: '8px',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {uploading ? (
+                  <>
+                    <span style={{ animation: 'spin 1s linear infinite' }}>⏳</span>
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <span>📤</span>
+                    Upload {selectedFiles.length > 0 ? `${selectedFiles.length} File${selectedFiles.length > 1 ? 's' : ''}` : 'Files'}
+                  </>
+                )}
+              </button>
             </div>
           </form>
         </div>
@@ -1057,14 +1027,5 @@ const Upload = () => {
     </div>
   );
 };
-
-// Add CSS animation
-const styleSheet = document.styleSheets[0];
-styleSheet.insertRule(`
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-`, styleSheet.cssRules.length);
 
 export default Upload;
