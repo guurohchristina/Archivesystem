@@ -235,131 +235,299 @@ const Upload = () => {
     }
   };*/}
   
-  const handleUpload = async (e) => {
-  e.preventDefault();
   
-  if (selectedFiles.length === 0) {
-    setUploadError("Please select at least one file to upload");
-    return;
-  }
-
-  setUploading(true);
-  setUploadProgress(0);
-  setUploadError("");
-  setUploadSuccess(false);
-  setUploadResponse(null);
-
-  const formData = new FormData();
+  export const uploadFile = async (req, res) => {
+  console.log('📤 ========= UPLOAD FILE REQUEST STARTED =========');
   
-  // Append files
-  selectedFiles.forEach((file) => {
-    formData.append('files', file);
-  });
-  
-  // Append metadata
-  formData.append('description', fileDescription);
-  formData.append('is_public', isPublic.toString());
-  formData.append('document_type', documentType);
-  formData.append('document_date', documentDate);
-  formData.append('department', department);
-  formData.append('owner', owner);
-  formData.append('classification_level', classificationLevel);
-  
-  // IMPORTANT: Add folder_id if we're in a folder
-  if (folderId && folderId !== 'root') {
-    formData.append('folder_id', folderId);
-    console.log(`📁 Uploading to folder: ${folderId}`);
-  } else {
-    // Upload to root (no folder_id or folder_id='root')
-    formData.append('folder_id', 'root');
-    console.log('📁 Uploading to root folder');
-  }
-
-  // Simulate progress
-  const progressInterval = setInterval(() => {
-    setUploadProgress(prev => {
-      if (prev >= 90) {
-        clearInterval(progressInterval);
-        return 90;
-      }
-      return prev + 10;
-    });
-  }, 200);
-
   try {
-    const token = localStorage.getItem('token');
+    console.log('📋 Request body fields:', Object.keys(req.body));
+    console.log('📋 Request files:', req.files ? req.files.length : 'No files');
     
-    if (!token) {
-      throw new Error('Please login again to upload files.');
+    const files = req.files;
+    
+    if (!files || files.length === 0) {
+      console.log('❌ No files in request');
+      return res.status(400).json({
+        success: false,
+        message: 'No files uploaded'
+      });
     }
 
-    const API_URL = 'https://archivesystembackend.onrender.com';
-    
-    console.log('📤 Uploading files...', {
-      fileCount: selectedFiles.length,
-      folderId: folderId || 'root'
+    console.log('📄 File details:');
+    files.forEach((file, index) => {
+      console.log(`  ${index + 1}. ${file.originalname} (${file.mimetype}, ${file.size} bytes)`);
+      console.log(`     Saved as: ${file.filename}`);
+      console.log(`     Path: ${file.path}`);
     });
-    
-    const response = await fetch(`${API_URL}/api/upload`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      body: formData
-    });
 
-    clearInterval(progressInterval);
-    setUploadProgress(100);
+    const userId = req.user.userId;
+    console.log('👤 User ID:', userId);
 
-    const responseText = await response.text();
-    
-    // Check if it's HTML error page
-    const isHtml = responseText.includes('<!DOCTYPE') || 
-                   responseText.includes('<html');
-    
-    if (isHtml) {
-      throw new Error('Server error occurred. Please try again.');
-    }
+    const {
+      description = '',
+      is_public = 'false',
+      document_type = '',
+      document_date = null,
+      department = '',
+      owner = '',
+      classification_level = 'Unclassified',
+      folder_id = 'root'
+    } = req.body;
 
-    // Parse JSON response
-    let result;
-    try {
-      result = JSON.parse(responseText);
-      console.log('📥 Upload response:', result);
-    } catch {
-      throw new Error('Invalid server response.');
-    }
+    console.log('📋 Request body parameters:');
+    console.log('   description:', description);
+    console.log('   is_public:', is_public);
+    console.log('   document_type:', document_type);
+    console.log('   document_date:', document_date);
+    console.log('   department:', department);
+    console.log('   owner:', owner);
+    console.log('   classification_level:', classification_level);
+    console.log('   folder_id:', folder_id);
 
-    setUploadResponse(result);
-    
-    if (response.ok && result.success) {
-      setUploadSuccess(true);
+    const uploadResults = [];
+    const errors = [];
+
+    // Process each file
+    for (const file of files) {
+      console.log(`\n💾 ========= PROCESSING FILE: ${file.originalname} =========`);
       
-      // Success - redirect after delay
-      setTimeout(() => {
-        resetForm();
-        
-        // IMPORTANT: Redirect based on where we uploaded from
-        if (folderId && folderId !== 'root') {
-          // We were in a folder - go back to that folder
-          navigate(`/files/folder/${folderId}`);
+      try {
+        // Determine folder_id value
+        let finalFolderId = null;
+        if (folder_id && folder_id !== 'root') {
+          const parsedFolderId = parseInt(folder_id);
+          if (isNaN(parsedFolderId)) {
+            console.log(`⚠️ Invalid folder_id format: "${folder_id}", using null (root)`);
+            finalFolderId = null;
+          } else {
+            finalFolderId = parsedFolderId;
+            console.log(`📁 Uploading to folder ID: ${finalFolderId}`);
+          }
         } else {
-          // We were in root - go back to MyFiles
-          navigate('/files');
+          console.log('📁 Uploading to root folder (null)');
         }
-      }, 1500); // Reduced delay for better UX
-    } else {
-      throw new Error(result.message || `Upload failed with status: ${response.status}`);
+
+        // Parse boolean value for is_public
+        const isPublicBool = is_public === 'true' || is_public === true || is_public === '1';
+        console.log('   Parsed is_public:', isPublicBool);
+        
+        // Prepare SQL parameters - MATCHING YOUR TABLE COLUMN NAMES
+        const params = [
+          userId,                    // $1: user_id
+          file.originalname,         // $2: original_name
+          file.filename,             // $3: filename (not file_name)
+          file.path,                 // $4: filepath (not file_path)
+          file.size,                 // $5: file_size
+          file.mimetype,             // $6: filetype
+          description || '',         // $7: description
+          isPublicBool,              // $8: is_public
+          document_type || '',       // $9: document_type
+          document_date || null,     // $10: document_date
+          department || '',          // $11: department
+          owner || '',               // $12: owner
+          classification_level || 'Unclassified', // $13: classification_level
+          finalFolderId              // $14: folder_id (null for root)
+        ];
+
+        console.log('📊 SQL Parameters:');
+        const paramNames = [
+          'user_id', 'original_name', 'filename', 'filepath', 'file_size',
+          'filetype', 'description', 'is_public', 'document_type', 'document_date',
+          'department', 'owner', 'classification_level', 'folder_id'
+        ];
+        params.forEach((param, index) => {
+          console.log(`   $${index + 1} (${paramNames[index]}):`, param, `(${typeof param})`);
+        });
+
+        // Check if file already exists with same name in same folder
+        try {
+          const duplicateCheck = await query(
+            'SELECT id FROM files WHERE user_id = $1 AND original_name = $2 AND (folder_id IS NOT DISTINCT FROM $3)',
+            [userId, file.originalname, finalFolderId]
+          );
+          
+          if (duplicateCheck.rows.length > 0) {
+            console.log(`⚠️ File "${file.originalname}" already exists in this folder. Skipping.`);
+            uploadResults.push({
+              error: true,
+              filename: file.originalname,
+              message: 'File with this name already exists in the folder'
+            });
+            continue; // Skip to next file
+          }
+        } catch (duplicateError) {
+          console.log('⚠️ Could not check for duplicates:', duplicateError.message);
+          // Continue anyway
+        }
+
+        console.log('🚀 Executing INSERT query...');
+        
+        // UPDATED SQL to match your column names
+        const sql = `
+          INSERT INTO files (
+            user_id, original_name, filename, filepath, file_size, filetype, 
+            description, is_public, document_type, document_date, department, 
+            owner, classification_level, folder_id
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+          RETURNING *
+        `;
+        
+        console.log('📝 SQL Query:', sql);
+        
+        const result = await query(sql, params);
+        console.log('✅ Database insert successful!');
+        
+        const uploadedFile = result.rows[0];
+        console.log('📋 Inserted file data:', {
+          id: uploadedFile.id,
+          original_name: uploadedFile.original_name,
+          filename: uploadedFile.filename,
+          folder_id: uploadedFile.folder_id
+        });
+        
+        // Format file for response
+        const formattedFile = {
+          ...uploadedFile,
+          id: uploadedFile.id.toString(),
+          folder_id: uploadedFile.folder_id ? uploadedFile.folder_id.toString() : null,
+          formatted_size: formatFileSize(uploadedFile.file_size),
+          file_type: determineFileType(uploadedFile.original_name, uploadedFile.filetype),
+          uploaded_at: new Date(uploadedFile.uploaded_at).toISOString()
+        };
+
+        uploadResults.push(formattedFile);
+        
+        console.log(`✅ File "${file.originalname}" uploaded successfully!`);
+
+      } catch (fileError) {
+        console.error(`❌ Error processing file "${file.originalname}":`, fileError.message);
+        console.error('File error stack:', fileError.stack);
+        console.error('File error code:', fileError.code);
+        console.error('File error detail:', fileError.detail);
+        console.error('File error hint:', fileError.hint);
+        
+        errors.push({
+          filename: file.originalname,
+          error: fileError.message,
+          code: fileError.code,
+          detail: fileError.detail,
+          hint: fileError.hint
+        });
+        
+        uploadResults.push({
+          error: true,
+          filename: file.originalname,
+          message: fileError.message,
+          code: fileError.code
+        });
+      }
     }
+
+    console.log('\n📊 ========= UPLOAD SUMMARY =========');
+    console.log(`Total files attempted: ${files.length}`);
     
+    const successfulUploads = uploadResults.filter(r => !r.error);
+    const failedUploads = uploadResults.filter(r => r.error);
+    
+    console.log(`Successful uploads: ${successfulUploads.length}`);
+    console.log(`Failed uploads: ${failedUploads.length}`);
+    
+    if (errors.length > 0) {
+      console.log('❌ Errors encountered:');
+      errors.forEach(err => {
+        console.log(`  - ${err.filename}: ${err.error}`);
+        console.log(`    Code: ${err.code}, Detail: ${err.detail}`);
+      });
+    }
+
+    // Check if any files were successfully uploaded
+    if (successfulUploads.length === 0 && uploadResults.length > 0) {
+      console.log('❌ All files failed to upload');
+      return res.status(500).json({
+        success: false,
+        message: 'All files failed to upload',
+        detailed_errors: errors,
+        error_summary: errors.map(err => `${err.filename}: ${err.error} (Code: ${err.code})`)
+      });
+    }
+
+    const response = {
+      success: true,
+      message: `${successfulUploads.length} file(s) uploaded successfully`,
+      files: successfulUploads
+    };
+
+    // Include error details if some files failed
+    if (failedUploads.length > 0) {
+      response.partial_success = true;
+      response.failed_files = failedUploads;
+      response.message += ` (${failedUploads.length} failed)`;
+      response.errors = errors;
+    }
+
+    console.log('📤 Sending response to client...');
+    console.log('Response summary:', {
+      success: response.success,
+      message: response.message,
+      successful_files: response.files.length,
+      failed_files: response.failed_files ? response.failed_files.length : 0
+    });
+
+    res.json(response);
+
   } catch (error) {
-    console.error('Upload error:', error);
-    setUploadError(error.message || "Upload failed. Please try again.");
+    console.error('❌ ========= UPLOAD FILE FAILED =========');
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error code:', error.code);
+    console.error('Error detail:', error.detail);
+    console.error('Error hint:', error.hint);
+    console.error('Error stack:', error.stack);
+    
+    console.error('Request details:', {
+      method: req.method,
+      url: req.originalUrl,
+      user_id: req.user?.userId,
+      files_count: req.files?.length || 0
+    });
+
+    // Try to get more specific error message
+    let errorMessage = 'Failed to upload files. Please try again.';
+    let statusCode = 500;
+
+    if (error.code === '23505') { // Unique violation
+      errorMessage = 'A file with this name already exists in the folder.';
+      statusCode = 400;
+    } else if (error.code === '23503') { // Foreign key violation
+      errorMessage = 'Invalid folder ID. The folder does not exist.';
+      statusCode = 400;
+    } else if (error.code === '23502') { // Not null violation
+      errorMessage = 'Missing required fields.';
+      statusCode = 400;
+    } else if (error.code === '42703') { // Undefined column
+      errorMessage = 'Database column error. Please check table structure.';
+      statusCode = 500;
+    }
+
+    res.status(statusCode).json({
+      success: false,
+      message: errorMessage,
+      error_details: process.env.NODE_ENV === 'development' ? {
+        error: error.message,
+        code: error.code,
+        detail: error.detail,
+        hint: error.hint
+      } : undefined
+    });
   } finally {
-    setUploading(false);
-    setTimeout(() => setUploadProgress(0), 1000);
+    console.log('🏁 ========= UPLOAD FILE REQUEST COMPLETED =========\n');
   }
 };
+  
+  
+  
+  
+  
 
   const resetForm = () => {
     setSelectedFiles([]);
