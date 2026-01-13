@@ -5,7 +5,7 @@ import {
   getFolders,
   getFolderById,
   deleteFolder,
-  getBreadcrumbsAlt,
+  
 } from '../controllers/folderControllers.js';
 
 const router = express.Router();
@@ -26,6 +26,6 @@ router.get('/:id', getFolderById);
 router.delete('/:id', deleteFolder);
 
 // Get breadcrumbs for a folder
-router.get('/:id/breadcrumbs', getBreadcrumbsAlt); // Using alternative method
+{/*router.get('/:id/breadcrumbs', getBreadcrumbsAlt);*/} // Using alternative method
 
 export default router;
