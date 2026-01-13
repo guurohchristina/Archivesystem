@@ -49,7 +49,7 @@ router.put('/:id/visibility', authenticate, toggleFileVisibility);  // Toggle pu
 router.get('/:id/visibility', authenticate, getFileVisibility);     // Check visibility status
 
 // =========== BASIC FILE ROUTES ===========
-router.get('/', authenticate, getFiles); // Backward compatibility - gets all files
+{/*router.get('/', authenticate, getFiles);*/} // Backward compatibility - gets all files
 router.post('/', authenticate, uploadMiddleware.single('file'), uploadFile); // Changed to single file upload for folder support
 router.get('/:id', authenticate, getFileDetails);
 router.get('/:id/download', authenticate, downloadFile);
