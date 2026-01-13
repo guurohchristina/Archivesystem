@@ -110,7 +110,7 @@ const Upload = () => {
     setUploadError("");
   };
 
-  const handleUpload = async (e) => {
+ {/* const handleUpload = async (e) => {
     e.preventDefault();
     
     if (selectedFiles.length === 0) {
@@ -233,7 +233,133 @@ const Upload = () => {
       setUploading(false);
       setTimeout(() => setUploadProgress(0), 1000);
     }
-  };
+  };*/}
+  
+  const handleUpload = async (e) => {
+  e.preventDefault();
+  
+  if (selectedFiles.length === 0) {
+    setUploadError("Please select at least one file to upload");
+    return;
+  }
+
+  setUploading(true);
+  setUploadProgress(0);
+  setUploadError("");
+  setUploadSuccess(false);
+  setUploadResponse(null);
+
+  const formData = new FormData();
+  
+  // Append files
+  selectedFiles.forEach((file) => {
+    formData.append('files', file);
+  });
+  
+  // Append metadata
+  formData.append('description', fileDescription);
+  formData.append('is_public', isPublic.toString());
+  formData.append('document_type', documentType);
+  formData.append('document_date', documentDate);
+  formData.append('department', department);
+  formData.append('owner', owner);
+  formData.append('classification_level', classificationLevel);
+  
+  // IMPORTANT: Add folder_id if we're in a folder
+  if (folderId && folderId !== 'root') {
+    formData.append('folder_id', folderId);
+    console.log(`📁 Uploading to folder: ${folderId}`);
+  } else {
+    // Upload to root (no folder_id or folder_id='root')
+    formData.append('folder_id', 'root');
+    console.log('📁 Uploading to root folder');
+  }
+
+  // Simulate progress
+  const progressInterval = setInterval(() => {
+    setUploadProgress(prev => {
+      if (prev >= 90) {
+        clearInterval(progressInterval);
+        return 90;
+      }
+      return prev + 10;
+    });
+  }, 200);
+
+  try {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      throw new Error('Please login again to upload files.');
+    }
+
+    const API_URL = 'https://archivesystembackend.onrender.com';
+    
+    console.log('📤 Uploading files...', {
+      fileCount: selectedFiles.length,
+      folderId: folderId || 'root'
+    });
+    
+    const response = await fetch(`${API_URL}/api/upload`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    clearInterval(progressInterval);
+    setUploadProgress(100);
+
+    const responseText = await response.text();
+    
+    // Check if it's HTML error page
+    const isHtml = responseText.includes('<!DOCTYPE') || 
+                   responseText.includes('<html');
+    
+    if (isHtml) {
+      throw new Error('Server error occurred. Please try again.');
+    }
+
+    // Parse JSON response
+    let result;
+    try {
+      result = JSON.parse(responseText);
+      console.log('📥 Upload response:', result);
+    } catch {
+      throw new Error('Invalid server response.');
+    }
+
+    setUploadResponse(result);
+    
+    if (response.ok && result.success) {
+      setUploadSuccess(true);
+      
+      // Success - redirect after delay
+      setTimeout(() => {
+        resetForm();
+        
+        // IMPORTANT: Redirect based on where we uploaded from
+        if (folderId && folderId !== 'root') {
+          // We were in a folder - go back to that folder
+          navigate(`/files/folder/${folderId}`);
+        } else {
+          // We were in root - go back to MyFiles
+          navigate('/files');
+        }
+      }, 1500); // Reduced delay for better UX
+    } else {
+      throw new Error(result.message || `Upload failed with status: ${response.status}`);
+    }
+    
+  } catch (error) {
+    console.error('Upload error:', error);
+    setUploadError(error.message || "Upload failed. Please try again.");
+  } finally {
+    setUploading(false);
+    setTimeout(() => setUploadProgress(0), 1000);
+  }
+};
 
   const resetForm = () => {
     setSelectedFiles([]);

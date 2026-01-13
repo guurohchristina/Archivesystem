@@ -33,7 +33,7 @@ const MyFiles = () => {
     }
   }, [folderId]);
 
-  const fetchRootContents = async () => {
+ {/* const fetchRootContents = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -116,7 +116,108 @@ const MyFiles = () => {
     } finally {
       setLoading(false);
     }
-  };
+  };*/}
+  
+const fetchRootContents = async () => {
+  setLoading(true);
+  setError(null);
+  try {
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      throw new Error("Please log in to view your files");
+    }
+
+    console.log("🔄 Fetching root contents...");
+
+    // Get ALL files for the user first
+    const allFilesResponse = await fetch(`${API_BASE}/api/upload`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+    });
+
+    const allFilesResult = await allFilesResponse.json();
+    console.log("📦 All Files API Result:", allFilesResult);
+
+    let allFiles = [];
+    if (allFilesResult.success && allFilesResult.files) {
+      allFiles = allFilesResult.files;
+    } else if (allFilesResult.success && allFilesResult.data?.files) {
+      allFiles = allFilesResult.data.files;
+    }
+
+    console.log(`📄 Found ${allFiles.length} total files for user`);
+
+    // Filter to get only root files (folder_id is null or 'root')
+    const rootFiles = allFiles.filter(file => {
+      const folderId = file.folder_id || file.folder_id;
+      return !folderId || folderId === 'root' || folderId === null;
+    });
+
+    console.log(`📄 Found ${rootFiles.length} files in root`);
+
+    // Get root folders
+    let rootFolders = [];
+    try {
+      const foldersResponse = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      const foldersResult = await foldersResponse.json();
+      console.log("📁 Folders API Result:", foldersResult);
+
+      if (foldersResult.success && foldersResult.folders) {
+        rootFolders = foldersResult.folders;
+      } else if (foldersResult.success && foldersResult.data) {
+        rootFolders = foldersResult.data;
+      }
+      console.log(`📁 Found ${rootFolders.length} folders in root`);
+    } catch (folderError) {
+      console.log("⚠️ Could not fetch folders:", folderError.message);
+    }
+
+    // Transform files
+    const transformedFiles = rootFiles.map(file => transformFileData(file));
+
+    // Transform folders
+    const transformedFolders = rootFolders.map(folder => ({
+      id: folder.id?.toString() || folder.id,
+      name: folder.name,
+      type: "folder",
+      owner_id: folder.owner_id,
+      parent_id: folder.parent_id,
+      created_at: folder.created_at,
+      isFolder: true
+    }));
+
+    console.log("✅ FINAL - Setting state:", {
+      filesCount: transformedFiles.length,
+      foldersCount: transformedFolders.length
+    });
+
+    // SET THE STATE
+    setFiles(transformedFiles);
+    setFolders(transformedFolders);
+    setCurrentFolder(null);
+
+  } catch (error) {
+    console.error("❌ Error in fetchRootContents:", error);
+    setError(error.message);
+  } finally {
+    setLoading(false);
+  }
+};
+  
+  
+  
+  
+  
+  
 
   const fetchFolderContents = async (folderId) => {
     setLoading(true);
@@ -406,10 +507,37 @@ const MyFiles = () => {
   const handleNavigateToFolder = (folderId) => {
     navigate(`/files/folder/${folderId}`);
   };
+  
+  
+  
+  
 
-  const handleUploadToCurrentFolder = () => {
+{/*  const handleUploadToCurrentFolder = () => {
     navigate(`/upload${folderId ? `?folder=${folderId}` : ''}`);
-  };
+  };*/}
+  
+  
+  const handleUploadToCurrentFolder = () => {
+  // If we're in a folder, upload to that folder
+  // If we're in root, upload to root
+  if (folderId) {
+    navigate(`/upload?folder=${folderId}`);
+  } else {
+    navigate('/upload'); // No folder parameter for root
+  }
+};
+
+const refreshCurrentView = () => {
+  if (folderId) {
+    fetchFolderContents(folderId);
+  } else {
+    fetchRootContents();
+  }
+};
+
+
+
+
 
   // Filter files and folders based on search term
   const filteredFiles = files.filter(file => 
@@ -617,13 +745,20 @@ const MyFiles = () => {
             New Folder
           </button>
           
-          <button
+        {/*  <button
             onClick={handleUploadToCurrentFolder}
             style={styles.uploadButton}
           >
             <span style={{ marginRight: '8px' }}>📤</span>
             Upload File
-          </button>
+          </button>*/}
+          <button
+  onClick={handleUploadToCurrentFolder}
+  style={styles.uploadButton}
+>
+  <span style={{ marginRight: '8px' }}>📤</span>
+  {folderId ? `Upload to ${currentFolder?.name || 'Folder'}` : 'Upload File'}
+</button>
         </div>
       </div>
 
