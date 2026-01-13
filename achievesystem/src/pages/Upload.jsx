@@ -110,7 +110,7 @@ const Upload = () => {
     setUploadError("");
   };
 
- {/* const handleUpload = async (e) => {
+  const handleUpload = async (e) => {
     e.preventDefault();
     
     if (selectedFiles.length === 0) {
@@ -217,9 +217,9 @@ const Upload = () => {
           resetForm();
           // Navigate back to the folder or root
           if (folderId) {
-            navigate(`/files/folder/${folderId}`);
+            navigate(`/my-files/folder/${folderId}`);
           } else {
-            navigate('/files');
+            navigate('/my-files');
           }
         }, 2000);
       } else {
@@ -233,7 +233,7 @@ const Upload = () => {
       setUploading(false);
       setTimeout(() => setUploadProgress(0), 1000);
     }
-  };*/}
+  };
   
   
   export const uploadFile = async (req, res) => {
