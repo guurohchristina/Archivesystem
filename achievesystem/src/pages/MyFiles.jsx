@@ -21,13 +21,6 @@ const MyFiles = () => {
   const [breadcrumbs, setBreadcrumbs] = useState([]);
 
   const API_BASE = 'https://archivesystembackend.onrender.com';
-  
-  
-  
-  useEffect(() => {
-    fetchUserFiles();
-  }, []);
-  
 
   useEffect(() => {
     if (folderId) {
@@ -41,10 +34,183 @@ const MyFiles = () => {
   
   
   
+  const fetchRootContents = async () => {
+  setLoading(true);
+  setError(null);
+  try {
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      throw new Error("Please log in to view your files");
+    }
+
+    console.log("📡 Fetching ALL user files and folders...");
+
+    // OPTION 1: Try the old reliable endpoint for files
+    const filesResponse = await fetch(`${API_BASE}/api/upload`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+    });
+
+    // OPTION 2: Try to get folders
+    const foldersResponse = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+    });
+
+    const filesResult = await filesResponse.json();
+    const foldersResult = await foldersResponse.json();
+
+    console.log("📦 Files API Response:", filesResult);
+    console.log("📁 Folders API Response:", foldersResult);
+
+    // Process files - ALL user files
+    if (filesResult.success) {
+      // Filter to get only files that are NOT in any folder (folder_id is null or empty)
+      const rootFiles = (filesResult.files || []).filter(file => 
+        !file.folder_id || file.folder_id === null || file.folder_id === ''
+      );
+      
+      console.log(`📄 Found ${filesResult.files?.length || 0} total files`);
+      console.log(`📄 Found ${rootFiles.length} root files (no folder)`);
+      
+      const transformedFiles = rootFiles.map(file => transformFileData(file));
+      setFiles(transformedFiles);
+    } else {
+      console.error("❌ Failed to fetch files:", filesResult.message);
+      setFiles([]);
+    }
+
+    // Process folders
+    if (foldersResult.success) {
+      const transformedFolders = (foldersResult.folders || []).map(folder => ({
+        ...folder,
+        id: folder.id?.toString() || folder.id,
+        isFolder: true
+      }));
+      setFolders(transformedFolders);
+      console.log(`📁 Found ${transformedFolders.length} folders`);
+    } else {
+      console.error("❌ Failed to fetch folders:", foldersResult.message);
+      setFolders([]);
+    }
+
+    setCurrentFolder(null); // Root folder
+
+    // Log summary
+    console.log(`✅ Loaded ${files.length} files and ${folders.length} folders in root`);
+
+  } catch (error) {
+    console.error("❌ Error fetching contents:", error);
+    setError(error.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const fetchFolderContents = async (folderId) => {
+  setLoading(true);
+  setError(null);
+  try {
+    const token = localStorage.getItem("token");
+
+    console.log(`📡 Fetching contents for folder ID: ${folderId}`);
+
+    // Try multiple approaches to get files in this folder
+
+    // APPROACH 1: Try the new items endpoint
+    try {
+      const itemsResponse = await fetch(`${API_BASE}/api/upload/items?parent_id=${folderId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      if (itemsResponse.ok) {
+        const itemsResult = await itemsResponse.json();
+        console.log(`📦 Items API Response for folder ${folderId}:`, itemsResult);
+
+        if (itemsResult.success) {
+          // Transform files
+          const transformedFiles = (itemsResult.files || []).map(file => transformFileData(file));
+          setFiles(transformedFiles);
+          
+          // Transform folders
+          const transformedFolders = (itemsResult.folders || []).map(folder => ({
+            ...folder,
+            id: folder.id?.toString() || folder.id,
+            isFolder: true
+          }));
+          setFolders(transformedFolders);
+          
+          console.log(`✅ Loaded ${transformedFiles.length} files and ${transformedFolders.length} folders from items endpoint`);
+          return; // Success, exit early
+        }
+      }
+    } catch (itemsError) {
+      console.log("⚠️ Items endpoint failed:", itemsError.message);
+    }
+
+    // APPROACH 2: Try the old upload endpoint with folder_id parameter
+    try {
+      const filesResponse = await fetch(`${API_BASE}/api/upload?folder_id=${folderId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      const foldersResponse = await fetch(`${API_BASE}/api/folders?parent_id=${folderId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      const filesResult = await filesResponse.json();
+      const foldersResult = await foldersResponse.json();
+
+      if (filesResult.success) {
+        const transformedFiles = (filesResult.files || []).map(file => transformFileData(file));
+        setFiles(transformedFiles);
+        console.log(`📄 Loaded ${transformedFiles.length} files from upload endpoint`);
+      }
+
+      if (foldersResult.success) {
+        const transformedFolders = (foldersResult.folders || []).map(folder => ({
+          ...folder,
+          id: folder.id?.toString() || folder.id,
+          isFolder: true
+        }));
+        setFolders(transformedFolders);
+        console.log(`📁 Loaded ${transformedFolders.length} folders from folders endpoint`);
+      }
+
+    } catch (fallbackError) {
+      console.error("❌ Fallback endpoints failed:", fallbackError.message);
+      setFiles([]);
+      setFolders([]);
+    }
+
+  } catch (error) {
+    console.error("❌ Error fetching folder contents:", error);
+    setError(error.message);
+  } finally {
+    setLoading(false);
+  }
+};
+  
+  
+  
   
   
 
-  const fetchRootContents = async () => {
+ {/* const fetchRootContents = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -64,15 +230,6 @@ const MyFiles = () => {
 
       // Fetch folders in root
       const foldersResponse = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-      });
-      
-      
-      
-      const response = await fetch(`${API_BASE}/api/upload`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -102,8 +259,6 @@ const MyFiles = () => {
       setLoading(false);
     }
   };
-  
-  
 
   const fetchFolderContents = async (folderId) => {
     setLoading(true);
@@ -145,7 +300,7 @@ const MyFiles = () => {
     } finally {
       setLoading(false);
     }
-  };
+  };*/}
 
   const fetchFolderInfo = async (folderId) => {
     try {
