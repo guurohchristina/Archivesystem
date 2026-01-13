@@ -5,7 +5,7 @@ import {
   getFolders,
   getFolderById,
   deleteFolder,
-  
+  getBreadcrumbsAlt,
 } from '../controllers/folderControllers.js';
 
 const router = express.Router();
