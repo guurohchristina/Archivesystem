@@ -34,6 +34,102 @@ const MyFiles = () => {
   
   
   
+  
+  const fetchRootContents = async () => {
+  setLoading(true);
+  setError(null);
+  try {
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      throw new Error("Please log in to view your files");
+    }
+
+    console.log("🔄 SIMPLE APPROACH: Fetching root contents...");
+
+    // SIMPLE APPROACH 1: Just get ALL files
+    const filesResponse = await fetch(`${API_BASE}/api/upload`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+    });
+
+    const filesResult = await filesResponse.json();
+    console.log("📦 SIMPLE - Files API Result:", filesResult);
+
+    let allFiles = [];
+    if (filesResult.success && filesResult.files) {
+      // Just show ALL files for now - don't filter by folder_id
+      allFiles = filesResult.files;
+      console.log(`📄 Found ${allFiles.length} total files`);
+    }
+
+    // SIMPLE APPROACH 2: Get folders
+    let allFolders = [];
+    try {
+      const foldersResponse = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      const foldersResult = await foldersResponse.json();
+      console.log("📁 SIMPLE - Folders API Result:", foldersResult);
+
+      if (foldersResult.success && foldersResult.folders) {
+        allFolders = foldersResult.folders;
+        console.log(`📁 Found ${allFolders.length} folders`);
+      }
+    } catch (folderError) {
+      console.log("⚠️ Could not fetch folders:", folderError.message);
+    }
+
+    // Transform ALL files (don't filter)
+    const transformedFiles = allFiles.map(file => {
+      const transformed = transformFileData(file);
+      console.log(`Transforming file ${file.id}:`, {
+        name: file.original_name,
+        folderIdInData: file.folder_id,
+        transformedFolderId: transformed.folderId
+      });
+      return transformed;
+    });
+
+    // Transform folders
+    const transformedFolders = allFolders.map(folder => ({
+      id: folder.id?.toString() || folder.id,
+      name: folder.name,
+      type: "folder",
+      owner_id: folder.owner_id,
+      parent_id: folder.parent_id,
+      created_at: folder.created_at,
+      isFolder: true
+    }));
+
+    console.log("✅ FINAL - Setting state:", {
+      filesCount: transformedFiles.length,
+      foldersCount: transformedFolders.length,
+      sampleFile: transformedFiles[0],
+      sampleFolder: transformedFolders[0]
+    });
+
+    // SET THE STATE
+    setFiles(transformedFiles);
+    setFolders(transformedFolders);
+    setCurrentFolder(null);
+
+  } catch (error) {
+    console.error("❌ Error in fetchRootContents:", error);
+    setError(error.message);
+  } finally {
+    setLoading(false);
+  }
+};
+  
+  
+  {/*
   const fetchRootContents = async () => {
   setLoading(true);
   setError(null);
@@ -110,7 +206,7 @@ const MyFiles = () => {
   } finally {
     setLoading(false);
   }
-};
+};*/}
 
 const fetchFolderContents = async (folderId) => {
   setLoading(true);
@@ -343,7 +439,94 @@ const fetchFolderContents = async (folderId) => {
     }
   };
 
-  const transformFileData = (file) => {
+
+const transformFileData = (file) => {
+  console.log("🔧 Transforming file:", {
+    id: file.id,
+    name: file.original_name,
+    rawFileData: file
+  });
+
+  // Determine file type
+  let fileType = "document";
+  const fileName = file.original_name?.toLowerCase() || "";
+  const fileMime = file.filetype?.toLowerCase() || "";
+  
+  if (fileName.includes('.pdf') || fileMime.includes('pdf')) fileType = "pdf";
+  else if (fileName.includes('.doc') || fileName.includes('.docx') || fileMime.includes('word')) fileType = "doc";
+  else if (fileName.includes('.xls') || fileName.includes('.xlsx') || fileName.includes('.csv') || fileMime.includes('excel') || fileMime.includes('sheet')) fileType = "spreadsheet";
+  else if (fileName.includes('.jpg') || fileName.includes('.jpeg') || fileName.includes('.png') || fileName.includes('.gif') || fileName.includes('.bmp') || fileMime.includes('image')) fileType = "image";
+  else if (fileName.includes('.mp4') || fileName.includes('.mov') || fileName.includes('.avi') || fileName.includes('.mkv') || fileMime.includes('video')) fileType = "video";
+  else if (fileName.includes('.mp3') || fileName.includes('.wav') || fileName.includes('.aac') || fileMime.includes('audio')) fileType = "audio";
+  else if (fileName.includes('.zip') || fileName.includes('.rar') || fileName.includes('.7z') || fileMime.includes('archive') || fileMime.includes('compressed')) fileType = "archive";
+  
+  // Format date
+  let relativeDate = "Recently";
+  if (file.uploaded_at) {
+    const date = new Date(file.uploaded_at);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) relativeDate = "Today";
+    else if (diffDays === 1) relativeDate = "Yesterday";
+    else if (diffDays < 7) relativeDate = `${diffDays} days ago`;
+    else if (diffDays < 30) relativeDate = `${Math.floor(diffDays / 7)} weeks ago`;
+    else {
+      relativeDate = date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric"
+      });
+    }
+  }
+
+  // Format file size
+  let formattedSize = "0 Bytes";
+  if (file.file_size) {
+    const bytes = parseInt(file.file_size);
+    if (bytes > 0) {
+      const k = 1024;
+      const sizes = ["Bytes", "KB", "MB", "GB"];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    }
+  }
+  
+  // Check if folder_id exists in the file data
+  const hasFolderId = file.folder_id !== undefined;
+  console.log(`File ${file.id} - has folder_id field? ${hasFolderId}, value: ${file.folder_id}`);
+  
+  // Create transformed file
+  const transformed = {
+    id: file.id?.toString() || file.id,
+    name: file.original_name || "Unnamed File",
+    type: fileType,
+    size: formattedSize,
+    date: relativeDate,
+    starred: false,
+    shared: file.is_public || false,
+    owner: file.owner || "Unknown",
+    department: file.department || "General",
+    classification: file.classification_level || "Unclassified",
+    description: file.description || "",
+    fileSizeBytes: file.file_size || 0,
+    uploadedAt: file.uploaded_at,
+    documentType: file.document_type,
+    isPublic: file.is_public,
+    // IMPORTANT: Handle folder_id carefully
+    folderId: hasFolderId ? (file.folder_id ? file.folder_id.toString() : null) : null,
+    _apiData: file
+  };
+  
+  console.log(`✅ Transformed file ${file.id}:`, transformed);
+  return transformed;
+};
+
+
+
+
+
+  {/*const transformFileData = (file) => {
     // Determine file type from filename or filetype
     let fileType = "document";
     const fileName = file.original_name?.toLowerCase() || "";
@@ -408,7 +591,7 @@ const fetchFolderContents = async (folderId) => {
       folderId: file.folder_id,
       _apiData: file
     };
-  };
+  };*/}
 
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) {
