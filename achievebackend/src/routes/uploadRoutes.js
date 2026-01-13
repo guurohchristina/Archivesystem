@@ -49,7 +49,7 @@ router.put('/:id/visibility', authenticate, toggleFileVisibility);  // Toggle pu
 router.get('/:id/visibility', authenticate, getFileVisibility);     // Check visibility status
 
 // =========== BASIC FILE ROUTES ===========
-router.get('/', authenticate, getFiles); // Backward compatibility - gets all files
+{/*router.get('/', authenticate, getFiles);*/} // Backward compatibility - gets all files
 router.post('/', authenticate, uploadMiddleware.single('file'), uploadFile); // Changed to single file upload for folder support
 {/*router.get('/:id', authenticate, getFileDetails);*/}
 router.get('/:id/download', authenticate, downloadFile);
@@ -57,7 +57,7 @@ router.put('/:id', authenticate, updateFile);
 router.delete('/:id', authenticate, deleteFile);
 
 // =========== MYFILES PAGE ROUTES ===========
-router.get('/my-files', authenticate, getFiles); // Reuse getFiles with pagination
+{/*router.get('/my-files', authenticate, getFiles); */}// Reuse getFiles with pagination
 router.get('/stats/summary', authenticate, getFileStats);
 router.get('/departments/list', authenticate, getDepartments);
 router.get('/categories/counts', authenticate, getCategoryCounts);
