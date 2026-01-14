@@ -68,7 +68,7 @@ const determineFileType = (fileName, fileMime) => {
 // =========== CONTROLLER FUNCTIONS ===========
 
 // Get user files with folder support
-export const getUserFiles = async (req, res) => {
+{/*export const getUserFiles = async (req, res) => {
   const startTime = Date.now();
   
   try {
@@ -267,7 +267,70 @@ export const getUserFiles = async (req, res) => {
       query_duration: `${duration}ms`
     });
   }
+};*/}
+
+export const getUserFiles = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const folderId = req.query.folder_id;
+    
+    console.log('📂 getUserFiles called:', { userId, folderId });
+    
+    let sql = `
+      SELECT f.*, u.username as owner_name
+      FROM files f
+      LEFT JOIN users u ON f.user_id = u.id
+      WHERE f.user_id = $1
+    `;
+    
+    let params = [userId];
+    
+    // Handle folder filtering
+    if (folderId && folderId !== 'root') {
+      const folderIdNum = parseInt(folderId);
+      if (!isNaN(folderIdNum)) {
+        sql += ' AND f.folder_id = $2';
+        params.push(folderIdNum);
+      } else {
+        sql += ' AND f.folder_id IS NULL';
+      }
+    } else if (folderId === 'root') {
+      sql += ' AND (f.folder_id IS NULL OR f.folder_id = $2)';
+      params.push(null);
+    } else {
+      // No folder_id specified - get all files
+      sql += ' AND f.folder_id IS NULL';
+    }
+    
+    sql += ' ORDER BY f.uploaded_at DESC';
+    
+    console.log('📝 Executing SQL:', sql);
+    console.log('📝 With params:', params);
+    
+    const result = await query(sql, params);
+    
+    console.log(`✅ Found ${result.rows.length} files`);
+    
+    res.json({
+      success: true,
+      files: result.rows,
+      count: result.rows.length,
+      folder_id: folderId || 'root'
+    });
+    
+  } catch (error) {
+    console.error('❌ Error in getUserFiles:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
 };
+
+
+
+
+
 
 // Get all user items (files + folders) for MyFiles page
 export const getAllUserItems = async (req, res) => {
