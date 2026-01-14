@@ -10,10 +10,6 @@ const MyFiles = () => {
   const [loading, setLoading] = useState(true);
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
-  const [editingFolder, setEditingFolder] = useState(null);
-  const [editFolderName, setEditFolderName] = useState("");
-  const [showActionsMenu, setShowActionsMenu] = useState(null); // folderId or null
-  const [showEditModal, setShowEditModal] = useState(false);
 
   const API_BASE = 'https://archivesystembackend.onrender.com';
 
@@ -103,116 +99,33 @@ const MyFiles = () => {
     }
   };
 
-  const handleEditFolder = async () => {
-    if (!editFolderName.trim() || !editingFolder) {
-      alert("Please enter a folder name");
-      return;
-    }
-
+  // Test function to debug API
+{/*  const testFolderAPI = async () => {
     try {
       const token = localStorage.getItem("token");
+      console.log("Testing folder creation API...");
       
-      console.log("Updating folder:", editingFolder.id, "New name:", editFolderName.trim());
-      
-      const response = await fetch(`${API_BASE}/api/folders/${editingFolder.id}`, {
-        method: "PUT",
+      const response = await fetch(`${API_BASE}/api/folders`, {
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          name: editFolderName.trim()
+          name: "Test Folder " + Date.now(),
+          parent_id: "root"
         })
       });
 
       const result = await response.json();
-      console.log("Update folder response:", result);
+      console.log("Test API response:", result);
+      alert(result.success ? "API Test Passed!" : `API Test Failed: ${result.message}`);
       
-      if (result.success) {
-        alert("Folder renamed successfully!");
-        setShowEditModal(false);
-        setEditingFolder(null);
-        setEditFolderName("");
-        
-        // Refresh the list
-        fetchRootContents();
-      } else {
-        alert(result.message || "Failed to rename folder");
-      }
     } catch (error) {
-      console.error("Error renaming folder:", error);
-      alert("Error renaming folder. Please try again.");
+      console.error("API Test error:", error);
+      alert("API Test failed: " + error.message);
     }
-  };
-
-  const handleDeleteFolder = async (folder) => {
-    if (!window.confirm(`Are you sure you want to delete folder "${folder.name}"? This will also delete all contents inside.`)) {
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE}/api/folders/${folder.id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        alert("Folder deleted successfully");
-        setShowActionsMenu(null); // Close the menu
-        fetchRootContents(); // Refresh
-      } else {
-        alert(result.message || "Failed to delete folder");
-      }
-    } catch (err) {
-      console.error("Error deleting folder:", err);
-      alert("Error deleting folder. Please try again.");
-    }
-  };
-
-  const openEditModal = (folder) => {
-    setEditingFolder(folder);
-    setEditFolderName(folder.name);
-    setShowEditModal(true);
-    setShowActionsMenu(null); // Close the actions menu
-  };
-
-  const openActionsMenu = (e, folderId) => {
-    e.stopPropagation(); // Prevent folder click
-    setShowActionsMenu(showActionsMenu === folderId ? null : folderId);
-  };
-
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = () => {
-      setShowActionsMenu(null);
-    };
-
-    if (showActionsMenu) {
-      document.addEventListener('click', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, [showActionsMenu]);
-
-  // Close modals with Escape key
-  useEffect(() => {
-    const handleEscKey = (e) => {
-      if (e.key === 'Escape') {
-        setShowCreateFolderModal(false);
-        setShowEditModal(false);
-        setShowActionsMenu(null);
-      }
-    };
-
-    document.addEventListener('keydown', handleEscKey);
-    return () => {
-      document.removeEventListener('keydown', handleEscKey);
-    };
-  }, []);
+  };*/}
 
   if (loading) {
     return (
@@ -228,7 +141,7 @@ const MyFiles = () => {
   }
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', position: 'relative' }}>
+    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
         <h1>📂 My Files</h1>
@@ -242,13 +155,15 @@ const MyFiles = () => {
           >
             📁 New Folder
           </button>
+        
+          
         </div>
       </div>
 
       {/* Create Folder Modal */}
       {showCreateFolderModal && (
-        <div style={styles.modalOverlay} onClick={() => setShowCreateFolderModal(false)}>
-          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
             <h3 style={styles.modalTitle}>Create New Folder</h3>
             <p style={styles.modalDescription}>
               This folder will be created in My Files (root)
@@ -274,48 +189,8 @@ const MyFiles = () => {
               <button
                 onClick={handleCreateFolder}
                 style={styles.modalConfirm}
-                disabled={!newFolderName.trim()}
               >
                 Create Folder
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Folder Modal */}
-      {showEditModal && editingFolder && (
-        <div style={styles.modalOverlay} onClick={() => setShowEditModal(false)}>
-          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <h3 style={styles.modalTitle}>Rename Folder</h3>
-            <p style={styles.modalDescription}>
-              Enter new name for folder
-            </p>
-            <input
-              type="text"
-              placeholder="Enter new folder name"
-              value={editFolderName}
-              onChange={(e) => setEditFolderName(e.target.value)}
-              style={styles.modalInput}
-              autoFocus
-            />
-            <div style={styles.modalActions}>
-              <button
-                onClick={() => {
-                  setShowEditModal(false);
-                  setEditingFolder(null);
-                  setEditFolderName("");
-                }}
-                style={styles.modalCancel}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleEditFolder}
-                style={styles.modalConfirm}
-                disabled={!editFolderName.trim()}
-              >
-                Rename Folder
               </button>
             </div>
           </div>
@@ -333,48 +208,11 @@ const MyFiles = () => {
                 style={styles.folderCard}
                 onClick={() => navigate(`/files/folder/${folder.id}`)}
               >
-                <div style={styles.folderContent}>
-                  <div style={styles.folderIcon}>📁</div>
-                  <div style={styles.folderName}>{folder.name}</div>
-                  <div style={styles.folderDate}>
-                    Created: {new Date(folder.created_at).toLocaleDateString()}
-                  </div>
+                <div style={styles.folderIcon}>📁</div>
+                <div style={styles.folderName}>{folder.name}</div>
+                <div style={styles.folderDate}>
+                  Created: {new Date(folder.created_at).toLocaleDateString()}
                 </div>
-                
-                {/* Three Dots Menu Button */}
-                <button
-                  onClick={(e) => openActionsMenu(e, folder.id)}
-                  style={styles.dotsButton}
-                  title="Folder actions"
-                >
-                  ⋮
-                </button>
-                
-                {/* Actions Menu Dropdown */}
-                {showActionsMenu === folder.id && (
-                  <div style={styles.actionsMenu} onClick={(e) => e.stopPropagation()}>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openEditModal(folder);
-                      }}
-                      style={styles.menuItem}
-                    >
-                      <span style={{ marginRight: '8px' }}>✏️</span>
-                      Edit
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteFolder(folder);
-                      }}
-                      style={{ ...styles.menuItem, color: '#ea4335' }}
-                    >
-                      <span style={{ marginRight: '8px' }}>🗑️</span>
-                      Delete
-                    </button>
-                  </div>
-                )}
               </div>
             ))}
           </div>
@@ -423,6 +261,21 @@ const MyFiles = () => {
           </div>
         </div>
       )}
+
+      {/* Debug Info - Remove in production */}
+      <div style={{
+        marginTop: '40px',
+        padding: '10px',
+        backgroundColor: '#f5f5f5',
+        borderRadius: '5px',
+        fontSize: '12px',
+        color: '#666'
+      }}>
+        <strong>Debug Info:</strong>
+        <div>Folders: {folders.length}</div>
+        <div>Files: {files.length}</div>
+        <div>User: {user?.email || "Not logged in"}</div>
+      </div>
     </div>
   );
 };
@@ -459,10 +312,6 @@ const styles = {
     cursor: 'pointer',
     fontSize: '14px',
     marginRight: '10px',
-    transition: 'background-color 0.2s',
-    ':hover': {
-      backgroundColor: '#3367d6',
-    },
   },
   secondaryButton: {
     padding: '10px 20px',
@@ -472,10 +321,6 @@ const styles = {
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '14px',
-    transition: 'background-color 0.2s',
-    ':hover': {
-      backgroundColor: '#e8eaed',
-    },
   },
   modalOverlay: {
     position: 'fixed',
@@ -516,12 +361,6 @@ const styles = {
     fontSize: '14px',
     marginBottom: '16px',
     boxSizing: 'border-box',
-    transition: 'border-color 0.2s',
-    ':focus': {
-      outline: 'none',
-      borderColor: '#4285f4',
-      boxShadow: '0 0 0 2px rgba(66, 133, 244, 0.2)',
-    },
   },
   modalActions: {
     display: 'flex',
@@ -536,10 +375,6 @@ const styles = {
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '14px',
-    transition: 'background-color 0.2s',
-    ':hover': {
-      backgroundColor: '#e8eaed',
-    },
   },
   modalConfirm: {
     padding: '8px 16px',
@@ -549,38 +384,25 @@ const styles = {
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '14px',
-    transition: 'background-color 0.2s',
-    ':hover': {
-      backgroundColor: '#3367d6',
-    },
-    ':disabled': {
-      backgroundColor: '#cccccc',
-      cursor: 'not-allowed',
-    },
   },
   foldersGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
     gap: '20px',
     marginTop: '15px',
-    position: 'relative',
   },
   folderCard: {
     border: '1px solid #e0e0e0',
     borderRadius: '8px',
     padding: '20px',
-    backgroundColor: '#f8f9fa',
-    transition: 'all 0.2s',
+    textAlign: 'center',
     cursor: 'pointer',
-    position: 'relative',
+    backgroundColor: '#f8f9fa',
+    transition: 'background-color 0.2s, transform 0.2s',
     ':hover': {
       backgroundColor: '#f1f3f4',
       transform: 'translateY(-2px)',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
     },
-  },
-  folderContent: {
-    textAlign: 'center',
   },
   folderIcon: {
     fontSize: '40px',
@@ -591,55 +413,10 @@ const styles = {
     color: '#202124',
     fontWeight: '500',
     marginBottom: '5px',
-    wordBreak: 'break-word',
   },
   folderDate: {
     fontSize: '12px',
     color: '#5f6368',
-  },
-  dotsButton: {
-    position: 'absolute',
-    top: '10px',
-    right: '10px',
-    background: 'none',
-    border: 'none',
-    fontSize: '20px',
-    cursor: 'pointer',
-    color: '#5f6368',
-    padding: '4px 8px',
-    borderRadius: '4px',
-    transition: 'background-color 0.2s',
-    ':hover': {
-      backgroundColor: 'rgba(0, 0, 0, 0.05)',
-    },
-  },
-  actionsMenu: {
-    position: 'absolute',
-    top: '40px',
-    right: '10px',
-    backgroundColor: 'white',
-    border: '1px solid #e0e0e0',
-    borderRadius: '6px',
-    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-    minWidth: '120px',
-    zIndex: 100,
-    overflow: 'hidden',
-  },
-  menuItem: {
-    display: 'flex',
-    alignItems: 'center',
-    width: '100%',
-    padding: '10px 12px',
-    background: 'none',
-    border: 'none',
-    textAlign: 'left',
-    cursor: 'pointer',
-    fontSize: '14px',
-    color: '#202124',
-    transition: 'background-color 0.2s',
-    ':hover': {
-      backgroundColor: '#f5f5f5',
-    },
   },
   filesGrid: {
     display: 'grid',
@@ -683,26 +460,5 @@ const styles = {
     color: '#5f6368',
   },
 };
-
-// Add CSS for the dots button
-const addStyles = () => {
-  if (!document.getElementById('myfiles-styles')) {
-    const styleSheet = document.createElement('style');
-    styleSheet.id = 'myfiles-styles';
-    styleSheet.textContent = `
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-5px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      
-      .actions-menu {
-        animation: fadeIn 0.2s ease-out;
-      }
-    `;
-    document.head.appendChild(styleSheet);
-  }
-};
-
-addStyles();
 
 export default MyFiles;
