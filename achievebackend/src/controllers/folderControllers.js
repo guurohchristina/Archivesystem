@@ -615,6 +615,57 @@ export const getBreadcrumbs = async (req, res) => {
   }
 };
 
+// In folderControllers.js - Add this new function
+export const updateFolder = async (req, res) => {
+  try {
+    const { id } = req.params; // Folder ID from the URL
+    const { name } = req.body; // New name from the request body
+    const userId = req.user.userId; // User ID from authentication middleware
+
+    console.log(`Updating folder ${id} to name: ${name}`);
+
+    // 1. Check if the folder exists and belongs to the user
+    const folderCheck = await pool.query(
+      'SELECT * FROM folders WHERE id = $1 AND owner_id = $2',
+      [id, userId]
+    );
+
+    if (folderCheck.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Folder not found or you do not have permission to edit it.'
+      });
+    }
+
+    // 2. Update the folder name in the database
+    const result = await pool.query(
+      'UPDATE folders SET name = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, name, updated_at',
+      [name, id]
+    );
+
+    // 3. Send back the updated folder info
+    res.json({
+      success: true,
+      message: 'Folder updated successfully.',
+      folder: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error('Error in updateFolder:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while updating the folder.',
+      error: error.message
+    });
+  }
+};
+
+
+
+
+
+
+
 // Rename folder
 export const renameFolder = async (req, res) => {
   try {

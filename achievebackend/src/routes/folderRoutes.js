@@ -5,6 +5,7 @@ import {
   getFolders,
   getFolderById,
   deleteFolder,
+  updateFolder,
   
 } from '../controllers/folderControllers.js';
 
@@ -24,6 +25,7 @@ router.get('/:id', getFolderById);
 
 // Delete folder and its contents
 router.delete('/:id', deleteFolder);
+router.put('/:id', updateFolder);
 
 // Get breadcrumbs for a folder
 {/*router.get('/:id/breadcrumbs', getBreadcrumbsAlt);*/} // Using alternative method
