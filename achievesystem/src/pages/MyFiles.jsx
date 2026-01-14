@@ -118,7 +118,7 @@ const MyFiles = () => {
     }
   };*/}
   
-const fetchRootContents = async () => {
+{/*const fetchRootContents = async () => {
   setLoading(true);
   setError(null);
   try {
@@ -211,8 +211,179 @@ const fetchRootContents = async () => {
   } finally {
     setLoading(false);
   }
-};
+};*/}
   
+
+
+const fetchRootContents = async () => {
+  setLoading(true);
+  setError(null);
+  try {
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      throw new Error("Please log in to view your files");
+    }
+
+    console.log("🔄 ========= FETCHING ROOT CONTENTS =========");
+
+    // METHOD 1: Try the items endpoint first (files + folders)
+    console.log("🔍 Trying /api/upload/items?parent_id=root");
+    try {
+      const itemsResponse = await fetch(`${API_BASE}/api/upload/items?parent_id=root`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      if (itemsResponse.ok) {
+        const itemsResult = await itemsResponse.json();
+        console.log("📦 Items API Result:", itemsResult);
+
+        if (itemsResult.success) {
+          // Get files
+          let filesData = itemsResult.files || [];
+          console.log(`📄 Found ${filesData.length} files from items endpoint`);
+          
+          // Get folders  
+          let foldersData = itemsResult.folders || [];
+          console.log(`📁 Found ${foldersData.length} folders from items endpoint`);
+
+          // Transform files
+          const transformedFiles = filesData.map(file => {
+            console.log(`Processing file: ${file.original_name} (folder_id: ${file.folder_id})`);
+            return transformFileData(file);
+          });
+
+          // Transform folders
+          const transformedFolders = foldersData.map(folder => ({
+            id: folder.id?.toString() || folder.id,
+            name: folder.name,
+            type: "folder",
+            owner_id: folder.owner_id,
+            parent_id: folder.parent_id,
+            created_at: folder.created_at,
+            isFolder: true
+          }));
+
+          console.log("✅ Setting state from items endpoint:", {
+            filesCount: transformedFiles.length,
+            foldersCount: transformedFolders.length
+          });
+
+          setFiles(transformedFiles);
+          setFolders(transformedFolders);
+          setCurrentFolder(null);
+          
+          return; // Success, exit early
+        }
+      }
+    } catch (itemsError) {
+      console.log("⚠️ Items endpoint failed:", itemsError.message);
+    }
+
+    // METHOD 2: Fallback - Get files and folders separately
+    console.log("🔍 Falling back to separate endpoints...");
+    
+    // Get all files (no filter)
+    const filesResponse = await fetch(`${API_BASE}/api/upload`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+    });
+
+    const filesResult = await filesResponse.json();
+    console.log("📦 All Files API Result:", filesResult);
+
+    let allFiles = [];
+    if (filesResult.success && filesResult.files) {
+      allFiles = filesResult.files;
+    } else if (filesResult.success && filesResult.data?.files) {
+      allFiles = filesResult.data.files;
+    }
+
+    console.log(`📄 Found ${allFiles.length} total files`);
+
+    // Filter to get ONLY root files (folder_id is null or empty)
+    const rootFiles = allFiles.filter(file => {
+      const folderId = file.folder_id || file.folder_id;
+      const isRoot = !folderId || folderId === null || folderId === 'null' || folderId === '' || folderId === 'root';
+      console.log(`File ${file.id}: folder_id=${folderId}, isRoot=${isRoot}`);
+      return isRoot;
+    });
+
+    console.log(`📄 Found ${rootFiles.length} files in root folder`);
+
+    // Get root folders
+    let rootFolders = [];
+    try {
+      const foldersResponse = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      const foldersResult = await foldersResponse.json();
+      console.log("📁 Folders API Result:", foldersResult);
+
+      if (foldersResult.success && foldersResult.folders) {
+        rootFolders = foldersResult.folders;
+      } else if (foldersResult.success && foldersResult.data) {
+        rootFolders = foldersResult.data;
+      }
+      console.log(`📁 Found ${rootFolders.length} folders in root`);
+    } catch (folderError) {
+      console.log("⚠️ Could not fetch folders:", folderError.message);
+    }
+
+    // Transform files
+    const transformedFiles = rootFiles.map(file => {
+      console.log(`Transforming root file: ${file.original_name}`);
+      return transformFileData(file);
+    });
+
+    // Transform folders
+    const transformedFolders = rootFolders.map(folder => ({
+      id: folder.id?.toString() || folder.id,
+      name: folder.name,
+      type: "folder",
+      owner_id: folder.owner_id,
+      parent_id: folder.parent_id,
+      created_at: folder.created_at,
+      isFolder: true
+    }));
+
+    console.log("✅ FINAL - Setting state:", {
+      filesCount: transformedFiles.length,
+      foldersCount: transformedFolders.length,
+      sampleFile: transformedFiles[0] ? {
+        id: transformedFiles[0].id,
+        name: transformedFiles[0].name,
+        folderId: transformedFiles[0].folderId
+      } : 'No files',
+      sampleFolder: transformedFolders[0] ? {
+        id: transformedFolders[0].id,
+        name: transformedFolders[0].name
+      } : 'No folders'
+    });
+
+    // SET THE STATE
+    setFiles(transformedFiles);
+    setFolders(transformedFolders);
+    setCurrentFolder(null);
+
+  } catch (error) {
+    console.error("❌ Error in fetchRootContents:", error);
+    setError(error.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
   
   
   
@@ -315,6 +486,8 @@ const fetchRootContents = async () => {
       setLoading(false);
     }
   };
+  
+  
 
   const fetchFolderInfo = async (folderId) => {
     try {
@@ -361,7 +534,7 @@ const fetchRootContents = async () => {
     }
   };
 
-  const transformFileData = (file) => {
+ {/* const transformFileData = (file) => {
     // ... keep your existing transformFileData function as is ...
     // Your existing transformFileData function is fine
     // Make sure it properly handles folder_id
@@ -426,7 +599,130 @@ const fetchRootContents = async () => {
       folderId: file.folder_id ? file.folder_id.toString() : null,
       _apiData: file
     };
+  };*/}
+  
+  
+  
+  const transformFileData = (file) => {
+  console.log("🔧 ========= TRANSFORMING FILE =========");
+  console.log("Raw file data:", file);
+  
+  // Check if this is actually a file object
+  if (!file || (!file.original_name && !file.original_name)) {
+    console.error("❌ Invalid file data received:", file);
+    return {
+      id: 'invalid',
+      name: 'Invalid File',
+      type: 'document',
+      size: '0 Bytes',
+      date: 'Unknown',
+      starred: false,
+      shared: false,
+      owner: 'Unknown',
+      department: 'General',
+      classification: 'Unclassified',
+      folderId: null,
+      _apiData: file
+    };
+  }
+
+  // Determine file type
+  let fileType = "document";
+  const fileName = (file.original_name || file.original_name || "").toLowerCase();
+  const fileMime = (file.filetype || file.mimetype || "").toLowerCase();
+  
+  if (fileName.includes('.pdf') || fileMime.includes('pdf')) fileType = "pdf";
+  else if (fileName.includes('.doc') || fileName.includes('.docx') || fileMime.includes('word')) fileType = "doc";
+  else if (fileName.includes('.xls') || fileName.includes('.xlsx') || fileName.includes('.csv') || fileMime.includes('excel') || fileMime.includes('sheet')) fileType = "spreadsheet";
+  else if (fileName.includes('.jpg') || fileName.includes('.jpeg') || fileName.includes('.png') || fileName.includes('.gif') || fileName.includes('.bmp') || fileMime.includes('image')) fileType = "image";
+  else if (fileName.includes('.mp4') || fileName.includes('.mov') || fileName.includes('.avi') || fileName.includes('.mkv') || fileMime.includes('video')) fileType = "video";
+  else if (fileName.includes('.mp3') || fileName.includes('.wav') || fileName.includes('.aac') || fileMime.includes('audio')) fileType = "audio";
+  else if (fileName.includes('.zip') || fileName.includes('.rar') || fileName.includes('.7z') || fileMime.includes('archive') || fileMime.includes('compressed')) fileType = "archive";
+  
+  // Format date
+  let relativeDate = "Recently";
+  const dateField = file.uploaded_at || file.created_at || file.uploaded_at;
+  if (dateField) {
+    try {
+      const date = new Date(dateField);
+      const now = new Date();
+      const diffTime = Math.abs(now - date);
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) relativeDate = "Today";
+      else if (diffDays === 1) relativeDate = "Yesterday";
+      else if (diffDays < 7) relativeDate = `${diffDays} days ago`;
+      else if (diffDays < 30) relativeDate = `${Math.floor(diffDays / 7)} weeks ago`;
+      else {
+        relativeDate = date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric"
+        });
+      }
+    } catch (dateError) {
+      console.log("⚠️ Could not parse date:", dateField);
+    }
+  }
+
+  // Format file size
+  let formattedSize = "0 Bytes";
+  if (file.file_size) {
+    try {
+      const bytes = parseInt(file.file_size);
+      if (bytes > 0) {
+        const k = 1024;
+        const sizes = ["Bytes", "KB", "MB", "GB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+      }
+    } catch (sizeError) {
+      console.log("⚠️ Could not parse file size:", file.file_size);
+    }
+  }
+  
+  // Handle folder_id
+  const folderIdValue = file.folder_id || file.folder_id;
+  console.log(`File ${file.id} folder_id analysis:`, {
+    raw: file.folder_id,
+    value: folderIdValue,
+    type: typeof folderIdValue
+  });
+
+  // Create transformed file
+  const transformed = {
+    id: file.id?.toString() || file.id || `temp-${Date.now()}`,
+    name: file.original_name || file.original_name || "Unnamed File",
+    type: fileType,
+    size: formattedSize,
+    date: relativeDate,
+    starred: false,
+    shared: file.is_public || file.is_public || false,
+    owner: file.owner || file.owner_name || "Unknown",
+    department: file.department || "General",
+    classification: file.classification_level || "Unclassified",
+    description: file.description || "",
+    fileSizeBytes: file.file_size || 0,
+    uploadedAt: file.uploaded_at || file.created_at,
+    documentType: file.document_type,
+    isPublic: file.is_public || file.is_public,
+    folderId: folderIdValue ? folderIdValue.toString() : null,
+    _apiData: file // Keep original data for reference
   };
+  
+  console.log(`✅ Transformed file:`, {
+    id: transformed.id,
+    name: transformed.name,
+    folderId: transformed.folderId,
+    type: transformed.type
+  });
+  
+  return transformed;
+};
+  
+  
+  
+  
+  
 
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) {
