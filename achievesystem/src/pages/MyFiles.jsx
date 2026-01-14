@@ -54,7 +54,6 @@ const MyFiles = () => {
     navigate('/files?action=create-folder'); // Or implement modal
   };*/}
 
-// In MyFiles.jsx, update your handleCreateFolder function:
 const handleCreateFolder = async () => {
   if (!newFolderName.trim()) {
     alert("Please enter a folder name");
@@ -64,15 +63,13 @@ const handleCreateFolder = async () => {
   try {
     const token = localStorage.getItem("token");
     
-    // Determine the parent folder ID
-    // If we're in a folder (folderId exists), use that as parent
-    // If we're at root (folderId is undefined), use "root"
+    // ALWAYS send parent_id, even if it's root
     const parentId = folderId || "root";
     
-    console.log('📁 Creating folder:', {
+    console.log("📁 Creating folder with:", {
       name: newFolderName.trim(),
       parent_id: parentId,
-      currentLocation: folderId ? `Inside folder ${folderId}` : 'Root level'
+      location: folderId ? `Inside folder ${folderId}` : "At root"
     });
     
     const response = await fetch(`${API_BASE}/api/folders`, {
@@ -83,35 +80,38 @@ const handleCreateFolder = async () => {
       },
       body: JSON.stringify({
         name: newFolderName.trim(),
-        parent_id: parentId  // Use the determined parent ID
+        parent_id: parentId
       })
     });
 
     const result = await response.json();
-    console.log('Create folder response:', result);
+    console.log("📁 API Response:", result);
     
     if (result.success) {
-      alert("Folder created successfully!");
+      alert(`Folder "${newFolderName.trim()}" created successfully!`);
       setShowCreateFolderModal(false);
       setNewFolderName("");
       
-      // Refresh the current view
+      // Refresh based on current location
       if (folderId) {
-        // We're inside a folder, refresh folder contents
+        // We're inside a folder
+        console.log("Refreshing folder contents for:", folderId);
         fetchFolderContents(folderId);
       } else {
-        // We're at root, refresh root contents
+        // We're at root
+        console.log("Refreshing root contents");
         fetchRootContents();
       }
     } else {
-      alert(result.message || "Failed to create folder");
+      // Show specific error from backend
+      const errorMsg = result.message || "Failed to create folder";
+      alert(`Error: ${errorMsg}`);
     }
   } catch (error) {
-    console.error("Error creating folder:", error);
-    alert("Error creating folder. Please try again.");
+    console.error("❌ Error creating folder:", error);
+    alert("Network error. Please check your connection and try again.");
   }
 };
-
 
 
 
