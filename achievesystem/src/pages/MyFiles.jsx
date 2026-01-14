@@ -1078,7 +1078,7 @@ const refreshCurrentView = () => {
             New Folder
           </button>
           
-          // Add this button to your header (near the upload button):
+      
 <button
   onClick={debugCurrentState}
   style={{
