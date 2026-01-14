@@ -7,6 +7,7 @@ const Upload = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams(); // Get URL parameters
   
+  
   // File state
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
