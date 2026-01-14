@@ -176,7 +176,9 @@ const handleCreateFolder = async () => {
           <button onClick={handleUpload} style={styles.button}>
             📤 Upload File
           </button>
-          <button onClick={handleCreateFolder} style={styles.secondaryButton}>
+          <button 
+          onClick={() => setShowCreateFolder(true)}
+            style={styles.secondaryButton}>
             📁 New Folder
           </button>
         </div>
@@ -220,41 +222,6 @@ const handleCreateFolder = async () => {
           </div>
         </div>
       )}
-      
-      {showCreateFolderModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modalContent}>
-            <h3 style={styles.modalTitle}>Create New Folder</h3>
-            <input
-              type="text"
-              placeholder="Enter folder name"
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              style={styles.modalInput}
-              autoFocus
-            />
-            <div style={styles.modalActions}>
-              <button
-                onClick={() => {
-                  setShowCreateFolderModal(false);
-                  setNewFolderName("");
-                }}
-                style={styles.modalCancel}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateFolder}
-                style={styles.modalConfirm}
-              >
-                Create Folder
-              </button>
-            </div>
-          </div>
-        </div>
-      )} 
-
-
 
       {/* Empty State */}
       {folders.length === 0 && files.length === 0 && (
