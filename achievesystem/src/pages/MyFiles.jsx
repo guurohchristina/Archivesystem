@@ -50,9 +50,72 @@ const MyFiles = () => {
     navigate('/upload');
   };
 
-  const handleCreateFolder = () => {
+{/*  const handleCreateFolder = () => {
     navigate('/files?action=create-folder'); // Or implement modal
-  };
+  };*/}
+
+// In MyFiles.jsx, update your handleCreateFolder function:
+const handleCreateFolder = async () => {
+  if (!newFolderName.trim()) {
+    alert("Please enter a folder name");
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("token");
+    
+    // Determine the parent folder ID
+    // If we're in a folder (folderId exists), use that as parent
+    // If we're at root (folderId is undefined), use "root"
+    const parentId = folderId || "root";
+    
+    console.log('📁 Creating folder:', {
+      name: newFolderName.trim(),
+      parent_id: parentId,
+      currentLocation: folderId ? `Inside folder ${folderId}` : 'Root level'
+    });
+    
+    const response = await fetch(`${API_BASE}/api/folders`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: newFolderName.trim(),
+        parent_id: parentId  // Use the determined parent ID
+      })
+    });
+
+    const result = await response.json();
+    console.log('Create folder response:', result);
+    
+    if (result.success) {
+      alert("Folder created successfully!");
+      setShowCreateFolderModal(false);
+      setNewFolderName("");
+      
+      // Refresh the current view
+      if (folderId) {
+        // We're inside a folder, refresh folder contents
+        fetchFolderContents(folderId);
+      } else {
+        // We're at root, refresh root contents
+        fetchRootContents();
+      }
+    } else {
+      alert(result.message || "Failed to create folder");
+    }
+  } catch (error) {
+    console.error("Error creating folder:", error);
+    alert("Error creating folder. Please try again.");
+  }
+};
+
+
+
+
+
 
   if (loading) {
     return <div>Loading...</div>;
