@@ -220,7 +220,7 @@ const MyFiles = () => {
 
   
 
-
+{/*
 const fetchRootContents = async () => {
   setLoading(true);
   setError(null);
@@ -387,11 +387,106 @@ const fetchRootContents = async () => {
   } finally {
     setLoading(false);
   }
+};*/}
+
+
+  
+  const fetchRootContents = async () => {
+  setLoading(true);
+  setError(null);
+  try {
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      throw new Error("Please log in to view your files");
+    }
+
+    console.log("🔄 Fetching root contents...");
+
+    // SIMPLE APPROACH: Just get ALL files and filter client-side
+    const filesResponse = await fetch(`${API_BASE}/api/upload`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+    });
+
+    const filesResult = await filesResponse.json();
+    console.log("📦 All Files API Result:", filesResult);
+
+    let allFiles = [];
+    if (filesResult.success && filesResult.files) {
+      allFiles = filesResult.files;
+    } else if (filesResult.success && filesResult.data?.files) {
+      allFiles = filesResult.data.files;
+    }
+
+    console.log(`📄 Found ${allFiles.length} total files`);
+
+    // Get ALL files, don't filter - show everything in root
+    const rootFiles = allFiles.filter(file => {
+      // Show files that are in root (folder_id is null/empty) OR show all files
+      const folderId = file.folder_id || file.folder_id;
+      const isRoot = !folderId || folderId === null || folderId === 'null' || folderId === '' || folderId === 'root';
+      return isRoot;
+    });
+
+    console.log(`📄 Showing ${rootFiles.length} files in root`);
+
+    // Get root folders
+    let rootFolders = [];
+    try {
+      const foldersResponse = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      const foldersResult = await foldersResponse.json();
+      console.log("📁 Folders API Result:", foldersResult);
+
+      if (foldersResult.success && foldersResult.folders) {
+        rootFolders = foldersResult.folders;
+      } else if (foldersResult.success && foldersResult.data) {
+        rootFolders = foldersResult.data;
+      }
+      console.log(`📁 Found ${rootFolders.length} folders in root`);
+    } catch (folderError) {
+      console.log("⚠️ Could not fetch folders:", folderError.message);
+    }
+
+    // Transform files
+    const transformedFiles = rootFiles.map(file => transformFileData(file));
+
+    // Transform folders
+    const transformedFolders = rootFolders.map(folder => ({
+      id: folder.id?.toString() || folder.id,
+      name: folder.name,
+      type: "folder",
+      owner_id: folder.owner_id,
+      parent_id: folder.parent_id,
+      created_at: folder.created_at,
+      isFolder: true
+    }));
+
+    console.log("✅ Setting state for root:", {
+      filesCount: transformedFiles.length,
+      foldersCount: transformedFolders.length
+    });
+
+    // SET THE STATE
+    setFiles(transformedFiles);
+    setFolders(transformedFolders);
+    setCurrentFolder(null);
+
+  } catch (error) {
+    console.error("❌ Error in fetchRootContents:", error);
+    setError(error.message);
+  } finally {
+    setLoading(false);
+  }
 };
-
-
-  
-  
   
   
   
