@@ -683,7 +683,7 @@ const MyFiles = () => {
             <button
               onClick={() => {
                 if (crumb.id === 'root') {
-                  navigate('/files');
+                  navigate(':/files');
                 } else {
                   navigate(`/files/folder/${crumb.id}`);
                 }
