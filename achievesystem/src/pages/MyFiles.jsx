@@ -100,7 +100,7 @@ const MyFiles = () => {
   };
 
   // Test function to debug API
-  const testFolderAPI = async () => {
+{/*  const testFolderAPI = async () => {
     try {
       const token = localStorage.getItem("token");
       console.log("Testing folder creation API...");
@@ -125,7 +125,7 @@ const MyFiles = () => {
       console.error("API Test error:", error);
       alert("API Test failed: " + error.message);
     }
-  };
+  };*/}
 
   if (loading) {
     return (
@@ -155,22 +155,8 @@ const MyFiles = () => {
           >
             📁 New Folder
           </button>
-          {/* Debug button - remove in production */}
-          <button 
-            onClick={testFolderAPI}
-            style={{ 
-              padding: '10px', 
-              backgroundColor: '#ff9800', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '4px',
-              marginLeft: '10px',
-              cursor: 'pointer'
-            }}
-            title="Test API"
-          >
-            🧪 Test
-          </button>
+        
+          
         </div>
       </div>
 

@@ -13,7 +13,6 @@ const Folder = () => {
   const [currentFolder, setCurrentFolder] = useState(null);
   const [newFolderName, setNewFolderName] = useState("");
   const [showCreateFolder, setShowCreateFolder] = useState(false);
-  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
 
   const API_BASE = 'https://archivesystembackend.onrender.com';
 
@@ -87,8 +86,6 @@ const Folder = () => {
       return;
     }
 
-    setIsCreatingFolder(true);
-    
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_BASE}/api/folders`, {
@@ -108,15 +105,12 @@ const Folder = () => {
         setNewFolderName("");
         setShowCreateFolder(false);
         fetchFolderContents(); // Refresh
-        alert("Folder created successfully!");
       } else {
-        alert(result.message || "Failed to create folder");
+        alert(result.message);
       }
     } catch (err) {
       console.error("Error creating folder:", err);
       alert("Failed to create folder");
-    } finally {
-      setIsCreatingFolder(false);
     }
   };
 
@@ -135,9 +129,8 @@ const Folder = () => {
       const result = await response.json();
       if (result.success) {
         fetchFolderContents(); // Refresh
-        alert("Folder deleted successfully!");
       } else {
-        alert(result.message || "Failed to delete folder");
+        alert(result.message);
       }
     } catch (err) {
       console.error("Error deleting folder:", err);
@@ -168,9 +161,8 @@ const Folder = () => {
       const result = await response.json();
       if (result.success) {
         fetchFolderContents(); // Refresh
-        alert("File deleted successfully!");
       } else {
-        alert(result.message || "Failed to delete file");
+        alert(result.message);
       }
     } catch (err) {
       console.error("Error deleting file:", err);
@@ -201,13 +193,6 @@ const Folder = () => {
     } catch (err) {
       console.error("Download error:", err);
       alert("Error downloading file");
-    }
-  };
-
-  // Close modal when clicking outside
-  const handleModalClose = (e) => {
-    if (e.target.id === "modal-overlay") {
-      setShowCreateFolder(false);
     }
   };
 
@@ -243,17 +228,12 @@ const Folder = () => {
         </h1>
         
         <div style={styles.actions}>
-          <button 
-            onClick={handleUpload} 
-            style={styles.primaryButton}
-            disabled={isCreatingFolder}
-          >
+          <button onClick={handleUpload} style={styles.primaryButton}>
             📤 Upload Files
           </button>
           <button 
             onClick={() => setShowCreateFolder(true)}
             style={styles.secondaryButton}
-            disabled={isCreatingFolder}
           >
             📁 New Folder
           </button>
@@ -277,18 +257,9 @@ const Folder = () => {
 
       {/* Create Folder Modal */}
       {showCreateFolder && (
-        <div 
-          id="modal-overlay"
-          style={styles.modalOverlay}
-          onClick={handleModalClose}
-        >
-          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.modalOverlay}>
+          <div style={styles.modal}>
             <h3>Create New Folder</h3>
-            <p style={styles.modalDescription}>
-              {folderId 
-                ? `Create a subfolder inside "${currentFolder?.name || 'this folder'}"`
-                : 'Create a new folder in My Files'}
-            </p>
             <input
               type="text"
               placeholder="Folder name"
@@ -296,22 +267,19 @@ const Folder = () => {
               onChange={(e) => setNewFolderName(e.target.value)}
               style={styles.modalInput}
               autoFocus
-              disabled={isCreatingFolder}
             />
             <div style={styles.modalActions}>
               <button 
                 onClick={() => setShowCreateFolder(false)}
                 style={styles.cancelButton}
-                disabled={isCreatingFolder}
               >
                 Cancel
               </button>
               <button 
                 onClick={handleCreateFolder}
                 style={styles.confirmButton}
-                disabled={isCreatingFolder || !newFolderName.trim()}
               >
-                {isCreatingFolder ? 'Creating...' : 'Create'}
+                Create
               </button>
             </div>
           </div>
@@ -331,15 +299,9 @@ const Folder = () => {
                 >
                   <div style={styles.folderIcon}>📁</div>
                   <div style={styles.folderName}>{folder.name}</div>
-                  <div style={styles.folderInfo}>
-                    Created: {new Date(folder.created_at).toLocaleDateString()}
-                  </div>
                 </Link>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteFolder(folder);
-                  }}
+                  onClick={() => handleDeleteFolder(folder)}
                   style={styles.deleteButton}
                   title="Delete Folder"
                 >
@@ -370,9 +332,7 @@ const Folder = () => {
                   <span style={styles.fileIcon}>
                     {getFileIcon(file.filetype || file.original_name)}
                   </span>
-                  <span style={styles.fileNameText}>
-                    {file.original_name}
-                  </span>
+                  {file.original_name}
                 </div>
                 <div style={styles.colType}>
                   {getFileType(file.filetype || file.original_name)}
@@ -412,10 +372,7 @@ const Folder = () => {
           <h3>This folder is empty</h3>
           <p>Upload files or create subfolders to get started</p>
           <div style={styles.emptyActions}>
-            <button 
-              onClick={handleUpload} 
-              style={styles.primaryButton}
-            >
+            <button onClick={handleUpload} style={styles.primaryButton}>
               📤 Upload Files
             </button>
             <button 
@@ -433,7 +390,6 @@ const Folder = () => {
 
 // Helper functions
 const getFileIcon = (filename) => {
-  if (!filename) return '📎';
   const ext = filename.split('.').pop().toLowerCase();
   if (ext === 'pdf') return '📄';
   if (['doc', 'docx'].includes(ext)) return '📝';
@@ -445,7 +401,7 @@ const getFileIcon = (filename) => {
 
 const getFileType = (filename) => {
   const ext = filename.split('.').pop().toLowerCase();
-  return ext.toUpperCase() || 'FILE';
+  return ext.toUpperCase();
 };
 
 const formatFileSize = (bytes) => {
@@ -461,15 +417,12 @@ const styles = {
     padding: '20px',
     maxWidth: '1200px',
     margin: '0 auto',
-    minHeight: '100vh',
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: '20px',
-    flexWrap: 'wrap',
-    gap: '15px',
   },
   title: {
     fontSize: '24px',
@@ -479,7 +432,6 @@ const styles = {
   actions: {
     display: 'flex',
     gap: '10px',
-    flexWrap: 'wrap',
   },
   primaryButton: {
     padding: '10px 20px',
@@ -489,14 +441,6 @@ const styles = {
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '14px',
-    transition: 'background-color 0.2s',
-    ':hover': {
-      backgroundColor: '#3367d6',
-    },
-    ':disabled': {
-      backgroundColor: '#cccccc',
-      cursor: 'not-allowed',
-    },
   },
   secondaryButton: {
     padding: '10px 20px',
@@ -506,29 +450,15 @@ const styles = {
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '14px',
-    transition: 'background-color 0.2s',
-    ':hover': {
-      backgroundColor: '#e8eaed',
-    },
-    ':disabled': {
-      backgroundColor: '#f5f5f5',
-      color: '#bdbdbd',
-      cursor: 'not-allowed',
-    },
   },
   breadcrumb: {
     marginBottom: '30px',
     fontSize: '14px',
     color: '#5f6368',
-    display: 'flex',
-    alignItems: 'center',
   },
   breadcrumbLink: {
     color: '#4285f4',
     textDecoration: 'none',
-    ':hover': {
-      textDecoration: 'underline',
-    },
   },
   breadcrumbSeparator: {
     margin: '0 8px',
@@ -551,73 +481,38 @@ const styles = {
   },
   modal: {
     backgroundColor: 'white',
-    padding: '24px',
+    padding: '20px',
     borderRadius: '8px',
     width: '400px',
     maxWidth: '90%',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-  },
-  modalDescription: {
-    fontSize: '14px',
-    color: '#5f6368',
-    margin: '10px 0 15px 0',
   },
   modalInput: {
     width: '100%',
-    padding: '12px',
+    padding: '10px',
     margin: '15px 0',
     border: '1px solid #ddd',
     borderRadius: '4px',
     fontSize: '16px',
-    boxSizing: 'border-box',
-    ':focus': {
-      outline: 'none',
-      borderColor: '#4285f4',
-      boxShadow: '0 0 0 2px rgba(66, 133, 244, 0.2)',
-    },
-    ':disabled': {
-      backgroundColor: '#f5f5f5',
-      cursor: 'not-allowed',
-    },
   },
   modalActions: {
     display: 'flex',
     justifyContent: 'flex-end',
     gap: '10px',
-    marginTop: '20px',
   },
   cancelButton: {
-    padding: '10px 20px',
+    padding: '8px 16px',
     backgroundColor: '#f1f3f4',
-    color: '#202124',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
-    fontSize: '14px',
-    ':hover': {
-      backgroundColor: '#e8eaed',
-    },
-    ':disabled': {
-      backgroundColor: '#f5f5f5',
-      color: '#bdbdbd',
-      cursor: 'not-allowed',
-    },
   },
   confirmButton: {
-    padding: '10px 20px',
+    padding: '8px 16px',
     backgroundColor: '#4285f4',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
-    fontSize: '14px',
-    ':hover': {
-      backgroundColor: '#3367d6',
-    },
-    ':disabled': {
-      backgroundColor: '#cccccc',
-      cursor: 'not-allowed',
-    },
   },
   section: {
     marginBottom: '40px',
@@ -630,50 +525,39 @@ const styles = {
   },
   foldersGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-    gap: '20px',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+    gap: '15px',
   },
   folderItem: {
     position: 'relative',
     border: '1px solid #e0e0e0',
     borderRadius: '8px',
-    padding: '20px',
+    padding: '15px',
     backgroundColor: '#f8f9fa',
-    transition: 'all 0.2s',
+    transition: 'background-color 0.2s',
     ':hover': {
       backgroundColor: '#f1f3f4',
-      transform: 'translateY(-2px)',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
     },
   },
   folderLink: {
     textDecoration: 'none',
     color: 'inherit',
     display: 'block',
+    textAlign: 'center',
   },
   folderIcon: {
-    fontSize: '48px',
-    marginBottom: '12px',
-    textAlign: 'center',
+    fontSize: '40px',
+    marginBottom: '10px',
   },
   folderName: {
-    fontSize: '15px',
+    fontSize: '14px',
     color: '#202124',
-    fontWeight: '500',
     wordBreak: 'break-word',
-    textAlign: 'center',
-    marginBottom: '8px',
-  },
-  folderInfo: {
-    fontSize: '12px',
-    color: '#5f6368',
-    textAlign: 'center',
   },
   filesTable: {
     border: '1px solid #e0e0e0',
     borderRadius: '8px',
     overflow: 'hidden',
-    backgroundColor: 'white',
   },
   tableHeader: {
     display: 'grid',
@@ -683,7 +567,6 @@ const styles = {
     borderBottom: '1px solid #e0e0e0',
     fontWeight: '500',
     color: '#5f6368',
-    fontSize: '14px',
   },
   tableRow: {
     display: 'grid',
@@ -691,71 +574,47 @@ const styles = {
     padding: '15px',
     borderBottom: '1px solid #e0e0e0',
     alignItems: 'center',
-    transition: 'background-color 0.2s',
     ':hover': {
       backgroundColor: '#f8f9fa',
-    },
-    ':last-child': {
-      borderBottom: 'none',
     },
   },
   colName: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
-    overflow: 'hidden',
+    gap: '10px',
   },
   fileIcon: {
     fontSize: '20px',
-    flexShrink: 0,
-  },
-  fileNameText: {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-    fontSize: '14px',
   },
   actionButton: {
     background: 'none',
     border: 'none',
     cursor: 'pointer',
     fontSize: '16px',
-    padding: '8px',
-    borderRadius: '4px',
-    transition: 'background-color 0.2s',
-    ':hover': {
-      backgroundColor: '#f1f3f4',
-    },
+    padding: '5px',
   },
   deleteButton: {
     background: 'none',
     border: 'none',
     cursor: 'pointer',
     fontSize: '16px',
-    padding: '8px',
-    borderRadius: '4px',
+    padding: '5px',
     color: '#ea4335',
-    transition: 'background-color 0.2s',
-    ':hover': {
-      backgroundColor: '#fce8e6',
-    },
   },
   emptyState: {
     textAlign: 'center',
-    padding: '80px 20px',
+    padding: '60px 20px',
     color: '#5f6368',
   },
   emptyIcon: {
-    fontSize: '80px',
+    fontSize: '60px',
     marginBottom: '20px',
-    opacity: 0.5,
   },
   emptyActions: {
     display: 'flex',
     justifyContent: 'center',
     gap: '15px',
-    marginTop: '30px',
-    flexWrap: 'wrap',
+    marginTop: '20px',
   },
   loadingContainer: {
     display: 'flex',
@@ -786,28 +645,17 @@ const styles = {
     borderRadius: '4px',
     cursor: 'pointer',
     marginTop: '15px',
-    ':hover': {
-      backgroundColor: '#3367d6',
-    },
   },
 };
 
 // Add CSS animation
-const addStyles = () => {
-  if (!document.getElementById('folder-styles')) {
-    const styleSheet = document.createElement('style');
-    styleSheet.id = 'folder-styles';
-    styleSheet.textContent = `
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    `;
-    document.head.appendChild(styleSheet);
+const styleSheet = document.createElement('style');
+styleSheet.textContent = `
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
-};
-
-// Call the style function
-addStyles();
+`;
+document.head.appendChild(styleSheet);
 
 export default Folder;
