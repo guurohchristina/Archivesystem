@@ -602,6 +602,37 @@ const fetchRootContents = async () => {
   };*/}
   
   
+  // Debug function
+const debugCurrentState = () => {
+  console.log("🔍 ========= CURRENT STATE DEBUG =========");
+  console.log("Files array length:", files.length);
+  console.log("Files array:", files);
+  console.log("Folders array length:", folders.length);
+  console.log("Folders array:", folders);
+  console.log("Current folder ID:", folderId);
+  console.log("Current folder info:", currentFolder);
+  console.log("Loading:", loading);
+  console.log("Error:", error);
+  
+  // Check if files are actually in the array
+  if (files.length > 0) {
+    console.log("Sample file:", {
+      id: files[0].id,
+      name: files[0].name,
+      folderId: files[0].folderId,
+      type: files[0].type
+    });
+  } else {
+    console.log("❌ No files in state!");
+  }
+};
+
+
+  
+  
+  
+  
+  
   
   const transformFileData = (file) => {
   console.log("🔧 ========= TRANSFORMING FILE =========");
@@ -1033,6 +1064,12 @@ const refreshCurrentView = () => {
             </button>
           </div>
           
+          
+          
+          
+
+
+          
           <button
             onClick={() => setShowCreateFolderModal(true)}
             style={styles.createFolderButton}
@@ -1040,6 +1077,27 @@ const refreshCurrentView = () => {
             <span style={{ marginRight: '8px' }}>📁</span>
             New Folder
           </button>
+          
+          // Add this button to your header (near the upload button):
+<button
+  onClick={debugCurrentState}
+  style={{
+    padding: '8px 12px',
+    backgroundColor: '#f1f3f4',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    marginLeft: '10px'
+  }}
+  title="Debug State"
+>
+  🐛
+</button>
+  
+          
+          
+          
+          
           
         {/*  <button
             onClick={handleUploadToCurrentFolder}
