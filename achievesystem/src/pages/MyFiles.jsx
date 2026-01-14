@@ -29,6 +29,7 @@ const MyFiles = () => {
       fetchBreadcrumbs(folderId);
     } else {
       fetchRootContents();
+      fetchUserFiles();
       setBreadcrumbs([{ id: 'root', name: 'My Files' }]);
     }
   }, [folderId]);
@@ -212,6 +213,114 @@ const MyFiles = () => {
     setLoading(false);
   }
 };*/}
+
+
+
+const fetchUserFiles = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem("token");
+      
+      if (!token) {
+        throw new Error("Please log in to view your files");
+      }
+
+      const response = await fetch(`${API_BASE}/api/upload`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      const result = await response.json();
+      console.log("API Response:", result);
+
+      if (result.success) {
+        // Transform API data to the format we need
+        const transformedFiles = (result.files || []).map(file => {
+          // Determine file type from filename or filetype
+          let fileType = "document";
+          const fileName = file.original_name?.toLowerCase() || "";
+          const fileMime = file.filetype?.toLowerCase() || "";
+          
+          if (fileName.includes('.pdf') || fileMime.includes('pdf')) fileType = "pdf";
+          else if (fileName.includes('.doc') || fileName.includes('.docx') || fileMime.includes('word')) fileType = "doc";
+          else if (fileName.includes('.xls') || fileName.includes('.xlsx') || fileName.includes('.csv') || fileMime.includes('excel') || fileMime.includes('sheet')) fileType = "spreadsheet";
+          else if (fileName.includes('.jpg') || fileName.includes('.jpeg') || fileName.includes('.png') || fileName.includes('.gif') || fileName.includes('.bmp') || fileMime.includes('image')) fileType = "image";
+          else if (fileName.includes('.mp4') || fileName.includes('.mov') || fileName.includes('.avi') || fileName.includes('.mkv') || fileMime.includes('video')) fileType = "video";
+          else if (fileName.includes('.mp3') || fileName.includes('.wav') || fileName.includes('.aac') || fileMime.includes('audio')) fileType = "audio";
+          else if (fileName.includes('.zip') || fileName.includes('.rar') || fileName.includes('.7z') || fileMime.includes('archive') || fileMime.includes('compressed')) fileType = "archive";
+          
+          // Format relative date
+          let relativeDate = "Recently";
+          if (file.uploaded_at) {
+            const date = new Date(file.uploaded_at);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) relativeDate = "Today";
+            else if (diffDays === 1) relativeDate = "Yesterday";
+            else if (diffDays < 7) relativeDate = `${diffDays} days ago`;
+            else if (diffDays < 30) relativeDate = `${Math.floor(diffDays / 7)} weeks ago`;
+            else {
+              relativeDate = date.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric"
+              });
+            }
+          }
+          
+          // Format file size
+          let formattedSize = "0 Bytes";
+          if (file.file_size) {
+            const bytes = parseInt(file.file_size);
+            if (bytes > 0) {
+              const k = 1024;
+              const sizes = ["Bytes", "KB", "MB", "GB"];
+              const i = Math.floor(Math.log(bytes) / Math.log(k));
+              formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+            }
+          }
+          
+          return {
+            id: file.id,
+            name: file.original_name || "Unnamed File",
+            type: fileType,
+            size: formattedSize,
+            date: relativeDate,
+            starred: false, // You can implement starring later
+            shared: file.is_public || false,
+            owner: file.owner || "Unknown",
+            department: file.department || "General",
+            classification: file.classification_level || "Unclassified",
+            description: file.description || "",
+            fileSizeBytes: file.file_size || 0,
+            uploadedAt: file.uploaded_at,
+            documentType: file.document_type,
+            isPublic: file.is_public,
+            // Keep original API data for download/delete
+            _apiData: file
+          };
+        });
+        
+        console.log("Transformed files:", transformedFiles);
+        setFiles(transformedFiles);
+      } else {
+        throw new Error(result.message || "Failed to load files");
+      }
+    } catch (error) {
+      console.error("Error fetching files:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+
+
   
 
 
