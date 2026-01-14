@@ -8,6 +8,8 @@ import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import MyFiles from  "./pages/MyFiles.jsx";
+import Folder from "./pages/Folder.jsx";
 // ... import other pages
 
 // Router wrapper component
@@ -33,11 +35,16 @@ function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        
+        
+        <Route path="/files" element={<MyFiles />} /> {/* Root files */}
+        <Route path="/files/folder/:folderId" element={<Folder />} /> {/* Folder view */}
+      
+        
           <Route path="/my-files" element={<Dashboard />} />
           <Route path="/upload" element={<Dashboard />} />
           <Route path="/shared-files" element={<Dashboard />} />
           <Route path="/profile" element={<Dashboard />} />
-          
           
           
         
