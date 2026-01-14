@@ -54,7 +54,7 @@ const MyFiles = () => {
     navigate('/files?action=create-folder'); // Or implement modal
   };*/}
 
-const handleCreateFolder = async () => {
+{/*const handleCreateFolder = async () => {
   if (!newFolderName.trim()) {
     alert("Please enter a folder name");
     return;
@@ -111,7 +111,54 @@ const handleCreateFolder = async () => {
     console.error("❌ Error creating folder:", error);
     alert("Network error. Please check your connection and try again.");
   }
-};
+};*/}
+
+
+const handleCreateFolder = async () => {
+    if (!newFolderName.trim()) {
+      alert("Please enter a folder name");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE}/api/folders`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: newFolderName.trim(),
+          parent_id: folderId || "root"
+        })
+      });
+
+      const result = await response.json();
+      console.log("Create folder response:", result);
+      
+      if (result.success) {
+        alert("Folder created successfully");
+        setShowCreateFolderModal(false);
+        setNewFolderName("");
+        
+        // Refresh the current view
+        if (folderId) {
+          fetchFolderContents(folderId);
+        } else {
+          fetchRootContents();
+        }
+      } else {
+        alert(result.message || "Failed to create folder");
+      }
+    } catch (error) {
+      console.error("Error creating folder:", error);
+      alert("Error creating folder. Please try again.");
+    }
+  };
+
+
+
 
 
 
