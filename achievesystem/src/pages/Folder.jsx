@@ -43,7 +43,7 @@ const Folder = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const fetchFolderContents = async () => {
+ {/* const fetchFolderContents = async () => {
     setLoading(true);
     setError(null);
     
@@ -96,7 +96,80 @@ const Folder = () => {
     } finally {
       setLoading(false);
     }
-  };
+  };*/}
+  
+  
+  const fetchFolderContents = async () => {
+  setLoading(true);
+  setError(null);
+  
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Please log in");
+
+    console.log(`📂 Fetching folder ${folderId || 'root'}...`);
+
+    // 1. Fetch current folder info
+    if (folderId) {
+      const folderRes = await fetch(`${API_BASE}/api/folders/${folderId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const folderData = await folderRes.json();
+      if (folderData.success) {
+        setCurrentFolder(folderData.folder);
+      }
+    }
+
+    // 2. Fetch files in this folder - Use the corrected endpoint
+    const filesRes = await fetch(
+      `${API_BASE}/api/upload/user?folder_id=${folderId || 'root'}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    
+    const filesData = await filesRes.json();
+    console.log("📦 Files response:", {
+      success: filesData.success,
+      count: filesData.files?.length || 0,
+      folder_id: filesData.folder_id
+    });
+    
+    if (filesData.success) {
+      setFiles(filesData.files || []);
+    } else {
+      console.error("Files API error:", filesData.message);
+      setFiles([]);
+    }
+
+    // 3. Fetch subfolders
+    const foldersRes = await fetch(
+      `${API_BASE}/api/folders?parent_id=${folderId || 'root'}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    
+    const foldersData = await foldersRes.json();
+    console.log("📁 Folders response:", {
+      success: foldersData.success,
+      count: foldersData.folders?.length || 0
+    });
+    
+    if (foldersData.success) {
+      setFolders(foldersData.folders || []);
+    } else {
+      console.error("Folders API error:", foldersData.message);
+      setFolders([]);
+    }
+
+  } catch (err) {
+    console.error("Error fetching folder:", err);
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+  
+  
+  
+  
 
   const fetchAllFolders = async () => {
     try {

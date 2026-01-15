@@ -61,62 +61,62 @@ const MyFiles = () => {
   try {
     const token = localStorage.getItem("token");
     
-    // ALWAYS fetch folders (this works)
+    console.log("🔍 Fetching root contents...");
+    
+    // OPTION 1: Use getUserFiles endpoint (recommended)
+    const filesRes = await fetch(`${API_BASE}/api/upload/user`, {
+      headers: { Authorization: `Bearer ${token}` }
+      // No folder_id parameter needed - backend defaults to root
+    });
+    
+    const filesData = await filesRes.json();
+    console.log("📦 Files API Response:", {
+      success: filesData.success,
+      filesCount: filesData.files?.length || 0,
+      message: filesData.message
+    });
+    
+    if (filesData.success) {
+      setFiles(filesData.files || []);
+    } else {
+      console.error("Files API error:", filesData.message);
+      setFiles([]);
+    }
+
+    // OPTION 2: Use getAllUserItems endpoint (alternative)
+    // const itemsRes = await fetch(`${API_BASE}/api/upload/items?parent_id=root`, {
+    //   headers: { Authorization: `Bearer ${token}` }
+    // });
+    // const itemsData = await itemsRes.json();
+    // if (itemsData.success) {
+    //   // Separate files and folders from the combined data
+    //   const files = itemsData.data.filter(item => item.is_file);
+    //   const folders = itemsData.data.filter(item => item.is_folder);
+    //   setFiles(files);
+    //   setFolders(folders);
+    // }
+
+    // Get root folders
     const foldersRes = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
       headers: { Authorization: `Bearer ${token}` }
     });
+    
     const foldersData = await foldersRes.json();
+    console.log("📁 Folders API Response:", {
+      success: foldersData.success,
+      foldersCount: foldersData.folders?.length || 0
+    });
     
     if (foldersData.success) {
       setFolders(foldersData.folders || []);
     }
     
-    // For files: Try the main upload endpoint first
-    const allFilesRes = await fetch(`${API_BASE}/api/upload`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    
-    const allFilesData = await allFilesRes.json();
-    
-    let rootFiles = [];
-    
-    if (allFilesData.success) {
-      // Get all files
-      const allFiles = allFilesData.files || allFilesData.data || [];
-      
-      // Filter for root files
-      rootFiles = allFiles.filter(file => {
-        if (!file) return false;
-        
-        // Check different possible folder_id field names
-        const folderId = file.folder_id || file.folderId || file.folder_id;
-        
-        // Check if it's a root file
-        const isRoot = (
-          folderId === undefined ||
-          folderId === null ||
-          folderId === 'null' ||
-          folderId === '' ||
-          folderId === 'root' ||
-          folderId === 'Root' ||
-          String(folderId).toLowerCase() === 'root'
-        );
-        
-        return isRoot;
-      });
-      
-      console.log(`📊 Files: ${allFiles.length} total, ${rootFiles.length} in root`);
-    }
-    
-    setFiles(rootFiles);
-    
   } catch (err) {
-    console.error("Error:", err);
+    console.error("Error fetching root contents:", err);
   } finally {
     setLoading(false);
   }
-}; 
-  
+};
   
   
   

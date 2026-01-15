@@ -65,211 +65,9 @@ const determineFileType = (fileName, fileMime) => {
   else return "document";
 };
 
-// =========== CONTROLLER FUNCTIONS ===========
 
-// Get user files with folder support
+
 {/*export const getUserFiles = async (req, res) => {
-  const startTime = Date.now();
-  
-  try {
-    const userId = req.user.userId;
-    const { folder_id } = req.query;
-
-    console.log('📂 ========= GET USER FILES REQUEST =========');
-    console.log('👤 User ID:', userId);
-    console.log('📦 Folder ID from query:', folder_id || 'root');
-
-    // Validate user ID
-    if (!userId) {
-      console.error('❌ No user ID provided');
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required'
-      });
-    }
-
-    let sql;
-    let params;
-    let folderInfo = null;
-    
-    // Handle different folder scenarios
-    if (folder_id === 'root' || !folder_id) {
-      // Get files in root (folder_id is NULL)
-      console.log('🔍 Fetching files from root folder');
-      sql = `
-        SELECT 
-          f.*,
-          u.username as owner_name
-        FROM files f
-        LEFT JOIN users u ON f.user_id = u.id
-        WHERE f.user_id = $1 
-        AND (f.folder_id IS NULL)
-        ORDER BY f.uploaded_at DESC
-      `;
-      params = [userId];
-    } 
-    else if (folder_id) {
-      // Parse folder_id to integer
-      const folderIdNum = parseInt(folder_id);
-      
-      if (isNaN(folderIdNum) || folderIdNum <= 0) {
-        console.error(`❌ Invalid folder ID format: ${folder_id}`);
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid folder ID format'
-        });
-      }
-
-      console.log(`🔍 Fetching files from folder ID: ${folderIdNum}`);
-
-      // First, verify the folder exists and belongs to user
-      try {
-        const folderCheck = await query(
-          'SELECT id, name, created_at FROM folders WHERE id = $1 AND owner_id = $2',
-          [folderIdNum, userId]
-        );
-        
-        console.log('📋 Folder check result:', {
-          rowCount: folderCheck.rowCount,
-          rows: folderCheck.rows
-        });
-        
-        if (folderCheck.rows.length === 0) {
-          console.log(`❌ Folder ${folderIdNum} not found or access denied for user ${userId}`);
-          return res.status(404).json({
-            success: false,
-            message: 'Folder not found or access denied'
-          });
-        }
-        
-        // Store folder info
-        folderInfo = {
-          ...folderCheck.rows[0],
-          id: folderCheck.rows[0].id.toString() // Convert to string for consistency
-        };
-        
-        console.log(`✅ Folder verified: "${folderInfo.name}" (ID: ${folderInfo.id})`);
-        
-      } catch (folderError) {
-        console.error('❌ Error checking folder:', folderError.message);
-        console.error('Folder error stack:', folderError.stack);
-        
-        return res.status(500).json({
-          success: false,
-          message: 'Error verifying folder',
-          ...(process.env.NODE_ENV === 'development' && { error: folderError.message })
-        });
-      }
-
-      // Get files in the specified folder
-      sql = `
-        SELECT 
-          f.*,
-          u.username as owner_name
-        FROM files f
-        LEFT JOIN users u ON f.user_id = u.id
-        WHERE f.user_id = $1 
-        AND f.folder_id = $2
-        ORDER BY f.uploaded_at DESC
-      `;
-      params = [userId, folderIdNum];
-    }
-
-    console.log('📊 Executing SQL query:', sql.substring(0, 200) + '...');
-    console.log('📊 Query parameters:', params);
-
-    // Execute the query
-    const result = await query(sql, params);
-    
-    const duration = Date.now() - startTime;
-    console.log(`✅ Found ${result.rows.length} files in ${duration}ms`);
-    
-    // If we found files, log some details
-    if (result.rows.length > 0) {
-      console.log('📋 Sample files (first 3):');
-      result.rows.slice(0, 3).forEach((file, index) => {
-        console.log(`  ${index + 1}. ${file.original_name} (${file.filetype}, ${file.file_size} bytes)`);
-      });
-    }
-
-    // Format files for response
-    const formattedFiles = result.rows.map(file => {
-      // Determine file type
-      const fileType = determineFileType(file.original_name, file.filetype);
-      
-      // Format date
-      let formattedDate = "Unknown";
-      if (file.uploaded_at) {
-        const date = new Date(file.uploaded_at);
-        formattedDate = date.toLocaleDateString("en-US", {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-      }
-      
-      return {
-        ...file,
-        formatted_size: formatFileSize(file.file_size),
-        formatted_date: formattedDate,
-        file_type: fileType,
-        id: file.id.toString(), // Ensure ID is string
-        folder_id: file.folder_id ? file.folder_id.toString() : null
-      };
-    });
-
-    // Calculate storage stats
-    const totalStorage = result.rows.reduce((sum, file) => {
-      return sum + (parseInt(file.file_size) || 0);
-    }, 0);
-
-    console.log(`📊 Storage used in this folder: ${formatFileSize(totalStorage)}`);
-    
-    const response = {
-      success: true,
-      files: formattedFiles,
-      count: formattedFiles.length,
-      storage_used: formatFileSize(totalStorage),
-      storage_bytes: totalStorage,
-      current_folder_id: folder_id || 'root',
-      folder: folderInfo,
-      query_duration: `${duration}ms`
-    };
-
-    console.log('📤 Sending response with', formattedFiles.length, 'files');
-    
-    res.json(response);
-
-  } catch (error) {
-    const duration = Date.now() - startTime;
-    console.error(`❌ ========= GET USER FILES FAILED (${duration}ms) =========`);
-    console.error('Error name:', error.name);
-    console.error('Error message:', error.message);
-    console.error('Error code:', error.code);
-    console.error('Error stack:', error.stack);
-    
-    console.error('Request details:', {
-      user: req.user,
-      query: req.query,
-      method: req.method,
-      url: req.originalUrl
-    });
-
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch files',
-      ...(process.env.NODE_ENV === 'development' && {
-        error: error.message,
-        code: error.code
-      }),
-      query_duration: `${duration}ms`
-    });
-  }
-};*/}
-
-export const getUserFiles = async (req, res) => {
   try {
     const userId = req.user.userId;
     const folderId = req.query.folder_id;
@@ -325,12 +123,245 @@ export const getUserFiles = async (req, res) => {
       message: error.message
     });
   }
+};*/}
+
+
+// Get user files with folder support
+export const getUserFiles = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const folderId = req.query.folder_id;
+    
+    console.log('📂 getUserFiles called:', { userId, folderId });
+    
+    let sql = `
+      SELECT f.*, u.username as owner_name
+      FROM files f
+      LEFT JOIN users u ON f.user_id = u.id
+      WHERE f.user_id = $1
+    `;
+    
+    let params = [userId];
+    let paramIndex = 2; // Start from $2 since $1 is userId
+
+    // Handle folder filtering
+    if (folderId && folderId !== 'root') {
+      const folderIdNum = parseInt(folderId);
+      if (!isNaN(folderIdNum)) {
+        sql += ` AND f.folder_id = $${paramIndex}`;
+        params.push(folderIdNum);
+        paramIndex++;
+      } else {
+        // If folderId is not a valid number, get files with no folder
+        sql += ' AND f.folder_id IS NULL';
+      }
+    } else if (folderId === 'root') {
+      // For root, get files where folder_id IS NULL
+      sql += ' AND f.folder_id IS NULL';
+    } else {
+      // No folder_id specified - default to root files
+      sql += ' AND f.folder_id IS NULL';
+    }
+    
+    sql += ' ORDER BY f.uploaded_at DESC';
+    
+    console.log('📝 Executing SQL:', sql);
+    console.log('📝 With params:', params);
+    
+    const result = await query(sql, params);
+    
+    console.log(`✅ Found ${result.rows.length} files`);
+    
+    // Format the response
+    const files = result.rows.map(file => ({
+      ...file,
+      id: file.id.toString(),
+      folder_id: file.folder_id ? file.folder_id.toString() : null,
+      formatted_size: formatFileSize(file.file_size),
+      is_file: true
+    }));
+    
+    res.json({
+      success: true,
+      files: files,
+      count: files.length,
+      folder_id: folderId || 'root'
+    });
+    
+  } catch (error) {
+    console.error('❌ Error in getUserFiles:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
 };
 
 
 
 
 
+
+
+
+
+// Get all user items (files + folders) for MyFiles page
+{/*export const getAllUserItems = async (req, res) => {
+  const startTime = Date.now();
+  
+  try {
+    const userId = req.user.userId;
+    const { parent_id } = req.query;
+
+    console.log('📦 ========= GET ALL USER ITEMS REQUEST =========');
+    console.log('👤 User ID:', userId);
+    console.log('📦 Parent folder ID:', parent_id || 'root');
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    let parentFolderId = null;
+    let parentFolderInfo = null;
+
+    // Handle parent folder validation
+    if (parent_id && parent_id !== 'root') {
+      const parentIdNum = parseInt(parent_id);
+      
+      if (isNaN(parentIdNum) || parentIdNum <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid parent folder ID'
+        });
+      }
+
+      // Verify parent folder exists
+      const parentCheck = await query(
+        'SELECT id, name, created_at FROM folders WHERE id = $1 AND owner_id = $2',
+        [parentIdNum, userId]
+      );
+      
+      if (parentCheck.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Parent folder not found or access denied'
+        });
+      }
+      
+      parentFolderId = parentIdNum;
+      parentFolderInfo = {
+        ...parentCheck.rows[0],
+        id: parentCheck.rows[0].id.toString()
+      };
+    }
+
+    // Get files in current folder
+    let filesSql;
+    let filesParams;
+    
+    if (parent_id === 'root' || !parent_id) {
+      filesSql = `
+        SELECT f.*, u.username as owner_name 
+        FROM files f
+        LEFT JOIN users u ON f.user_id = u.id
+        WHERE f.user_id = $1 AND (f.folder_id IS NULL)
+        ORDER BY f.uploaded_at DESC
+      `;
+      filesParams = [userId];
+    } else {
+      filesSql = `
+        SELECT f.*, u.username as owner_name 
+        FROM files f.
+        LEFT JOIN users u ON f.user_id = u.id
+        WHERE f.user_id = $1 AND f.folder_id = $2
+        ORDER BY f.uploaded_at DESC
+      `;
+      filesParams = [userId, parentFolderId];
+    }
+
+    // Get folders in current folder
+    let foldersSql;
+    let foldersParams;
+    
+    if (parent_id === 'root' || !parent_id) {
+      foldersSql = `
+        SELECT * FROM folders 
+        WHERE owner_id = $1 AND parent_id IS NULL
+        ORDER BY name ASC
+      `;
+      foldersParams = [userId];
+    } else {
+      foldersSql = `
+        SELECT * FROM folders 
+        WHERE owner_id = $1 AND parent_id = $2
+        ORDER BY name ASC
+      `;
+      foldersParams = [userId, parentFolderId];
+    }
+
+    console.log('📊 Executing parallel queries for files and folders...');
+    
+    // Execute both queries in parallel
+    const [filesResult, foldersResult] = await Promise.all([
+      query(filesSql, filesParams),
+      query(foldersSql, foldersParams)
+    ]);
+
+    const duration = Date.now() - startTime;
+    console.log(`✅ Found ${filesResult.rows.length} files and ${foldersResult.rows.length} folders in ${duration}ms`);
+
+    // Format files
+    const formattedFiles = filesResult.rows.map(file => {
+      return {
+        ...file,
+        formatted_size: formatFileSize(file.file_size),
+        id: file.id.toString(),
+        folder_id: file.folder_id ? file.folder_id.toString() : null,
+        is_file: true
+      };
+    });
+
+    // Format folders
+    const formattedFolders = foldersResult.rows.map(folder => ({
+      ...folder,
+      id: folder.id.toString(),
+      parent_id: folder.parent_id ? folder.parent_id.toString() : null,
+      is_folder: true
+    }));
+
+    // Calculate storage
+    const totalStorage = filesResult.rows.reduce((sum, file) => {
+      return sum + (parseInt(file.file_size) || 0);
+    }, 0);
+
+    res.json({
+      success: true,
+      files: formattedFiles,
+      folders: formattedFolders,
+      file_count: formattedFiles.length,
+      folder_count: formattedFolders.length,
+      total_items: formattedFiles.length + formattedFolders.length,
+      parent_folder: parentFolderInfo,
+      current_folder_id: parent_id || 'root',
+      storage_used: totalStorage,
+      query_duration: `${duration}ms`
+    });
+
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    console.error(`❌ Error fetching all items (${duration}ms):`, error.message);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch files and folders',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      query_duration: `${duration}ms`
+    });
+  }
+};*/}
 
 // Get all user items (files + folders) for MyFiles page
 export const getAllUserItems = async (req, res) => {
@@ -459,36 +490,38 @@ export const getAllUserItems = async (req, res) => {
       is_folder: true
     }));
 
-    // Calculate storage
-    const totalStorage = filesResult.rows.reduce((sum, file) => {
-      return sum + (parseInt(file.file_size) || 0);
-    }, 0);
+    // Combine results
+    const allItems = [...formattedFolders, ...formattedFiles];
 
     res.json({
       success: true,
-      files: formattedFiles,
-      folders: formattedFolders,
-      file_count: formattedFiles.length,
-      folder_count: formattedFolders.length,
-      total_items: formattedFiles.length + formattedFolders.length,
+      message: 'Files and folders retrieved successfully',
+      data: allItems,
+      count: allItems.length,
+      files_count: formattedFiles.length,
+      folders_count: formattedFolders.length,
       parent_folder: parentFolderInfo,
-      current_folder_id: parent_id || 'root',
-      storage_used: totalStorage,
-      query_duration: `${duration}ms`
+      parent_id: parent_id || 'root'
     });
 
   } catch (error) {
     const duration = Date.now() - startTime;
-    console.error(`❌ Error fetching all items (${duration}ms):`, error.message);
+    console.error(`❌ Error in getAllUserItems (${duration}ms):`, error);
     
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch files and folders',
-      ...(process.env.NODE_ENV === 'development' && { error: error.message }),
-      query_duration: `${duration}ms`
+      message: 'Server error retrieving files and folders',
+      error: error.message
     });
   }
 };
+
+
+
+
+
+
+
 
 
 {/*export const uploadFile = async (req, res) => {
