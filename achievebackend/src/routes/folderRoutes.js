@@ -23,9 +23,11 @@ router.get('/', getFolders);
 // Get specific folder by ID
 router.get('/:id', getFolderById);
 
+router.put('/:id', renameFolder);
+
 // Delete folder and its contents
 router.delete('/:id', deleteFolder);
-router.put('/:id', renameFolder);
+
 
 // Get breadcrumbs for a folder
 {/*router.get('/:id/breadcrumbs', getBreadcrumbsAlt);*/} // Using alternative method
