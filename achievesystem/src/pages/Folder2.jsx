@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useRef } from "react";
+import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { useNavigate, useParams, Link } from "react-router-dom";
 
@@ -14,34 +14,13 @@ const Folder = () => {
   const [newFolderName, setNewFolderName] = useState("");
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [folderActionsMenu, setFolderActionsMenu] = useState(null);
-  const [fileActionsMenu, setFileActionsMenu] = useState(null);
-  const [moveFileModal, setMoveFileModal] = useState(null);
-  const [allFolders, setAllFolders] = useState([]);
-  const [selectedMoveFolder, setSelectedMoveFolder] = useState("");
 
   const API_BASE = 'https://archivesystembackend.onrender.com';
-  const actionsMenuRef = useRef(null);
 
   // Fetch folder contents
   useEffect(() => {
     fetchFolderContents();
-    fetchAllFolders(); // Fetch all folders for move file dropdown
   }, [folderId]);
-
-  // Close menus when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target)) {
-        setFolderActionsMenu(null);
-        setFileActionsMenu(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const fetchFolderContents = async () => {
     setLoading(true);
@@ -71,6 +50,8 @@ const Folder = () => {
       );
       const filesData = await filesRes.json();
       
+      console.log("Files response:", filesData);
+      
       if (filesData.success) {
         setFiles(filesData.files || []);
       } else {
@@ -84,6 +65,8 @@ const Folder = () => {
       );
       const foldersData = await foldersRes.json();
       
+      console.log("Folders response:", foldersData);
+      
       if (foldersData.success) {
         setFolders(foldersData.folders || []);
       } else {
@@ -95,24 +78,6 @@ const Folder = () => {
       setError(err.message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchAllFolders = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE}/api/folders/all`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      const result = await response.json();
-      if (result.success) {
-        // Filter out current folder from move options
-        const filteredFolders = result.folders.filter(f => f.id !== folderId);
-        setAllFolders(filteredFolders);
-      }
-    } catch (err) {
-      console.error("Error fetching all folders:", err);
     }
   };
 
@@ -145,43 +110,13 @@ const Folder = () => {
         fetchFolderContents(); // Refresh
         alert("Folder created successfully!");
       } else {
-        alert(result.message);
+        alert(result.message || "Failed to create folder");
       }
     } catch (err) {
       console.error("Error creating folder:", err);
       alert("Failed to create folder");
     } finally {
       setIsCreatingFolder(false);
-    }
-  };
-
-  const handleEditFolder = async (folder) => {
-    const newName = prompt("Enter new folder name:", folder.name);
-    if (!newName || newName.trim() === folder.name) return;
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE}/api/folders/${folder.id}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name: newName.trim() })
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        fetchFolderContents(); // Refresh
-        alert("Folder renamed successfully!");
-      } else {
-        alert(result.message);
-      }
-    } catch (err) {
-      console.error("Error editing folder:", err);
-      alert("Failed to rename folder");
-    } finally {
-      setFolderActionsMenu(null);
     }
   };
 
@@ -202,13 +137,11 @@ const Folder = () => {
         fetchFolderContents(); // Refresh
         alert("Folder deleted successfully!");
       } else {
-        alert(result.message);
+        alert(result.message || "Failed to delete folder");
       }
     } catch (err) {
       console.error("Error deleting folder:", err);
       alert("Failed to delete folder");
-    } finally {
-      setFolderActionsMenu(null);
     }
   };
 
@@ -217,43 +150,6 @@ const Folder = () => {
       navigate(`/upload?folder=${folderId}`);
     } else {
       navigate('/upload');
-    }
-  };
-
-  const handleEditFile = (file) => {
-    // Navigate to upload page with file data for editing
-    navigate(`/upload?edit=${file.id}&folder=${folderId || 'root'}`);
-  };
-
-  const handleMoveFile = async (file) => {
-    if (!selectedMoveFolder) {
-      alert("Please select a destination folder");
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE}/api/upload/${file.id}/move`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ folder_id: selectedMoveFolder })
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        setMoveFileModal(null);
-        setSelectedMoveFolder("");
-        fetchFolderContents(); // Refresh
-        alert("File moved successfully!");
-      } else {
-        alert(result.message);
-      }
-    } catch (err) {
-      console.error("Error moving file:", err);
-      alert("Failed to move file");
     }
   };
 
@@ -274,13 +170,11 @@ const Folder = () => {
         fetchFolderContents(); // Refresh
         alert("File deleted successfully!");
       } else {
-        alert(result.message);
+        alert(result.message || "Failed to delete file");
       }
     } catch (err) {
       console.error("Error deleting file:", err);
       alert("Failed to delete file");
-    } finally {
-      setFileActionsMenu(null);
     }
   };
 
@@ -310,15 +204,12 @@ const Folder = () => {
     }
   };
 
-  // Filter files and folders based on search
-  const filteredFiles = files.filter(file => 
-    file.original_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (file.description && file.description.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
-  const filteredFolders = folders.filter(folder => 
-    folder.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Close modal when clicking outside
+  const handleModalClose = (e) => {
+    if (e.target.id === "modal-overlay") {
+      setShowCreateFolder(false);
+    }
+  };
 
   // Loading state
   if (loading) {
@@ -344,22 +235,19 @@ const Folder = () => {
   }
 
   return (
-    <div style={styles.container}>
-      {/* Header with Fixed Buttons */}
+     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', position: 'relative' }}>
+      {/* Header */}
       <div style={styles.header}>
-        <div style={styles.headerLeft}>
-          <h1 style={styles.title}>
-            {currentFolder ? `📁 ${currentFolder.name}` : '📂 My Files'}
-          </h1>
-          <div style={styles.filesStats}>
-            {filteredFiles.length + filteredFolders.length} items
-            {filteredFiles.length > 0 && ` • ${filteredFiles.length} files`}
-            {filteredFolders.length > 0 && ` • ${filteredFolders.length} folders`}
-          </div>
-        </div>
+        <h1 style={styles.title}>
+          {currentFolder ? `📁 ${currentFolder.name}` : '📂 My Files'}
+        </h1>
         
-        <div style={styles.headerRight}>
-          <button onClick={handleUpload} style={styles.primaryButton}>
+        <div style={styles.actions}>
+          <button 
+            onClick={handleUpload} 
+            style={styles.primaryButton}
+            disabled={isCreatingFolder}
+          >
             📤 Upload Files
           </button>
           <button 
@@ -387,31 +275,13 @@ const Folder = () => {
         )}
       </div>
 
-      {/* Search Bar */}
-      <div style={styles.searchContainer}>
-        <div style={styles.searchInputContainer}>
-          <span style={styles.searchIcon}>🔍</span>
-          <input
-            type="text"
-            placeholder="Search files and folders..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={styles.searchInput}
-          />
-          {searchTerm && (
-            <button 
-              onClick={() => setSearchTerm("")}
-              style={styles.clearSearchButton}
-            >
-              ✕
-            </button>
-          )}
-        </div>
-      </div>
-
       {/* Create Folder Modal */}
       {showCreateFolder && (
-        <div style={styles.modalOverlay} onClick={() => setShowCreateFolder(false)}>
+        <div 
+          id="modal-overlay"
+          style={styles.modalOverlay}
+          onClick={handleModalClose}
+        >
           <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
             <h3>Create New Folder</h3>
             <p style={styles.modalDescription}>
@@ -448,52 +318,12 @@ const Folder = () => {
         </div>
       )}
 
-      {/* Move File Modal */}
-      {moveFileModal && (
-        <div style={styles.modalOverlay} onClick={() => setMoveFileModal(null)}>
-          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <h3>Move File</h3>
-            <p style={styles.modalDescription}>
-              Move "{moveFileModal.original_name}" to another folder
-            </p>
-            <select
-              value={selectedMoveFolder}
-              onChange={(e) => setSelectedMoveFolder(e.target.value)}
-              style={styles.moveSelect}
-            >
-              <option value="">Select a folder...</option>
-              <option value="root">📂 My Files (Root)</option>
-              {allFolders.map(folder => (
-                <option key={folder.id} value={folder.id}>
-                  {folder.name}
-                </option>
-              ))}
-            </select>
-            <div style={styles.modalActions}>
-              <button 
-                onClick={() => setMoveFileModal(null)}
-                style={styles.cancelButton}
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={() => handleMoveFile(moveFileModal)}
-                style={styles.confirmButton}
-                disabled={!selectedMoveFolder}
-              >
-                Move File
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Folders List */}
-      {filteredFolders.length > 0 && (
+      {folders.length > 0 && (
         <div style={styles.section}>
-          <h3 style={styles.sectionTitle}>Folders ({filteredFolders.length})</h3>
+          <h3 style={styles.sectionTitle}>Folders ({folders.length})</h3>
           <div style={styles.foldersGrid}>
-            {filteredFolders.map((folder) => (
+            {folders.map((folder) => (
               <div key={folder.id} style={styles.folderItem}>
                 <Link 
                   to={`/files/folder/${folder.id}`} 
@@ -501,47 +331,20 @@ const Folder = () => {
                 >
                   <div style={styles.folderIcon}>📁</div>
                   <div style={styles.folderName}>{folder.name}</div>
+                  <div style={styles.folderInfo}>
+                    Created: {new Date(folder.created_at).toLocaleDateString()}
+                  </div>
                 </Link>
-                
-                {/* Three Dots Menu for Folder */}
-                <div style={styles.actionsContainer}>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setFolderActionsMenu(folderActionsMenu === folder.id ? null : folder.id);
-                      setFileActionsMenu(null);
-                    }}
-                    style={styles.dotsButton}
-                    title="Folder actions"
-                  >
-                    ⋮
-                  </button>
-                  
-                  {folderActionsMenu === folder.id && (
-                    <div ref={actionsMenuRef} style={styles.actionsMenu}>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditFolder(folder);
-                        }}
-                        style={styles.menuItem}
-                      >
-                        <span style={{ marginRight: '8px' }}>✏️</span>
-                        Rename
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteFolder(folder);
-                        }}
-                        style={{ ...styles.menuItem, color: '#ea4335' }}
-                      >
-                        <span style={{ marginRight: '8px' }}>🗑️</span>
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteFolder(folder);
+                  }}
+                  style={styles.deleteButton}
+                  title="Delete Folder"
+                >
+                  🗑️
+                </button>
               </div>
             ))}
           </div>
@@ -549,9 +352,9 @@ const Folder = () => {
       )}
 
       {/* Files List */}
-      {filteredFiles.length > 0 && (
+      {files.length > 0 && (
         <div style={styles.section}>
-          <h3 style={styles.sectionTitle}>Files ({filteredFiles.length})</h3>
+          <h3 style={styles.sectionTitle}>Files ({files.length})</h3>
           <div style={styles.filesTable}>
             <div style={styles.tableHeader}>
               <div style={styles.colName}>Name</div>
@@ -561,7 +364,7 @@ const Folder = () => {
               <div style={styles.colActions}>Actions</div>
             </div>
             
-            {filteredFiles.map((file) => (
+            {files.map((file) => (
               <div key={file.id} style={styles.tableRow}>
                 <div style={styles.colName}>
                   <span style={styles.fileIcon}>
@@ -588,57 +391,13 @@ const Folder = () => {
                   >
                     ⬇️
                   </button>
-                  
-                  {/* Three Dots Menu for File */}
-                  <div style={styles.fileActionsContainer}>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setFileActionsMenu(fileActionsMenu === file.id ? null : file.id);
-                        setFolderActionsMenu(null);
-                      }}
-                      style={styles.dotsButton}
-                      title="File actions"
-                    >
-                      ⋮
-                    </button>
-                    
-                    {fileActionsMenu === file.id && (
-                      <div ref={actionsMenuRef} style={styles.actionsMenu}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditFile(file);
-                          }}
-                          style={styles.menuItem}
-                        >
-                          <span style={{ marginRight: '8px' }}>✏️</span>
-                          Edit
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setMoveFileModal(file);
-                            setFileActionsMenu(null);
-                          }}
-                          style={styles.menuItem}
-                        >
-                          <span style={{ marginRight: '8px' }}>📂</span>
-                          Move
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteFile(file);
-                          }}
-                          style={{ ...styles.menuItem, color: '#ea4335' }}
-                        >
-                          <span style={{ marginRight: '8px' }}>🗑️</span>
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  <button
+                    onClick={() => handleDeleteFile(file)}
+                    style={styles.deleteButton}
+                    title="Delete"
+                  >
+                    🗑️
+                  </button>
                 </div>
               </div>
             ))}
@@ -646,14 +405,17 @@ const Folder = () => {
         </div>
       )}
 
-      {/* Empty State - Always show buttons even when empty */}
-      {filteredFiles.length === 0 && filteredFolders.length === 0 && (
+      {/* Empty State */}
+      {files.length === 0 && folders.length === 0 && (
         <div style={styles.emptyState}>
           <div style={styles.emptyIcon}>📁</div>
           <h3>This folder is empty</h3>
           <p>Upload files or create subfolders to get started</p>
           <div style={styles.emptyActions}>
-            <button onClick={handleUpload} style={styles.primaryButton}>
+            <button 
+              onClick={handleUpload} 
+              style={styles.primaryButton}
+            >
               📤 Upload Files
             </button>
             <button 
@@ -709,23 +471,15 @@ const styles = {
     flexWrap: 'wrap',
     gap: '15px',
   },
-  headerLeft: {
-    flex: 1,
-  },
-  headerRight: {
-    display: 'flex',
-    gap: '10px',
-    flexWrap: 'wrap',
-  },
   title: {
     fontSize: '24px',
     fontWeight: '500',
     margin: 0,
-    marginBottom: '5px',
   },
-  filesStats: {
-    fontSize: '14px',
-    color: '#5f6368',
+  actions: {
+    display: 'flex',
+    gap: '10px',
+    flexWrap: 'wrap',
   },
   primaryButton: {
     padding: '10px 20px',
@@ -763,7 +517,7 @@ const styles = {
     },
   },
   breadcrumb: {
-    marginBottom: '20px',
+    marginBottom: '30px',
     fontSize: '14px',
     color: '#5f6368',
     display: 'flex',
@@ -782,55 +536,6 @@ const styles = {
   breadcrumbCurrent: {
     color: '#202124',
     fontWeight: '500',
-  },
-  searchContainer: {
-    marginBottom: '30px',
-  },
-  searchInputContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    border: '1px solid #dadce0',
-    borderRadius: '8px',
-    padding: '0 12px',
-    maxWidth: '500px',
-    transition: 'box-shadow 0.2s',
-    ':focus-within': {
-      boxShadow: '0 1px 6px rgba(0, 0, 0, 0.1)',
-      borderColor: '#4285f4',
-    },
-  },
-  searchIcon: {
-    fontSize: '16px',
-    color: '#5f6368',
-    marginRight: '8px',
-  },
-  searchInput: {
-    flex: 1,
-    padding: '12px 0',
-    border: 'none',
-    outline: 'none',
-    fontSize: '14px',
-    backgroundColor: 'transparent',
-    '::placeholder': {
-      color: '#80868b',
-    },
-  },
-  clearSearchButton: {
-    background: 'none',
-    border: 'none',
-    color: '#5f6368',
-    cursor: 'pointer',
-    fontSize: '18px',
-    padding: '0',
-    width: '24px',
-    height: '24px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ':hover': {
-      color: '#202124',
-    },
   },
   modalOverlay: {
     position: 'fixed',
@@ -873,21 +578,6 @@ const styles = {
     ':disabled': {
       backgroundColor: '#f5f5f5',
       cursor: 'not-allowed',
-    },
-  },
-  moveSelect: {
-    width: '100%',
-    padding: '12px',
-    margin: '15px 0',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '16px',
-    boxSizing: 'border-box',
-    backgroundColor: 'white',
-    ':focus': {
-      outline: 'none',
-      borderColor: '#4285f4',
-      boxShadow: '0 0 0 2px rgba(66, 133, 244, 0.2)',
     },
   },
   modalActions: {
@@ -972,56 +662,12 @@ const styles = {
     fontWeight: '500',
     wordBreak: 'break-word',
     textAlign: 'center',
+    marginBottom: '8px',
   },
-  actionsContainer: {
-    position: 'absolute',
-    top: '10px',
-    right: '10px',
-  },
-  fileActionsContainer: {
-    position: 'relative',
-    display: 'inline-block',
-  },
-  dotsButton: {
-    background: 'none',
-    border: 'none',
-    fontSize: '20px',
-    cursor: 'pointer',
+  folderInfo: {
+    fontSize: '12px',
     color: '#5f6368',
-    padding: '4px 8px',
-    borderRadius: '4px',
-    transition: 'background-color 0.2s',
-    ':hover': {
-      backgroundColor: 'rgba(0, 0, 0, 0.05)',
-    },
-  },
-  actionsMenu: {
-    position: 'absolute',
-    right: '0',
-    top: '100%',
-    backgroundColor: 'white',
-    border: '1px solid #e0e0e0',
-    borderRadius: '6px',
-    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-    minWidth: '140px',
-    zIndex: 100,
-    overflow: 'hidden',
-  },
-  menuItem: {
-    display: 'flex',
-    alignItems: 'center',
-    width: '100%',
-    padding: '10px 12px',
-    background: 'none',
-    border: 'none',
-    textAlign: 'left',
-    cursor: 'pointer',
-    fontSize: '14px',
-    color: '#202124',
-    transition: 'background-color 0.2s',
-    ':hover': {
-      backgroundColor: '#f5f5f5',
-    },
+    textAlign: 'center',
   },
   filesTable: {
     border: '1px solid #e0e0e0',
@@ -1069,11 +715,6 @@ const styles = {
     whiteSpace: 'nowrap',
     fontSize: '14px',
   },
-  colActions: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
   actionButton: {
     background: 'none',
     border: 'none',
@@ -1084,6 +725,19 @@ const styles = {
     transition: 'background-color 0.2s',
     ':hover': {
       backgroundColor: '#f1f3f4',
+    },
+  },
+  deleteButton: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '16px',
+    padding: '8px',
+    borderRadius: '4px',
+    color: '#ea4335',
+    transition: 'background-color 0.2s',
+    ':hover': {
+      backgroundColor: '#fce8e6',
     },
   },
   emptyState: {
@@ -1148,20 +802,12 @@ const addStyles = () => {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
-      
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      
-      .actions-menu {
-        animation: fadeIn 0.2s ease-out;
-      }
     `;
     document.head.appendChild(styleSheet);
   }
 };
 
+// Call the style function
 addStyles();
 
 export default Folder;
