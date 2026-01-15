@@ -705,7 +705,6 @@ const formatFileSize = (bytes) => {
 // Styles
 const styles = {
   container: {
-    marginTop:'30px',
     padding: '20px',
     maxWidth: '1200px',
     margin: '0 auto',
@@ -773,6 +772,7 @@ const styles = {
     },
   },
   breadcrumb: {
+    marginTop: '30px',
     marginBottom: '20px',
     fontSize: '14px',
     color: '#5f6368',
