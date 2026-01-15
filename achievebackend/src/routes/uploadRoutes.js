@@ -50,8 +50,12 @@ router.get('/:id/visibility', authenticate, getFileVisibility);     // Check vis
 
 // =========== BASIC FILE ROUTES ===========
 {/*router.get('/', authenticate, getFiles);*/} // Backward compatibility - gets all files
-router.post('/', authenticate, uploadMiddleware.single('file'), uploadFile); // Changed to single file upload for folder support
+{/*router.post('/', authenticate, uploadMiddleware.single('file'), uploadFile);*/} // Changed to single file upload for folder support
 {/*router.get('/:id', authenticate, getFileDetails);*/}
+
+router.post('/', authenticate, uploadMiddleware.array('files'), uploadFile);
+
+
 router.get('/:id/download', authenticate, downloadFile);
 router.put('/:id', authenticate, updateFile);
 router.delete('/:id', authenticate, deleteFile);
