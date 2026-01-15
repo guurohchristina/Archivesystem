@@ -344,33 +344,10 @@ const Folder = () => {
   }
 
   return (
+    
     <div style={styles.container}>
       {/* Header with Fixed Buttons */}
-      <div style={styles.header}>
-        <div style={styles.headerLeft}>
-          <h1 style={styles.title}>
-            {currentFolder ? `📁 ${currentFolder.name}` : '📂 My Files'}
-          </h1>
-          <div style={styles.filesStats}>
-            {filteredFiles.length + filteredFolders.length} items
-            {filteredFiles.length > 0 && ` • ${filteredFiles.length} files`}
-            {filteredFolders.length > 0 && ` • ${filteredFolders.length} folders`}
-          </div>
-        </div>
-        
-        <div style={styles.headerRight}>
-          <button onClick={handleUpload} style={styles.primaryButton}>
-            📤 Upload Files
-          </button>
-          <button 
-            onClick={() => setShowCreateFolder(true)}
-            style={styles.secondaryButton}
-            disabled={isCreatingFolder}
-          >
-            📁 New Folder
-          </button>
-        </div>
-      </div>
+   
 
       {/* Breadcrumb */}
       <div style={styles.breadcrumb}>
@@ -408,6 +385,38 @@ const Folder = () => {
           )}
         </div>
       </div>
+      
+
+
+   <div style={styles.header}>
+        <div style={styles.headerLeft}>
+          <h1 style={styles.title}>
+            {currentFolder ? `📁 ${currentFolder.name}` : '📂 My Files'}
+          </h1>
+          <div style={styles.filesStats}>
+            {filteredFiles.length + filteredFolders.length} items
+            {filteredFiles.length > 0 && ` • ${filteredFiles.length} files`}
+            {filteredFolders.length > 0 && ` • ${filteredFolders.length} folders`}
+          </div>
+        </div>
+        
+        <div style={styles.headerRight}>
+          <button onClick={handleUpload} style={styles.primaryButton}>
+            📤 Upload Files
+          </button>
+          <button 
+            onClick={() => setShowCreateFolder(true)}
+            style={styles.secondaryButton}
+            disabled={isCreatingFolder}
+          >
+            📁 New Folder
+          </button>
+        </div>
+      </div>
+
+
+
+
 
       {/* Create Folder Modal */}
       {showCreateFolder && (
