@@ -21,7 +21,7 @@ const MyFiles = () => {
     fetchRootContents();
   }, []);
 
-  const fetchRootContents = async () => {
+{/*  const fetchRootContents = async () => {
     try {
       const token = localStorage.getItem("token");
       
@@ -54,7 +54,74 @@ const MyFiles = () => {
     } finally {
       setLoading(false);
     }
-  };
+  };*/}
+  
+  
+ const fetchRootContents = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    
+    // ALWAYS fetch folders (this works)
+    const foldersRes = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const foldersData = await foldersRes.json();
+    
+    if (foldersData.success) {
+      setFolders(foldersData.folders || []);
+    }
+    
+    // For files: Try the main upload endpoint first
+    const allFilesRes = await fetch(`${API_BASE}/api/upload`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    const allFilesData = await allFilesRes.json();
+    
+    let rootFiles = [];
+    
+    if (allFilesData.success) {
+      // Get all files
+      const allFiles = allFilesData.files || allFilesData.data || [];
+      
+      // Filter for root files
+      rootFiles = allFiles.filter(file => {
+        if (!file) return false;
+        
+        // Check different possible folder_id field names
+        const folderId = file.folder_id || file.folderId || file.folder_id;
+        
+        // Check if it's a root file
+        const isRoot = (
+          folderId === undefined ||
+          folderId === null ||
+          folderId === 'null' ||
+          folderId === '' ||
+          folderId === 'root' ||
+          folderId === 'Root' ||
+          String(folderId).toLowerCase() === 'root'
+        );
+        
+        return isRoot;
+      });
+      
+      console.log(`📊 Files: ${allFiles.length} total, ${rootFiles.length} in root`);
+    }
+    
+    setFiles(rootFiles);
+    
+  } catch (err) {
+    console.error("Error:", err);
+  } finally {
+    setLoading(false);
+  }
+}; 
+  
+  
+  
+  
+  
+  
 
   const handleUpload = () => {
     navigate('/upload');
