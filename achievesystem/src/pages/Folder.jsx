@@ -235,7 +235,7 @@ const Folder = () => {
   }
 
   return (
-    <div style={styles.container}>
+     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', position: 'relative' }}>
       {/* Header */}
       <div style={styles.header}>
         <h1 style={styles.title}>
