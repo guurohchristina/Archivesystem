@@ -616,7 +616,7 @@ export const getBreadcrumbs = async (req, res) => {
 };
 
 // In folderControllers.js - Add this new function
-export const updateFolder = async (req, res) => {
+{/*export const updateFolder = async (req, res) => {
   try {
     const { id } = req.params; // Folder ID from the URL
     const { name } = req.body; // New name from the request body
@@ -658,7 +658,7 @@ export const updateFolder = async (req, res) => {
       error: error.message
     });
   }
-};
+};*/}
 
 
 
