@@ -57,24 +57,26 @@ const MyFiles = () => {
   };*/}
   
   
- const fetchRootContents = async () => {
+ // In MyFiles.jsx fetchRootContents function
+const fetchRootContents = async () => {
   try {
     const token = localStorage.getItem("token");
     
     console.log("🔍 Fetching root contents...");
     
-    // OPTION 1: Use getUserFiles endpoint (recommended)
+    // Option A: Use this for root files
     const filesRes = await fetch(`${API_BASE}/api/upload/user`, {
       headers: { Authorization: `Bearer ${token}` }
-      // No folder_id parameter needed - backend defaults to root
+      // No folder_id parameter needed
     });
     
+    // Option B: Or use this if you want to explicitly specify root
+    // const filesRes = await fetch(`${API_BASE}/api/upload/user?folder_id=root`, {
+    //   headers: { Authorization: `Bearer ${token}` }
+    // });
+    
     const filesData = await filesRes.json();
-    console.log("📦 Files API Response:", {
-      success: filesData.success,
-      filesCount: filesData.files?.length || 0,
-      message: filesData.message
-    });
+    console.log("📦 Files API Response:", filesData);
     
     if (filesData.success) {
       setFiles(filesData.files || []);
@@ -83,29 +85,13 @@ const MyFiles = () => {
       setFiles([]);
     }
 
-    // OPTION 2: Use getAllUserItems endpoint (alternative)
-    // const itemsRes = await fetch(`${API_BASE}/api/upload/items?parent_id=root`, {
-    //   headers: { Authorization: `Bearer ${token}` }
-    // });
-    // const itemsData = await itemsRes.json();
-    // if (itemsData.success) {
-    //   // Separate files and folders from the combined data
-    //   const files = itemsData.data.filter(item => item.is_file);
-    //   const folders = itemsData.data.filter(item => item.is_folder);
-    //   setFiles(files);
-    //   setFolders(folders);
-    // }
-
-    // Get root folders
+    // Get root folders (this should already work)
     const foldersRes = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     
     const foldersData = await foldersRes.json();
-    console.log("📁 Folders API Response:", {
-      success: foldersData.success,
-      foldersCount: foldersData.folders?.length || 0
-    });
+    console.log("📁 Folders API Response:", foldersData);
     
     if (foldersData.success) {
       setFolders(foldersData.folders || []);

@@ -144,24 +144,25 @@ export const getUserFiles = async (req, res) => {
     let params = [userId];
     let paramIndex = 2; // Start from $2 since $1 is userId
 
+    // ====== PUT THE FIXED CODE HERE ======
     // Handle folder filtering
     if (folderId && folderId !== 'root') {
-      const folderIdNum = parseInt(folderId);
-      if (!isNaN(folderIdNum)) {
-        sql += ` AND f.folder_id = $${paramIndex}`;
-        params.push(folderIdNum);
-        paramIndex++;
-      } else {
-        // If folderId is not a valid number, get files with no folder
-        sql += ' AND f.folder_id IS NULL';
-      }
-    } else if (folderId === 'root') {
-      // For root, get files where folder_id IS NULL
-      sql += ' AND f.folder_id IS NULL';
+        // For specific folders
+        const folderIdNum = parseInt(folderId);
+        if (!isNaN(folderIdNum)) {
+            sql += ` AND f.folder_id = $${paramIndex}`;
+            params.push(folderIdNum);
+            paramIndex++;
+        } else {
+            // If folderId is not a number, treat it as root
+            console.log(`⚠️ Non-numeric folder_id (${folderId}) - treating as root`);
+            sql += ' AND f.folder_id IS NULL';
+        }
     } else {
-      // No folder_id specified - default to root files
-      sql += ' AND f.folder_id IS NULL';
+        // For root folder - handle all possible "root" representations
+        sql += ` AND (f.folder_id IS NULL OR f.folder_id = '' OR f.folder_id = 'root')`;
     }
+    // ====== END OF FIXED CODE ======
     
     sql += ' ORDER BY f.uploaded_at DESC';
     
@@ -196,9 +197,6 @@ export const getUserFiles = async (req, res) => {
     });
   }
 };
-
-
-
 
 
 
