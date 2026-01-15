@@ -304,6 +304,49 @@ const MyFiles = () => {
             📤 Upload File
           </button>
           <button 
+  onClick={async () => {
+    const token = localStorage.getItem("token");
+    console.log("🧪 Testing API endpoints...");
+    
+    // Test 1: Root files
+    try {
+      console.log("Test 1: GET /api/upload/user");
+      const res1 = await fetch(`${API_BASE}/api/upload/user`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data1 = await res1.json();
+      console.log("Result:", {
+        success: data1.success,
+        files: data1.files?.length || 0,
+        message: data1.message
+      });
+    } catch (err) {
+      console.error("Test 1 failed:", err);
+    }
+    
+    // Test 2: Root folders
+    try {
+      console.log("Test 2: GET /api/folders?parent_id=root");
+      const res2 = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data2 = await res2.json();
+      console.log("Result:", {
+        success: data2.success,
+        folders: data2.folders?.length || 0
+      });
+    } catch (err) {
+      console.error("Test 2 failed:", err);
+    }
+  }}
+  style={styles.testButton}
+>
+  🧪 Test APIs
+</button>
+          
+          
+          
+          <button 
             onClick={() => setShowCreateFolderModal(true)} 
             style={styles.secondaryButton}
           >
