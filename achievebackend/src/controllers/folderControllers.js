@@ -667,7 +667,7 @@ export const getBreadcrumbs = async (req, res) => {
 
 
 // Rename folder
- const renameFolder = async (req, res) => {
+export const renameFolder = async (req, res) => {
   try {
     const { id } = req.params;
     const { name } = req.body;
