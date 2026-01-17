@@ -29,7 +29,7 @@ const router = express.Router();
 
 // =========== FOLDER MANAGEMENT ROUTES ===========
 // Get user files with folder support (supports folder_id query parameter)
-router.get('/', authenticate, getUserFiles);
+router.get('/user', authenticate, getUserFiles);
 
 // Get all user items (files + folders) for a specific folder
 router.get('/items', authenticate, getAllUserItems);
