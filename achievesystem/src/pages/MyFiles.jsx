@@ -122,9 +122,9 @@ const fetchRootContents = async () => {
     }
 
     // 2. Get root folders
-    const foldersRes = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
+    {/*const foldersRes = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
       headers: { Authorization: `Bearer ${token}` }
-    });
+    });*/}
     
     const foldersData = await foldersRes.json();
     console.log("📁 Folders API Response:", {
