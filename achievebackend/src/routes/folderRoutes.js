@@ -18,7 +18,7 @@ router.use(authenticate);
 router.post('/', createFolder);
 
 // Get folders by parent
-router.get('/', getFolders);
+{/*router.get('/', getFolders);*/}
 
 // Get specific folder by ID
 router.get('/:id', getFolderById);
