@@ -886,7 +886,7 @@ const fetchRootContents = async () => {
       )}*/}
       
      {/* Files Section */}
-{files.length > 0 && (
+{/*{files.length > 0 && (
   <div style={{ marginBottom: '40px' }}>
     <h3>Files ({files.length})</h3>
     <div style={styles.filesGrid}>
@@ -908,7 +908,27 @@ const fetchRootContents = async () => {
       ))}
     </div>
   </div>
-)} 
+)} */}
+
+
+
+
+{files.map(file => (
+  <div key={file.id} style={styles.fileCard}>
+    <div style={styles.fileIcon}>
+      {getFileIcon(file.original_name)}  {/* Use original_name, not name */}
+    </div>
+    <div style={styles.fileName}>
+      {file.original_name}  {/* Use original_name */}
+    </div>
+    <div style={styles.fileSize}>
+      {formatFileSize(file.file_size)}  {/* Use file_size */}
+    </div>
+    <div style={styles.fileDate}>
+      {new Date(file.uploaded_at).toLocaleDateString()}  {/* Use uploaded_at */}
+    </div>
+  </div>
+))}
 
 
 
