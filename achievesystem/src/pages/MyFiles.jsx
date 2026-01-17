@@ -58,14 +58,14 @@ const MyFiles = () => {
   };*/}
   
   
-const fetchRootContents = async () => {
+{/*const fetchRootContents = async () => {
   try {
     const token = localStorage.getItem("token");
     
     console.log("🔍 Fetching root contents...");
     
     // 1. Get ALL user files (original working endpoint)
-    const filesRes = await fetch(`${API_BASE}/api/upload?parent_id=root`, {
+    const filesRes = await fetch(`${API_BASE}/api/upload`, {
       headers: { 
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -144,7 +144,164 @@ const fetchRootContents = async () => {
   } finally {
     setLoading(false);
   }
+};*/}
+
+
+const fetchRootContents = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    
+    console.log("🔍 Fetching root contents...");
+    
+    // 1. Get ALL user files (original working endpoint)
+    const filesRes = await fetch(`${API_BASE}/api/upload`, {
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    const filesData = await filesRes.json();
+    console.log("📦 Files API Response:", {
+      success: filesData.success,
+      totalFiles: filesData.files?.length || 0,
+      message: filesData.message
+    });
+    
+    let rootFiles = [];
+    
+    if (filesData.success) {
+      const allFiles = filesData.files || [];
+      
+      // Filter for root files only
+      rootFiles = allFiles.filter(file => {
+        const folderId = file.folder_id || file.folderId;
+        const isRoot = !folderId || folderId === null || folderId === 'null' || 
+                      folderId === '' || folderId === 'root';
+        console.log(`File ${file.id}: folder_id="${folderId}", isRoot=${isRoot}`);
+        return isRoot;
+      });
+      
+      console.log(`📄 Found ${rootFiles.length} root files out of ${allFiles.length} total files`);
+      
+      // ============= COMPLETE TRANSFORMATION CODE =============
+      const transformedFiles = rootFiles.map(file => {
+        // Determine file type from filename or filetype
+        let fileType = "document";
+        const fileName = (file.original_name || "").toLowerCase();
+        const fileMime = (file.filetype || "").toLowerCase();
+        
+        if (fileName.includes('.pdf') || fileMime.includes('pdf')) fileType = "pdf";
+        else if (fileName.includes('.doc') || fileName.includes('.docx') || fileMime.includes('word')) fileType = "doc";
+        else if (fileName.includes('.xls') || fileName.includes('.xlsx') || fileName.includes('.csv') || fileMime.includes('excel') || fileMime.includes('sheet')) fileType = "spreadsheet";
+        else if (fileName.includes('.jpg') || fileName.includes('.jpeg') || fileName.includes('.png') || fileName.includes('.gif') || fileName.includes('.bmp') || fileMime.includes('image')) fileType = "image";
+        else if (fileName.includes('.mp4') || fileName.includes('.mov') || fileName.includes('.avi') || fileName.includes('.mkv') || fileMime.includes('video')) fileType = "video";
+        else if (fileName.includes('.mp3') || fileName.includes('.wav') || fileName.includes('.aac') || fileMime.includes('audio')) fileType = "audio";
+        else if (fileName.includes('.zip') || fileName.includes('.rar') || fileName.includes('.7z') || fileMime.includes('archive') || fileMime.includes('compressed')) fileType = "archive";
+        
+        // Format relative date
+        let relativeDate = "Recently";
+        if (file.uploaded_at) {
+          const date = new Date(file.uploaded_at);
+          const now = new Date();
+          const diffTime = Math.abs(now - date);
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+          
+          if (diffDays === 0) relativeDate = "Today";
+          else if (diffDays === 1) relativeDate = "Yesterday";
+          else if (diffDays < 7) relativeDate = `${diffDays} days ago`;
+          else if (diffDays < 30) relativeDate = `${Math.floor(diffDays / 7)} weeks ago`;
+          else {
+            relativeDate = date.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric"
+            });
+          }
+        }
+        
+        // Format file size
+        let formattedSize = "0 Bytes";
+        if (file.file_size) {
+          const bytes = parseInt(file.file_size);
+          if (bytes > 0) {
+            const k = 1024;
+            const sizes = ["Bytes", "KB", "MB", "GB"];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+          }
+        }
+        
+        // Create the transformed file object
+        return {
+          id: file.id?.toString() || file.id,
+          name: file.original_name || "Unnamed File",
+          type: fileType,
+          size: formattedSize,
+          date: relativeDate,
+          starred: false, // Default to not starred
+          shared: file.is_public || false,
+          owner: file.owner || file.owner_name || "You",
+          department: file.department || "General",
+          classification: file.classification_level || "Unclassified",
+          description: file.description || "",
+          fileSizeBytes: file.file_size || 0,
+          uploadedAt: file.uploaded_at,
+          documentType: file.document_type,
+          isPublic: file.is_public || false,
+          folderId: file.folder_id ? file.folder_id.toString() : null,
+          // Keep original API data for download/delete operations
+          _apiData: file
+        };
+      });
+      // ============= END OF TRANSFORMATION CODE =============
+      
+      console.log("✅ Transformed files:", transformedFiles.length);
+      setFiles(transformedFiles);
+    } else {
+      console.error("Files API error:", filesData.message);
+      setFiles([]);
+    }
+
+    // 2. Get root folders
+    const foldersRes = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    const foldersData = await foldersRes.json();
+    console.log("📁 Folders API Response:", {
+      success: foldersData.success,
+      foldersCount: foldersData.folders?.length || 0
+    });
+    
+    if (foldersData.success) {
+      // Transform folders if needed
+      const transformedFolders = (foldersData.folders || []).map(folder => ({
+        id: folder.id?.toString() || folder.id,
+        name: folder.name || "Unnamed Folder",
+        type: "folder",
+        owner_id: folder.owner_id,
+        parent_id: folder.parent_id,
+        created_at: folder.created_at,
+        isFolder: true
+      }));
+      
+      setFolders(transformedFolders);
+    } else {
+      console.error("Folders API error:", foldersData.message);
+      setFolders([]);
+    }
+    
+  } catch (err) {
+    console.error("❌ Error fetching root contents:", err);
+    setError("Failed to load files and folders. Please try again.");
+  } finally {
+    setLoading(false);
+  }
 };
+
+
+
+
 
 
 
