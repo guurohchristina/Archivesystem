@@ -346,10 +346,7 @@ export const getFolders = async (req, res) => {
     console.log(`✅ Found ${foldersResult.rows.length} folders`);
     
     // Get files in this folder/root
-    
-    
-    
-    
+
     
     
     let filesResult;
