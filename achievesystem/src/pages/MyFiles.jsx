@@ -569,56 +569,9 @@ const fetchRootContents = async () => {
   
   
 
-{/*  const handleUpload = () => {
+  const handleUpload = () => {
     navigate('/upload');
-  };*/}
-  
-  // In your upload function in myfiles.jsx
-const handleUpload = async (file, currentFolderId = null) => {
-  try {
-    const token = localStorage.getItem("token");
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    // If we're in a folder, add the folder_id
-    if (currentFolderId && currentFolderId !== 'root') {
-      formData.append('folder_id', currentFolderId);
-    }
-    
-    console.log(`📤 Uploading file to ${currentFolderId || 'root'}`);
-    
-    const response = await fetch(`${API_BASE}/api/upload`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData
-    });
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      console.log('✅ File uploaded successfully');
-      // Refresh the current view
-      if (currentFolderId && currentFolderId !== 'root') {
-        // If in a subfolder, refresh that folder's contents
-        const newContents = await fetchFolderContents(currentFolderId);
-        setFolders(newContents.folders);
-        setFiles(newContents.files);
-      } else {
-        // If in root, refresh root contents
-        fetchRootContents();
-      }
-    } else {
-      console.error('❌ Upload failed:', result.message);
-    }
-  } catch (error) {
-    console.error('❌ Error uploading file:', error);
-  }
-};
-  
-  
-  
+  };
 
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) {
