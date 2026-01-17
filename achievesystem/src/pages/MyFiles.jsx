@@ -305,7 +305,7 @@ const MyFiles = () => {
 
 
 
-{/*const fetchRootContents = async () => {
+const fetchRootContents = async () => {
   try {
     const token = localStorage.getItem("token");
     
@@ -446,69 +446,12 @@ const MyFiles = () => {
   } finally {
     setLoading(false);
   }
-};*/}
-
-
-
-
-
-const fetchRootContents = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    
-    console.log("🔍 ========= FETCH ROOT CONTENTS START =========");
-    
-    // Get root folders AND files in one API call
-    const contentRes = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
-      headers: { 
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    console.log("📡 API Response status:", contentRes.status);
-    console.log("📡 API Response headers:", contentRes.headers);
-    
-    const contentData = await contentRes.json();
-    console.log("📦 FULL API RESPONSE:", JSON.stringify(contentData, null, 2));
-    
-    if (contentData.success) {
-      // Handle folders
-      const folders = contentData.folders || [];
-      console.log(`📁 Got ${folders.length} folders:`, folders);
-      setFolders(folders);
-      
-      // Handle files
-      const apiFiles = contentData.files || [];
-      console.log(`📦 Got ${apiFiles.length} files:`, apiFiles);
-      
-      // DEBUG: Log first few files
-      apiFiles.slice(0, 3).forEach((file, i) => {
-        console.log(`File ${i + 1}:`, {
-          id: file.id,
-          name: file.original_name,
-          size: file.file_size,
-          folder_id: file.folder_id
-        });
-      });
-      
-      setFiles(apiFiles);
-    } else {
-      console.error("❌ Content API error:", contentData.message);
-      console.error("❌ Content API full error:", contentData);
-      setFolders([]);
-      setFiles([]);
-    }
-    
-    console.log("✅ ========= FETCH ROOT CONTENTS END =========");
-    
-  } catch (err) {
-    console.error("❌ Error in fetchRootContents:", err);
-    console.error("❌ Error stack:", err.stack);
-  } finally {
-    setLoading(false);
-  }
 };
+
+
+
+
+
 
 
 
