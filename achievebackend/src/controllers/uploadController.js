@@ -127,31 +127,7 @@ const determineFileType = (fileName, fileMime) => {
 
 
 
-export const getFiles = async (req, res) => {
-  try {
-    console.log('📂 GET /api/upload - Fetching files for user:', req.user.userId);
-    
-    const result = await query(
-      'SELECT * FROM files WHERE user_id = $1 ORDER BY uploaded_at DESC',
-      [req.user.userId]
-    );
-    
-    console.log(`✅ Found ${result.rows.length} files for user ${req.user.userId}`);
-    
-    res.json({
-      success: true,
-      files: result.rows,
-      count: result.rows.length
-    });
-  } catch (error) {
-    console.error('❌ Error fetching files:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch files',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-};
+
 
 
 
