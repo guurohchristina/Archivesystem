@@ -458,6 +458,9 @@ const fetchRootContents = async () => {
 
 
 
+
+
+
   
 
 
@@ -869,7 +872,7 @@ const fetchRootContents = async () => {
 
 
       {/* Empty State */}
-    {/*  {folders.length === 0 && files.length === 0 && (
+      {folders.length === 0 && files.length === 0 && (
         <div style={styles.emptyState}>
           <div style={{ fontSize: '60px', marginBottom: '20px' }}>📂</div>
           <h3>No files or folders yet</h3>
@@ -886,48 +889,31 @@ const fetchRootContents = async () => {
             </button>
           </div>
         </div>
-      )}*/}
-      
-     {/* Empty State - Show only when there are truly NO folders AND NO files */}
-{folders.length === 0 && files.length === 0 && !loading && (
-  <div style={styles.emptyState}>
-    <div style={{ fontSize: '60px', marginBottom: '20px' }}>📂</div>
-    <h3>No files or folders yet</h3>
-    <p>Get started by uploading files or creating folders</p>
-    <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
-      <button onClick={handleUpload} style={styles.button}>
-        📤 Upload First File
-      </button>
-      <button 
-        onClick={() => setShowCreateFolderModal(true)} 
-        style={styles.secondaryButton}
-      >
-        📁 Create Folder
-      </button>
-    </div>
-  </div>
-)}
-
-{/* Show when there are files but no folders */}
-{folders.length === 0 && files.length > 0 && (
-  <div style={{ 
-    backgroundColor: '#f9f9f9', 
-    padding: '20px', 
-    borderRadius: '8px',
-    marginBottom: '20px',
-    textAlign: 'center'
-  }}>
-    <p>📁 No folders yet, but you have {files.length} file(s)</p>
-  </div>
-)} 
-      
-      
-      
-      
+      )}
     </div>
   );
 };
 
+// Helper functions
+const getFileIcon = (filename) => {
+  if (!filename) return '📎';
+  const ext = filename.split('.').pop().toLowerCase();
+  if (ext === 'pdf') return '📄';
+  if (['doc', 'docx'].includes(ext)) return '📝';
+  if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(ext)) return '🖼️';
+  if (['mp4', 'mov', 'avi', 'mkv'].includes(ext)) return '🎬';
+  if (['mp3', 'wav', 'aac'].includes(ext)) return '🎵';
+  if (['zip', 'rar', '7z'].includes(ext)) return '📦';
+  return '📎';
+};
+
+const formatFileSize = (bytes) => {
+  if (!bytes || bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
 
 // Styles
 const styles = {
