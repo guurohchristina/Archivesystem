@@ -19,7 +19,7 @@ const MyFiles = () => {
 
   useEffect(() => {
     fetchRootContents();
-    fetchUserFiles();
+  
   }, []);
 
 {/*  const fetchRootContents = async () => {
