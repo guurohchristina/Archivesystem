@@ -287,7 +287,7 @@ export const createFolder = async (req, res) => {
 // Update or add these functions to your folderController.js
 
 // Get folders AND files by parent
-export const getFolders = async (req, res) => {
+{/*export const getFolders = async (req, res) => {
   try {
     console.log('📂 ========= GET FOLDERS WITH FILES REQUEST =========');
     console.log('📦 Query parameters:', req.query);
@@ -407,9 +407,160 @@ export const getFolders = async (req, res) => {
       ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
-};
+};*/}
 
 // You can also keep the old getFolders function but rename it or use this new one
+
+
+
+// In getFolderContent function - ensure we're using user_id:
+export const getFolderContent = async (req, res) => {
+  try {
+    console.log('📦 ========= GET FOLDER CONTENT =========');
+    console.log('📦 Query parameters:', req.query);
+    console.log('👤 User ID:', req.user.userId);
+    
+    const { parent_id } = req.query;
+    const userId = req.user.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    // Get folders
+    let foldersSql, foldersParams;
+    if (parent_id === 'root' || !parent_id) {
+      foldersSql = `
+        SELECT id, name, parent_id, created_at, updated_at 
+        FROM folders 
+        WHERE owner_id = $1 AND parent_id IS NULL 
+        ORDER BY name ASC
+      `;
+      foldersParams = [userId];
+    } else {
+      const parentValidation = validateId(parent_id);
+      if (!parentValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid parent folder ID'
+        });
+      }
+      
+      foldersSql = `
+        SELECT id, name, parent_id, created_at, updated_at 
+        FROM folders 
+        WHERE owner_id = $1 AND parent_id = $2 
+        ORDER BY name ASC
+      `;
+      foldersParams = [userId, parentValidation.id];
+    }
+
+    // Get files - CRITICAL: Use user_id NOT owner
+    let filesSql, filesParams;
+    if (parent_id === 'root' || !parent_id) {
+      filesSql = `
+        SELECT 
+          id, 
+          original_name, 
+          file_name, 
+          file_path, 
+          file_size, 
+          mime_type, 
+          folder_id,
+          user_id,
+          owner,
+          is_public,
+          department,
+          classification_level,
+          uploaded_at,
+          created_at,
+          document_type,
+          description
+        FROM files 
+        WHERE user_id = $1 AND folder_id IS NULL 
+        ORDER BY uploaded_at DESC
+      `;
+      filesParams = [userId];
+    } else {
+      const parentValidation = validateId(parent_id);
+      if (!parentValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid parent folder ID'
+        });
+      }
+      
+      filesSql = `
+        SELECT 
+          id, 
+          original_name, 
+          file_name, 
+          file_path, 
+          file_size, 
+          mime_type, 
+          folder_id,
+          user_id,
+          owner,
+          is_public,
+          department,
+          classification_level,
+          uploaded_at,
+          created_at,
+          document_type,
+          description
+        FROM files 
+        WHERE user_id = $1 AND folder_id = $2 
+        ORDER BY uploaded_at DESC
+      `;
+      filesParams = [userId, parentValidation.id];
+    }
+
+    // Execute queries
+    const [foldersResult, filesResult] = await Promise.all([
+      query(foldersSql, foldersParams),
+      query(filesSql, filesParams)
+    ]);
+
+    // Process results
+    const folders = foldersResult.rows.map(folder => ({
+      ...folder,
+      id: folder.id.toString()
+    }));
+
+    const files = filesResult.rows.map(file => ({
+      ...file,
+      id: file.id.toString(),
+      folder_id: file.folder_id ? file.folder_id.toString() : null
+    }));
+
+    console.log(`✅ Retrieved ${folders.length} folders and ${files.length} files`);
+
+    res.json({
+      success: true,
+      folders,
+      files,
+      counts: {
+        folders: folders.length,
+        files: files.length
+      },
+      parent_id: parent_id || 'root'
+    });
+
+  } catch (error) {
+    console.error('❌ Error in getFolderContent:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+
+
 
 
 
