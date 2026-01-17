@@ -487,7 +487,7 @@ import { fileURLToPath } from 'url';
 // Routes
 import authRoutes from './routes/authRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
-import folderRoutes from './routes/folderRoutes.js';
+{/*import folderRoutes from './routes/folderRoutes.js';*/}
 import adminRoutes from './routes/adminRoutes.js';
 
 dotenv.config();
