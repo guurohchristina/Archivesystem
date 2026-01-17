@@ -57,7 +57,7 @@ const MyFiles = () => {
   };*/}
   
   
-{/*const fetchRootContents = async () => {
+const fetchRootContents = async () => {
   try {
     const token = localStorage.getItem("token");
     
@@ -143,7 +143,7 @@ const MyFiles = () => {
   } finally {
     setLoading(false);
   }
-};*/}
+};
   
   
   
@@ -329,7 +329,7 @@ const MyFiles = () => {
           <button onClick={handleUpload} style={styles.button}>
             📤 Upload File
           </button>
-          <button 
+         {/* <button 
   onClick={async () => {
     const token = localStorage.getItem("token");
     console.log("🧪 Testing API endpoints...");
@@ -368,7 +368,7 @@ const MyFiles = () => {
   style={styles.testButton}
 >
   🧪 Test APIs
-</button>
+</button>*/}
           
           
           
