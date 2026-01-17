@@ -2,7 +2,7 @@ import express from 'express';
 import {authenticate} from '../middleware/authMiddleware.js';
 import {
   createFolder,
-  getFolderContent,
+  getFolders,
   getFolderById,
   deleteFolder,
   renameFolder,
@@ -18,7 +18,7 @@ router.use(authenticate);
 router.post('/', createFolder);
 
 // Get folders by parent
-router.get('/content', getFolderContent);
+router.get('/', getFolders);
 
 // Get specific folder by ID
 router.get('/:id', getFolderById);
