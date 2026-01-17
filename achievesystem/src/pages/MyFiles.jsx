@@ -305,7 +305,7 @@ const MyFiles = () => {
 
 
 
-const fetchRootContents = async () => {
+{/*const fetchRootContents = async () => {
   try {
     const token = localStorage.getItem("token");
     
@@ -446,6 +446,112 @@ const fetchRootContents = async () => {
   } finally {
     setLoading(false);
   }
+};*/}
+
+
+
+
+
+
+const fetchRootContents = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    
+    console.log("🔍 Fetching root contents with files...");
+    
+    // Get both folders AND files in one API call
+    const contentRes = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    const contentData = await contentRes.json();
+    console.log("📦 Folder+Files API Response:", contentData);
+    
+    if (contentData.success) {
+      // Handle folders
+      const folders = contentData.folders || [];
+      console.log(`📁 Got ${folders.length} folders`);
+      setFolders(folders);
+      
+      // Handle files
+      const apiFiles = contentData.files || [];
+      console.log(`📦 Got ${apiFiles.length} files directly from folder API`);
+      
+      // Transform files for frontend display
+      const transformedFiles = apiFiles.map(file => {
+        // Determine file type
+        let fileType = "document";
+        const fileName = (file.original_name || "").toLowerCase();
+        
+        if (fileName.includes('.pdf')) fileType = "pdf";
+        else if (fileName.includes('.doc')) fileType = "doc";
+        else if (fileName.includes('.xls') || fileName.includes('.xlsx') || fileName.includes('.csv')) fileType = "spreadsheet";
+        else if (fileName.includes('.jpg') || fileName.includes('.jpeg') || fileName.includes('.png') || fileName.includes('.gif')) fileType = "image";
+        else if (fileName.includes('.mp4') || fileName.includes('.mov') || fileName.includes('.avi')) fileType = "video";
+        else if (fileName.includes('.zip') || fileName.includes('.rar')) fileType = "archive";
+        
+        // Format date
+        let relativeDate = "Recently";
+        if (file.uploaded_at) {
+          const date = new Date(file.uploaded_at);
+          const now = new Date();
+          const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+          
+          if (diffDays === 0) relativeDate = "Today";
+          else if (diffDays === 1) relativeDate = "Yesterday";
+          else if (diffDays < 7) relativeDate = `${diffDays} days ago`;
+          else if (diffDays < 30) relativeDate = `${Math.floor(diffDays / 7)} weeks ago`;
+          else {
+            relativeDate = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          }
+        }
+        
+        // Format size
+        let formattedSize = "0 Bytes";
+        if (file.file_size) {
+          const bytes = parseInt(file.file_size);
+          if (bytes > 0) {
+            const k = 1024;
+            const sizes = ["Bytes", "KB", "MB", "GB"];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+          }
+        }
+        
+        return {
+          id: file.id?.toString() || file.id,
+          name: file.original_name || "Unnamed File",
+          type: fileType,
+          size: formattedSize,
+          date: relativeDate,
+          starred: false,
+          shared: file.is_public || false,
+          owner: "You",
+          department: file.department || "General",
+          classification: file.classification_level || "Unclassified",
+          fileSizeBytes: file.file_size || 0,
+          uploadedAt: file.uploaded_at,
+          _apiData: file,
+          folderId: file.folder_id // Keep this for debugging
+        };
+      });
+      
+      console.log(`🎯 Setting ${transformedFiles.length} files to state`);
+      setFiles(transformedFiles);
+    } else {
+      console.error("❌ Content API error:", contentData.message);
+      setFolders([]);
+      setFiles([]);
+    }
+    
+  } catch (err) {
+    console.error("❌ Error in fetchRootContents:", err);
+  } finally {
+    setLoading(false);
+  }
 };
 
 
@@ -463,9 +569,56 @@ const fetchRootContents = async () => {
   
   
 
-  const handleUpload = () => {
+{/*  const handleUpload = () => {
     navigate('/upload');
-  };
+  };*/}
+  
+  // In your upload function in myfiles.jsx
+const handleUpload = async (file, currentFolderId = null) => {
+  try {
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // If we're in a folder, add the folder_id
+    if (currentFolderId && currentFolderId !== 'root') {
+      formData.append('folder_id', currentFolderId);
+    }
+    
+    console.log(`📤 Uploading file to ${currentFolderId || 'root'}`);
+    
+    const response = await fetch(`${API_BASE}/api/upload`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      console.log('✅ File uploaded successfully');
+      // Refresh the current view
+      if (currentFolderId && currentFolderId !== 'root') {
+        // If in a subfolder, refresh that folder's contents
+        const newContents = await fetchFolderContents(currentFolderId);
+        setFolders(newContents.folders);
+        setFiles(newContents.files);
+      } else {
+        // If in root, refresh root contents
+        fetchRootContents();
+      }
+    } else {
+      console.error('❌ Upload failed:', result.message);
+    }
+  } catch (error) {
+    console.error('❌ Error uploading file:', error);
+  }
+};
+  
+  
+  
 
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) {

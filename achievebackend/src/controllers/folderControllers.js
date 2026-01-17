@@ -283,6 +283,131 @@ export const createFolder = async (req, res) => {
   }
 };
 
+
+// Update or add these functions to your folderController.js
+
+// Get folders AND files by parent
+export const getFolders = async (req, res) => {
+  try {
+    console.log('📂 ========= GET FOLDERS WITH FILES REQUEST =========');
+    console.log('📦 Query parameters:', req.query);
+    console.log('👤 User ID:', req.user.userId);
+    
+    const { parent_id } = req.query;
+    const userId = req.user.userId;
+
+    let folderQuery;
+    let folderParams;
+    let folderIdForFiles = null;
+    
+    // Handle root folder (null parent_id) vs nested folders
+    if (parent_id === 'root' || !parent_id) {
+      folderQuery = 'SELECT * FROM folders WHERE owner_id = $1 AND parent_id IS NULL ORDER BY name ASC';
+      folderParams = [userId];
+      console.log('🔍 Fetching root folders');
+      folderIdForFiles = null; // For root, we look for files with folder_id = NULL
+    } else if (parent_id) {
+      const parentValidation = validateId(parent_id);
+      if (!parentValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid parent folder ID'
+        });
+      }
+      
+      console.log(`🔍 Fetching folders inside parent: ${parent_id}`);
+      
+      // Verify the parent folder exists and belongs to user
+      const parentFolder = await query(
+        'SELECT id, name FROM folders WHERE id = $1 AND owner_id = $2',
+        [parentValidation.id, userId]
+      );
+      
+      if (parentFolder.rows.length === 0) {
+        console.log(`❌ Parent folder ${parent_id} not found or access denied`);
+        return res.status(404).json({
+          success: false,
+          message: 'Parent folder not found or access denied'
+        });
+      }
+      
+      folderQuery = 'SELECT * FROM folders WHERE owner_id = $1 AND parent_id = $2 ORDER BY name ASC';
+      folderParams = [userId, parentValidation.id];
+      folderIdForFiles = parentValidation.id; // For subfolder, look for files with this folder_id
+      console.log(`✅ Parent folder verified: ${parentFolder.rows[0].name}`);
+    }
+
+    console.log('📊 Executing folder query:', folderQuery);
+    console.log('📊 Folder query parameters:', folderParams);
+    
+    // Get folders
+    const foldersResult = await query(folderQuery, folderParams);
+    
+    console.log(`✅ Found ${foldersResult.rows.length} folders`);
+    
+    // Get files in this folder/root
+    let filesResult;
+    if (folderIdForFiles === null) {
+      // Root files - where folder_id is NULL
+      filesResult = await query(
+        'SELECT * FROM files WHERE owner = $1 AND folder_id IS NULL ORDER BY uploaded_at DESC',
+        [userId]
+      );
+      console.log('🔍 Fetching root files (folder_id IS NULL)');
+    } else {
+      // Subfolder files
+      filesResult = await query(
+        'SELECT * FROM files WHERE owner = $1 AND folder_id = $2 ORDER BY uploaded_at DESC',
+        [userId, folderIdForFiles]
+      );
+      console.log(`🔍 Fetching files for folder ID: ${folderIdForFiles}`);
+    }
+    
+    console.log(`✅ Found ${filesResult.rows.length} files`);
+    
+    // Convert IDs to strings for consistency with frontend
+    const folders = foldersResult.rows.map(folder => ({
+      ...folder,
+      id: folder.id.toString()
+    }));
+    
+    const files = filesResult.rows.map(file => ({
+      ...file,
+      id: file.id.toString(),
+      folder_id: file.folder_id ? file.folder_id.toString() : null
+    }));
+    
+    res.json({
+      success: true,
+      folders,
+      files,
+      count: {
+        folders: folders.length,
+        files: files.length
+      },
+      parent_id: parent_id || 'root',
+      folder_id: folderIdForFiles
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching folders and files:', error.message);
+    console.error('Stack:', error.stack);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching content',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
+  }
+};
+
+// You can also keep the old getFolders function but rename it or use this new one
+
+
+
+
+
+
 // Get folders by parent
 {/*export const getFolders = async (req, res) => {
   try {
