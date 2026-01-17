@@ -457,9 +457,9 @@ const fetchRootContents = async () => {
   try {
     const token = localStorage.getItem("token");
     
-    console.log("🔍 Fetching root contents with files...");
+    console.log("🔍 Fetching root contents...");
     
-    // Get both folders AND files in one API call
+    // Get root folders AND files in one API call
     const contentRes = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
       headers: { 
         Authorization: `Bearer ${token}`,
@@ -468,79 +468,24 @@ const fetchRootContents = async () => {
     });
     
     const contentData = await contentRes.json();
-    console.log("📦 Folder+Files API Response:", contentData);
+    console.log("📦 API Response:", {
+      success: contentData.success,
+      foldersCount: contentData.folders?.length || 0,
+      filesCount: contentData.files?.length || 0
+    });
     
     if (contentData.success) {
       // Handle folders
       const folders = contentData.folders || [];
-      console.log(`📁 Got ${folders.length} folders`);
+      console.log(`📁 Setting ${folders.length} folders`);
       setFolders(folders);
       
-      // Handle files
+      // Handle files - KEEP original API structure for rendering
       const apiFiles = contentData.files || [];
-      console.log(`📦 Got ${apiFiles.length} files directly from folder API`);
+      console.log(`📦 Setting ${apiFiles.length} files directly from API`);
       
-      // Transform files for frontend display
-      const transformedFiles = apiFiles.map(file => {
-        // Determine file type
-        let fileType = "document";
-        const fileName = (file.original_name || "").toLowerCase();
-        
-        if (fileName.includes('.pdf')) fileType = "pdf";
-        else if (fileName.includes('.doc')) fileType = "doc";
-        else if (fileName.includes('.xls') || fileName.includes('.xlsx') || fileName.includes('.csv')) fileType = "spreadsheet";
-        else if (fileName.includes('.jpg') || fileName.includes('.jpeg') || fileName.includes('.png') || fileName.includes('.gif')) fileType = "image";
-        else if (fileName.includes('.mp4') || fileName.includes('.mov') || fileName.includes('.avi')) fileType = "video";
-        else if (fileName.includes('.zip') || fileName.includes('.rar')) fileType = "archive";
-        
-        // Format date
-        let relativeDate = "Recently";
-        if (file.uploaded_at) {
-          const date = new Date(file.uploaded_at);
-          const now = new Date();
-          const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-          
-          if (diffDays === 0) relativeDate = "Today";
-          else if (diffDays === 1) relativeDate = "Yesterday";
-          else if (diffDays < 7) relativeDate = `${diffDays} days ago`;
-          else if (diffDays < 30) relativeDate = `${Math.floor(diffDays / 7)} weeks ago`;
-          else {
-            relativeDate = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-          }
-        }
-        
-        // Format size
-        let formattedSize = "0 Bytes";
-        if (file.file_size) {
-          const bytes = parseInt(file.file_size);
-          if (bytes > 0) {
-            const k = 1024;
-            const sizes = ["Bytes", "KB", "MB", "GB"];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-          }
-        }
-        
-        return {
-          id: file.id?.toString() || file.id,
-          name: file.original_name || "Unnamed File",
-          type: fileType,
-          size: formattedSize,
-          date: relativeDate,
-          starred: false,
-          shared: file.is_public || false,
-          owner: "You",
-          department: file.department || "General",
-          classification: file.classification_level || "Unclassified",
-          fileSizeBytes: file.file_size || 0,
-          uploadedAt: file.uploaded_at,
-          _apiData: file,
-          folderId: file.folder_id // Keep this for debugging
-        };
-      });
-      
-      console.log(`🎯 Setting ${transformedFiles.length} files to state`);
-      setFiles(transformedFiles);
+      // Use files directly from API (no transformation needed)
+      setFiles(apiFiles);
     } else {
       console.error("❌ Content API error:", contentData.message);
       setFolders([]);
@@ -726,6 +671,27 @@ const fetchRootContents = async () => {
       document.removeEventListener('keydown', handleEscKey);
     };
   }, []);
+  
+  const getFileIcon = (filename) => {
+  if (!filename) return '📎';
+  const ext = filename.split('.').pop().toLowerCase();
+  if (ext === 'pdf') return '📄';
+  if (['doc', 'docx'].includes(ext)) return '📝';
+  if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(ext)) return '🖼️';
+  if (['mp4', 'mov', 'avi', 'mkv'].includes(ext)) return '🎬';
+  if (['mp3', 'wav', 'aac'].includes(ext)) return '🎵';
+  if (['zip', 'rar', '7z'].includes(ext)) return '📦';
+  if (['xls', 'xlsx', 'csv'].includes(ext)) return '📊';
+  return '📎';
+};
+  
+  const formatFileSize = (bytes) => {
+  if (!bytes || bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
 
   if (loading) {
     return (
@@ -749,46 +715,7 @@ const fetchRootContents = async () => {
           <button onClick={handleUpload} style={styles.button}>
             📤 Upload File
           </button>
-         {/* <button 
-  onClick={async () => {
-    const token = localStorage.getItem("token");
-    console.log("🧪 Testing API endpoints...");
-    
-    // Test 1: Root files
-    try {
-      console.log("Test 1: GET /api/upload/user");
-      const res1 = await fetch(`${API_BASE}/api/upload/user`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data1 = await res1.json();
-      console.log("Result:", {
-        success: data1.success,
-        files: data1.files?.length || 0,
-        message: data1.message
-      });
-    } catch (err) {
-      console.error("Test 1 failed:", err);
-    }
-    
-    // Test 2: Root folders
-    try {
-      console.log("Test 2: GET /api/folders?parent_id=root");
-      const res2 = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data2 = await res2.json();
-      console.log("Result:", {
-        success: data2.success,
-        folders: data2.folders?.length || 0
-      });
-    } catch (err) {
-      console.error("Test 2 failed:", err);
-    }
-  }}
-  style={styles.testButton}
->
-  🧪 Test APIs
-</button>*/}
+        
           
           
           
@@ -938,7 +865,7 @@ const fetchRootContents = async () => {
       )}
 
       {/* Files Section */}
-      {files.length > 0 && (
+      {/*{files.length > 0 && (
         <div style={{ marginBottom: '40px' }}>
           <h3>Files ({files.length})</h3>
           <div style={styles.filesGrid}>
@@ -958,7 +885,36 @@ const fetchRootContents = async () => {
             ))}
           </div>
         </div>
-      )}
+      )}*/}
+      
+     {/* Files Section */}
+{files.length > 0 && (
+  <div style={{ marginBottom: '40px' }}>
+    <h3>Files ({files.length})</h3>
+    <div style={styles.filesGrid}>
+      {files.map(file => (
+        <div key={file.id} style={styles.fileCard}>
+          <div style={styles.fileIcon}>
+            {getFileIcon(file.original_name)}
+          </div>
+          <div style={styles.fileName}>
+            {file.original_name}
+          </div>
+          <div style={styles.fileSize}>
+            {formatFileSize(file.file_size)}
+          </div>
+          <div style={styles.fileDate}>
+            {new Date(file.uploaded_at).toLocaleDateString()}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)} 
+
+
+
+
 
       {/* Empty State */}
       {folders.length === 0 && files.length === 0 && (

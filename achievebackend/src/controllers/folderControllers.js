@@ -346,7 +346,13 @@ export const getFolders = async (req, res) => {
     console.log(`✅ Found ${foldersResult.rows.length} folders`);
     
     // Get files in this folder/root
-    let filesResult;
+    
+    
+    
+    
+    
+    
+    {/*let filesResult;
     if (folderIdForFiles === null) {
       // Root files - where folder_id is NULL
       filesResult = await query(
@@ -375,7 +381,23 @@ export const getFolders = async (req, res) => {
       ...file,
       id: file.id.toString(),
       folder_id: file.folder_id ? file.folder_id.toString() : null
-    }));
+    }));*/}
+    
+    
+    let filesResult;
+if (folderIdForFiles === null) {
+  // Root files - where folder_id is NULL
+  filesResult = await query(
+    'SELECT id, original_name, file_size, uploaded_at, folder_id FROM files WHERE owner = $1 AND folder_id IS NULL ORDER BY uploaded_at DESC',
+    [userId]
+  );
+} else {
+  // Subfolder files
+  filesResult = await query(
+    'SELECT id, original_name, file_size, uploaded_at, folder_id FROM files WHERE owner = $1 AND folder_id = $2 ORDER BY uploaded_at DESC',
+    [userId, folderIdForFiles]
+  );
+}
     
     res.json({
       success: true,
