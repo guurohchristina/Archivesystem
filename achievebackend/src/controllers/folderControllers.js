@@ -284,7 +284,7 @@ export const createFolder = async (req, res) => {
 };
 
 // Get folders by parent
-export const getFolders = async (req, res) => {
+{/*export const getFolders = async (req, res) => {
   try {
     console.log('📂 ========= GET FOLDERS REQUEST =========');
     console.log('📦 Query parameters:', req.query);
@@ -415,7 +415,7 @@ export const getFolderById = async (req, res) => {
       ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
-};
+};*/}
 
 // Delete folder and its contents
 export const deleteFolder = async (req, res) => {
