@@ -555,7 +555,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/folders', folderRoutes); // Add folder routes
+{/*app.use('/api/folders', folderRoutes);*/} // Add folder routes
 
 // Health check
 app.get('/health', (req, res) => {
