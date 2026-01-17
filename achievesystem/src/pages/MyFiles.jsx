@@ -147,7 +147,7 @@ const MyFiles = () => {
 };*/}
 
 
-const fetchRootContents = async () => {
+{/*const fetchRootContents = async () => {
   try {
     const token = localStorage.getItem("token");
     
@@ -294,6 +294,155 @@ const fetchRootContents = async () => {
   } catch (err) {
     console.error("❌ Error fetching root contents:", err);
     setError("Failed to load files and folders. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};*/}
+
+
+
+
+
+
+
+const fetchRootContents = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    
+    console.log("🔍 Fetching root contents...");
+    
+    // 1. Get ALL files
+    const filesRes = await fetch(`${API_BASE}/api/upload`, {
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    const filesData = await filesRes.json();
+    console.log("📦 Files API Response received");
+    
+    if (filesData.success) {
+      const allFiles = filesData.files || [];
+      console.log(`📦 Total files from API: ${allFiles.length}`);
+      
+      // DEBUG: Log first few files
+      allFiles.slice(0, 3).forEach((file, i) => {
+        console.log(`File ${i}:`, {
+          id: file.id,
+          name: file.original_name,
+          folder_id: file.folder_id,
+          type: typeof file.folder_id
+        });
+      });
+      
+      // CORRECTED: Filter for root files
+      const rootFiles = allFiles.filter(file => {
+        const folderId = file.folder_id;
+        
+        // Accept ALL representations of "root"
+        if (folderId === null || folderId === undefined) {
+          return true; // NULL or undefined = root
+        }
+        
+        const folderIdStr = String(folderId).toLowerCase().trim();
+        
+        // Check for various "root" representations
+        if (folderIdStr === 'root' || 
+            folderIdStr === '' || 
+            folderIdStr === 'null' ||
+            folderIdStr === '0') {
+          return true;
+        }
+        
+        return false;
+      });
+      
+      console.log(`✅ Filtered: ${rootFiles.length} root files`);
+      
+      // Transform the filtered files
+      const transformedFiles = rootFiles.map(file => {
+        // Determine file type
+        let fileType = "document";
+        const fileName = (file.original_name || "").toLowerCase();
+        
+        if (fileName.includes('.pdf')) fileType = "pdf";
+        else if (fileName.includes('.doc')) fileType = "doc";
+        else if (fileName.includes('.xls') || fileName.includes('.xlsx') || fileName.includes('.csv')) fileType = "spreadsheet";
+        else if (fileName.includes('.jpg') || fileName.includes('.jpeg') || fileName.includes('.png') || fileName.includes('.gif')) fileType = "image";
+        else if (fileName.includes('.mp4') || fileName.includes('.mov') || fileName.includes('.avi')) fileType = "video";
+        else if (fileName.includes('.zip') || fileName.includes('.rar')) fileType = "archive";
+        
+        // Format date
+        let relativeDate = "Recently";
+        if (file.uploaded_at) {
+          const date = new Date(file.uploaded_at);
+          const now = new Date();
+          const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+          
+          if (diffDays === 0) relativeDate = "Today";
+          else if (diffDays === 1) relativeDate = "Yesterday";
+          else if (diffDays < 7) relativeDate = `${diffDays} days ago`;
+          else if (diffDays < 30) relativeDate = `${Math.floor(diffDays / 7)} weeks ago`;
+          else {
+            relativeDate = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          }
+        }
+        
+        // Format size
+        let formattedSize = "0 Bytes";
+        if (file.file_size) {
+          const bytes = parseInt(file.file_size);
+          if (bytes > 0) {
+            const k = 1024;
+            const sizes = ["Bytes", "KB", "MB", "GB"];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+          }
+        }
+        
+        return {
+          id: file.id?.toString() || file.id,
+          name: file.original_name || "Unnamed File",
+          type: fileType,
+          size: formattedSize,
+          date: relativeDate,
+          starred: false,
+          shared: file.is_public || false,
+          owner: "You",
+          department: file.department || "General",
+          classification: file.classification_level || "Unclassified",
+          fileSizeBytes: file.file_size || 0,
+          uploadedAt: file.uploaded_at,
+          _apiData: file,
+          folderId: file.folder_id // Keep this for debugging
+        };
+      });
+      
+      console.log(`🎯 Setting ${transformedFiles.length} files to state`);
+      setFiles(transformedFiles);
+    } else {
+      console.error("❌ Files API error:", filesData.message);
+      setFiles([]);
+    }
+
+    // 2. Get root folders
+    const foldersRes = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    const foldersData = await foldersRes.json();
+    
+    if (foldersData.success) {
+      setFolders(foldersData.folders || []);
+      console.log(`📁 Got ${foldersData.folders?.length || 0} folders`);
+    } else {
+      console.error("❌ Folders API error:", foldersData.message);
+      setFolders([]);
+    }
+    
+  } catch (err) {
+    console.error("❌ Error in fetchRootContents:", err);
   } finally {
     setLoading(false);
   }
