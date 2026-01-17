@@ -522,7 +522,7 @@ const determineFileType = (fileName, fileMime) => {
       error: error.message
     });
   }
-};*/}
+};
 
 
 
