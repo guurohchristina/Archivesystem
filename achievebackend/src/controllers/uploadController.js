@@ -67,7 +67,7 @@ const determineFileType = (fileName, fileMime) => {
 
 
 
-export const getUserFiles = async (req, res) => {
+{/*export const getUserFiles = async (req, res) => {
   try {
     const userId = req.user.userId;
     const folderId = req.query.folder_id;
@@ -123,7 +123,7 @@ export const getUserFiles = async (req, res) => {
       message: error.message
     });
   }
-};
+};*/}
 
 
 

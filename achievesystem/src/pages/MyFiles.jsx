@@ -65,7 +65,7 @@ const fetchRootContents = async () => {
     console.log("🔍 Fetching root contents...");
     
     // 1. Get ALL user files (original working endpoint)
-    const filesRes = await fetch(`${API_BASE}/api/upload`, {
+    const filesRes = await fetch(`${API_BASE}/api/upload?parent_id=root`, {
       headers: { 
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
