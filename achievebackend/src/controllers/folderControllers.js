@@ -287,7 +287,7 @@ export const createFolder = async (req, res) => {
 // Update or add these functions to your folderController.js
 
 // Get folders AND files by parent
-export const getFolders = async (req, res) => {
+{/*export const getFolders = async (req, res) => {
   try {
     console.log('📂 ========= GET FOLDERS WITH FILES REQUEST =========');
     console.log('📦 Query parameters:', req.query);
@@ -404,9 +404,218 @@ export const getFolders = async (req, res) => {
       ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
-};
+};*/}
+
 
 // You can also keep the old getFolders function but rename it or use this new one
+
+
+// ============================================
+// GET FOLDER CONTENT (Both folders and files)
+// ============================================
+export const getFolderContent = async (req, res) => {
+  try {
+    console.log('📦 ========= GET FOLDER CONTENT (FOLDERS + FILES) =========');
+    console.log('📦 Query parameters:', req.query);
+    console.log('👤 User ID:', req.user.userId);
+    
+    const { parent_id } = req.query;
+    const userId = req.user.userId || req.user.id;
+
+    if (!userId) {
+      console.error('❌ No user ID found in request');
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    let folderIdForFiles = null;
+    
+    // FIRST: Get folders based on parent_id
+    let foldersSql;
+    let foldersParams;
+    
+    if (parent_id === 'root' || !parent_id) {
+      // Get root folders
+      foldersSql = `
+        SELECT id, name, parent_id, created_at, updated_at 
+        FROM folders 
+        WHERE owner_id = $1 AND parent_id IS NULL 
+        ORDER BY name ASC
+      `;
+      foldersParams = [userId];
+      console.log('🔍 Fetching root folders (parent_id IS NULL)');
+    } else {
+      // Get subfolders
+      const parentValidation = validateId(parent_id);
+      if (!parentValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid parent folder ID'
+        });
+      }
+      
+      console.log(`🔍 Fetching folders inside parent: ${parent_id}`);
+      
+      // Verify the parent folder exists and belongs to user
+      const parentFolder = await query(
+        'SELECT id, name FROM folders WHERE id = $1 AND owner_id = $2',
+        [parentValidation.id, userId]
+      );
+      
+      if (parentFolder.rows.length === 0) {
+        console.log(`❌ Parent folder ${parent_id} not found or access denied`);
+        return res.status(404).json({
+          success: false,
+          message: 'Parent folder not found or access denied'
+        });
+      }
+      
+      foldersSql = `
+        SELECT id, name, parent_id, created_at, updated_at 
+        FROM folders 
+        WHERE owner_id = $1 AND parent_id = $2 
+        ORDER BY name ASC
+      `;
+      foldersParams = [userId, parentValidation.id];
+      folderIdForFiles = parentValidation.id; // Set folder ID for file query
+      console.log(`✅ Parent folder verified: ${parentFolder.rows[0].name} (ID: ${parentValidation.id})`);
+    }
+
+    // SECOND: Get files based on the same logic
+    let filesSql;
+    let filesParams;
+    
+    if (parent_id === 'root' || !parent_id) {
+      // Get files in ROOT (where folder_id IS NULL)
+      filesSql = `
+        SELECT 
+          id, 
+          original_name, 
+          file_name, 
+          file_path, 
+          file_size, 
+          mime_type, 
+          folder_id,
+          owner,
+          is_public,
+          department,
+          classification_level,
+          uploaded_at,
+          created_at
+        FROM files 
+        WHERE owner = $1 AND folder_id IS NULL 
+        ORDER BY uploaded_at DESC
+      `;
+      filesParams = [userId];
+      console.log('🔍 Fetching root files (folder_id IS NULL)');
+    } else {
+      // Get files in SPECIFIC FOLDER
+      const parentValidation = validateId(parent_id);
+      if (!parentValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid parent folder ID'
+        });
+      }
+      
+      filesSql = `
+        SELECT 
+          id, 
+          original_name, 
+          file_name, 
+          file_path, 
+          file_size, 
+          mime_type, 
+          folder_id,
+          owner,
+          is_public,
+          department,
+          classification_level,
+          uploaded_at,
+          created_at
+        FROM files 
+        WHERE owner = $1 AND folder_id = $2 
+        ORDER BY uploaded_at DESC
+      `;
+      filesParams = [userId, parentValidation.id];
+      console.log(`🔍 Fetching files in folder ID: ${parentValidation.id}`);
+    }
+
+    // Execute both queries in parallel
+    console.log('📊 Executing parallel queries...');
+    const [foldersResult, filesResult] = await Promise.all([
+      query(foldersSql, foldersParams),
+      query(filesSql, filesParams)
+    ]);
+
+    // Process folders
+    const folders = foldersResult.rows.map(folder => ({
+      ...folder,
+      id: folder.id.toString(),
+      parent_id: folder.parent_id ? folder.parent_id.toString() : null
+    }));
+
+    // Process files
+    const files = filesResult.rows.map(file => ({
+      ...file,
+      id: file.id.toString(),
+      folder_id: file.folder_id ? file.folder_id.toString() : null,
+      owner: file.owner.toString()
+    }));
+
+    console.log(`✅ Found ${folders.length} folders and ${files.length} files`);
+    
+    // Debug log first few files
+    if (files.length > 0) {
+      console.log('📋 Sample files:');
+      files.slice(0, 3).forEach((file, i) => {
+        console.log(`  File ${i + 1}:`, {
+          id: file.id,
+          name: file.original_name,
+          folder_id: file.folder_id,
+          size: file.file_size
+        });
+      });
+    } else {
+      console.log('📭 No files found');
+    }
+
+    res.json({
+      success: true,
+      folders,
+      files,
+      counts: {
+        folders: folders.length,
+        files: files.length
+      },
+      parent_id: parent_id || 'root',
+      folder_id_for_files: folderIdForFiles,
+      query_debug: {
+        folders_query: foldersSql,
+        files_query: filesSql,
+        files_folder_condition: parent_id === 'root' || !parent_id ? 'folder_id IS NULL' : `folder_id = ${folderIdForFiles}`
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching folder content:', error.message);
+    console.error('Stack:', error.stack);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching folder content',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
+  }
+};
+
+
+
+
+
+
 
 
 

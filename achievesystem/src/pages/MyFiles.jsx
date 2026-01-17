@@ -305,7 +305,7 @@ const MyFiles = () => {
 
 
 
-const fetchRootContents = async () => {
+{/*const fetchRootContents = async () => {
   try {
     const token = localStorage.getItem("token");
     
@@ -446,12 +446,70 @@ const fetchRootContents = async () => {
   } finally {
     setLoading(false);
   }
+};*/}
+
+
+
+
+const fetchRootContents = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    
+    console.log("🔍 ========= FETCHING ROOT CONTENT =========");
+    
+    // Use the combined endpoint for root
+    const contentRes = await fetch(`${API_BASE}/api/folders/content?parent_id=root`, {
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log("📡 API Response status:", contentRes.status);
+    
+    const contentData = await contentRes.json();
+    console.log("📦 FULL API RESPONSE:", {
+      success: contentData.success,
+      foldersCount: contentData.folders?.length || 0,
+      filesCount: contentData.files?.length || 0,
+      parent_id: contentData.parent_id,
+      query_debug: contentData.query_debug
+    });
+    
+    if (contentData.success) {
+      // Set folders
+      const folders = contentData.folders || [];
+      console.log(`📁 Setting ${folders.length} folders`);
+      setFolders(folders);
+      
+      // Set files
+      const files = contentData.files || [];
+      console.log(`📄 Setting ${files.length} files`);
+      
+      // DEBUG: Log all files
+      if (files.length > 0) {
+        console.log("📋 All files received:");
+        files.forEach((file, i) => {
+          console.log(`  ${i + 1}. ${file.original_name} (folder_id: ${file.folder_id})`);
+        });
+      }
+      
+      setFiles(files);
+    } else {
+      console.error("❌ Content API error:", contentData.message);
+      setFolders([]);
+      setFiles([]);
+    }
+    
+    console.log("✅ ========= FETCH COMPLETE =========");
+    
+  } catch (err) {
+    console.error("❌ Error in fetchRootContents:", err);
+    console.error("Stack:", err.stack);
+  } finally {
+    setLoading(false);
+  }
 };
-
-
-
-
-
 
 
 
