@@ -57,53 +57,93 @@ const MyFiles = () => {
   };*/}
   
   
- // In MyFiles.jsx fetchRootContents function
-const fetchRootContents = async () => {
+{/*const fetchRootContents = async () => {
   try {
     const token = localStorage.getItem("token");
     
     console.log("🔍 Fetching root contents...");
     
-    // Option A: Use this for root files
-    const filesRes = await fetch(`${API_BASE}/api/upload/user`, {
-      headers: { Authorization: `Bearer ${token}` }
-      // No folder_id parameter needed
+    // 1. Get ALL user files (original working endpoint)
+    const filesRes = await fetch(`${API_BASE}/api/upload`, {
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
     });
     
-    // Option B: Or use this if you want to explicitly specify root
-    // const filesRes = await fetch(`${API_BASE}/api/upload/user?folder_id=root`, {
-    //   headers: { Authorization: `Bearer ${token}` }
-    // });
-    
     const filesData = await filesRes.json();
-    console.log("📦 Files API Response:", filesData);
+    console.log("📦 Files API Response:", {
+      success: filesData.success,
+      totalFiles: filesData.files?.length || 0,
+      message: filesData.message
+    });
+    
+    let rootFiles = [];
     
     if (filesData.success) {
-      setFiles(filesData.files || []);
+      const allFiles = filesData.files || [];
+      
+      // Filter for root files only
+      rootFiles = allFiles.filter(file => {
+        const folderId = file.folder_id || file.folderId;
+        const isRoot = !folderId || folderId === null || folderId === 'null' || 
+                      folderId === '' || folderId === 'root';
+        console.log(`File ${file.id}: folder_id="${folderId}", isRoot=${isRoot}`);
+        return isRoot;
+      });
+      
+      console.log(`📄 Found ${rootFiles.length} root files out of ${allFiles.length} total files`);
+      
+      // Transform root files (use your original transformation code)
+      const transformedFiles = rootFiles.map(file => {
+        // Copy your transformation logic from fetchUserFiles
+        let fileType = "document";
+        const fileName = file.original_name?.toLowerCase() || "";
+        const fileMime = file.filetype?.toLowerCase() || "";
+        
+        // File type detection...
+        if (fileName.includes('.pdf') || fileMime.includes('pdf')) fileType = "pdf";
+        // ... rest of your transformation code
+        
+        return {
+          id: file.id,
+          name: file.original_name || "Unnamed File",
+          type: fileType,
+          // ... rest of your properties
+          _apiData: file
+        };
+      });
+      
+      setFiles(transformedFiles);
     } else {
       console.error("Files API error:", filesData.message);
       setFiles([]);
     }
 
-    // Get root folders (this should already work)
+    // 2. Get root folders
     const foldersRes = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     
     const foldersData = await foldersRes.json();
-    console.log("📁 Folders API Response:", foldersData);
+    console.log("📁 Folders API Response:", {
+      success: foldersData.success,
+      foldersCount: foldersData.folders?.length || 0
+    });
     
     if (foldersData.success) {
       setFolders(foldersData.folders || []);
+    } else {
+      console.error("Folders API error:", foldersData.message);
+      setFolders([]);
     }
     
   } catch (err) {
-    console.error("Error fetching root contents:", err);
+    console.error("❌ Error fetching root contents:", err);
   } finally {
     setLoading(false);
   }
-};
-  
+};*/}
   
   
   

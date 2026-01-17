@@ -127,7 +127,7 @@ const determineFileType = (fileName, fileMime) => {
 
 
 // Get user files with folder support
-export const getUserFiles = async (req, res) => {
+{/*export const getUserFiles = async (req, res) => {
   try {
     const userId = req.user.userId;
     const folderId = req.query.folder_id;
@@ -196,7 +196,7 @@ export const getUserFiles = async (req, res) => {
       message: error.message
     });
   }
-};
+};*/}
 
 
 
@@ -362,7 +362,7 @@ export const getUserFiles = async (req, res) => {
 };*/}
 
 // Get all user items (files + folders) for MyFiles page
-export const getAllUserItems = async (req, res) => {
+{/*export const getAllUserItems = async (req, res) => {
   const startTime = Date.now();
   
   try {
@@ -512,7 +512,7 @@ export const getAllUserItems = async (req, res) => {
       error: error.message
     });
   }
-};
+};*/}
 
 
 
