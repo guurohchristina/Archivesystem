@@ -29,7 +29,7 @@ const router = express.Router();
 
 // =========== FOLDER MANAGEMENT ROUTES ===========
 // Get user files with folder support (supports folder_id query parameter)
-router.get('/user', authenticate, getUserFiles);
+router.get('/', authenticate, getUserFiles);
 
 // Get all user items (files + folders) for a specific folder
 router.get('/items', authenticate, getAllUserItems);
@@ -61,7 +61,7 @@ router.put('/:id', authenticate, updateFile);
 router.delete('/:id', authenticate, deleteFile);
 
 // =========== MYFILES PAGE ROUTES ===========
-router.get('/my-files', authenticate, getFiles); // Reuse getFiles with pagination
+router.get('/my-files', authenticate, getUserFiles); // Reuse getFiles with pagination
 router.get('/stats/summary', authenticate, getFileStats);
 router.get('/departments/list', authenticate, getDepartments);
 router.get('/categories/counts', authenticate, getCategoryCounts);
