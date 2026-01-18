@@ -459,7 +459,7 @@ const fetchRootContents = async () => {
     
     console.log("🔍 Fetching root content from /api/folders/content...");
     
-    const response = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
+    const response = await fetch(`${API_BASE}/api/folders/content?parent_id=root`, {
       headers: { 
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
