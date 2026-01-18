@@ -886,6 +886,7 @@ const fetchFiles = async () => {
   </div>
 )} */}
 
+
 {/* Files Section */}
 <div>
   <h2 style={{ marginBottom: '20px', fontSize: '18px', color: '#333' }}>
@@ -940,12 +941,7 @@ const fetchFiles = async () => {
             padding: viewMode === 'grid' ? '20px' : '16px',
             display: viewMode === 'list' ? 'flex' : 'block',
             alignItems: viewMode === 'list' ? 'center' : 'stretch',
-            gap: viewMode === 'list' ? '16px' : '0',
-            transition: 'all 0.2s',
-            ':hover': {
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-              transform: 'translateY(-2px)'
-            }
+            gap: viewMode === 'list' ? '16px' : '0'
           }}
         >
           {/* File Icon */}
@@ -1033,10 +1029,7 @@ const fetchFiles = async () => {
                 borderRadius: '4px',
                 cursor: 'pointer',
                 fontSize: '18px',
-                color: file.starred ? '#ffc107' : '#6c757d',
-                ':hover': {
-                  backgroundColor: '#f8f9fa'
-                }
+                color: file.starred ? '#ffc107' : '#6c757d'
               }}
               title={file.starred ? "Unstar" : "Star"}
             >
@@ -1052,10 +1045,7 @@ const fetchFiles = async () => {
                 borderRadius: '4px',
                 cursor: 'pointer',
                 fontSize: '18px',
-                color: '#6c757d',
-                ':hover': {
-                  backgroundColor: '#f8f9fa'
-                }
+                color: '#6c757d'
               }}
               title="Download"
             >
@@ -1067,7 +1057,6 @@ const fetchFiles = async () => {
     </div>
   )}
 </div>
-
 
 
 
