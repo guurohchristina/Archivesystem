@@ -935,7 +935,7 @@ const fetchRootContents = async () => {
 
 
       {/* Empty State */}
-      {folders.length === 0 && files.length === 0 && (
+     {/* {folders.length === 0 && files.length === 0 && (
         <div style={styles.emptyState}>
           <div style={{ fontSize: '60px', marginBottom: '20px' }}>📂</div>
           <h3>No files or folders yet</h3>
@@ -952,7 +952,7 @@ const fetchRootContents = async () => {
             </button>
           </div>
         </div>
-      )}
+      )}*/}
     </div>
   );
 };
