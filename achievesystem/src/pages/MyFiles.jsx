@@ -312,119 +312,7 @@ const fetchRootContents = async () => {
     console.log("🔍 Fetching root contents...");
     
     // 1. Get ALL files
-    const filesRes = await fetch(`${API_BASE}/api/upload`, {
-      headers: { 
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
     
-    const filesData = await filesRes.json();
-    console.log("📦 Files API Response received");
-    
-    if (filesData.success) {
-      const allFiles = filesData.files || [];
-      console.log(`📦 Total files from API: ${allFiles.length}`);
-      
-      // DEBUG: Log first few files
-      allFiles.slice(0, 3).forEach((file, i) => {
-        console.log(`File ${i}:`, {
-          id: file.id,
-          name: file.original_name,
-          folder_id: file.folder_id,
-          type: typeof file.folder_id
-        });
-      });
-      
-      // CORRECTED: Filter for root files
-      const rootFiles = allFiles.filter(file => {
-        const folderId = file.folder_id;
-        
-        // Accept ALL representations of "root"
-        if (folderId === null || folderId === undefined) {
-          return true; // NULL or undefined = root
-        }
-        
-        const folderIdStr = String(folderId).toLowerCase().trim();
-        
-        // Check for various "root" representations
-        if (folderIdStr === 'root' || 
-            folderIdStr === '' || 
-            folderIdStr === 'null' ||
-            folderIdStr === '0') {
-          return true;
-        }
-        
-        return false;
-      });
-      
-      console.log(`✅ Filtered: ${rootFiles.length} root files`);
-      
-      // Transform the filtered files
-      const transformedFiles = rootFiles.map(file => {
-        // Determine file type
-        let fileType = "document";
-        const fileName = (file.original_name || "").toLowerCase();
-        
-        if (fileName.includes('.pdf')) fileType = "pdf";
-        else if (fileName.includes('.doc')) fileType = "doc";
-        else if (fileName.includes('.xls') || fileName.includes('.xlsx') || fileName.includes('.csv')) fileType = "spreadsheet";
-        else if (fileName.includes('.jpg') || fileName.includes('.jpeg') || fileName.includes('.png') || fileName.includes('.gif')) fileType = "image";
-        else if (fileName.includes('.mp4') || fileName.includes('.mov') || fileName.includes('.avi')) fileType = "video";
-        else if (fileName.includes('.zip') || fileName.includes('.rar')) fileType = "archive";
-        
-        // Format date
-        let relativeDate = "Recently";
-        if (file.uploaded_at) {
-          const date = new Date(file.uploaded_at);
-          const now = new Date();
-          const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-          
-          if (diffDays === 0) relativeDate = "Today";
-          else if (diffDays === 1) relativeDate = "Yesterday";
-          else if (diffDays < 7) relativeDate = `${diffDays} days ago`;
-          else if (diffDays < 30) relativeDate = `${Math.floor(diffDays / 7)} weeks ago`;
-          else {
-            relativeDate = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-          }
-        }
-        
-        // Format size
-        let formattedSize = "0 Bytes";
-        if (file.file_size) {
-          const bytes = parseInt(file.file_size);
-          if (bytes > 0) {
-            const k = 1024;
-            const sizes = ["Bytes", "KB", "MB", "GB"];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-          }
-        }
-        
-        return {
-          id: file.id?.toString() || file.id,
-          name: file.original_name || "Unnamed File",
-          type: fileType,
-          size: formattedSize,
-          date: relativeDate,
-          starred: false,
-          shared: file.is_public || false,
-          owner: "You",
-          department: file.department || "General",
-          classification: file.classification_level || "Unclassified",
-          fileSizeBytes: file.file_size || 0,
-          uploadedAt: file.uploaded_at,
-          _apiData: file,
-          folderId: file.folder_id // Keep this for debugging
-        };
-      });
-      
-      console.log(`🎯 Setting ${transformedFiles.length} files to state`);
-      setFiles(transformedFiles);
-    } else {
-      console.error("❌ Files API error:", filesData.message);
-      setFiles([]);
-    }
 
     // 2. Get root folders
     const foldersRes = await fetch(`${API_BASE}/api/folders?parent_id=root`, {
@@ -443,6 +331,139 @@ const fetchRootContents = async () => {
     
   } catch (err) {
     console.error("❌ Error in fetchRootContents:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+
+
+
+
+// Fetch files function (add this to your component)
+const fetchFiles = async () => {
+  setLoading(true);
+  setError(null);
+  try {
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      throw new Error("Please log in to view your files");
+    }
+
+    const response = await fetch(`${API_BASE}/api/upload`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+    });
+
+    const result = await response.json();
+    console.log("Files API Response:", result);
+
+    if (result.success) {
+      // Transform API data to the format we need
+      const transformedFiles = (result.files || []).map(file => {
+        // Determine file type from filename or filetype
+        let fileType = "document";
+        const fileName = file.original_name?.toLowerCase() || "";
+        const fileMime = file.filetype?.toLowerCase() || "";
+        
+        if (fileName.includes('.pdf') || fileMime.includes('pdf')) fileType = "pdf";
+        else if (fileName.includes('.doc') || fileName.includes('.docx') || fileMime.includes('word')) fileType = "doc";
+        else if (fileName.includes('.xls') || fileName.includes('.xlsx') || fileName.includes('.csv') || fileMime.includes('excel') || fileMime.includes('sheet')) fileType = "spreadsheet";
+        else if (fileName.includes('.jpg') || fileName.includes('.jpeg') || fileName.includes('.png') || fileName.includes('.gif') || fileName.includes('.bmp') || fileMime.includes('image')) fileType = "image";
+        else if (fileName.includes('.mp4') || fileName.includes('.mov') || fileName.includes('.avi') || fileName.includes('.mkv') || fileMime.includes('video')) fileType = "video";
+        else if (fileName.includes('.mp3') || fileName.includes('.wav') || fileName.includes('.aac') || fileMime.includes('audio')) fileType = "audio";
+        else if (fileName.includes('.zip') || fileName.includes('.rar') || fileName.includes('.7z') || fileMime.includes('archive') || fileMime.includes('compressed')) fileType = "archive";
+        
+        // Format relative date
+        let relativeDate = "Recently";
+        if (file.uploaded_at) {
+          const date = new Date(file.uploaded_at);
+          const now = new Date();
+          const diffTime = Math.abs(now - date);
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+          
+          if (diffDays === 0) relativeDate = "Today";
+          else if (diffDays === 1) relativeDate = "Yesterday";
+          else if (diffDays < 7) relativeDate = `${diffDays} days ago`;
+          else if (diffDays < 30) relativeDate = `${Math.floor(diffDays / 7)} weeks ago`;
+          else {
+            relativeDate = date.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric"
+            });
+          }
+        }
+        
+        // Format file size
+        let formattedSize = "0 Bytes";
+        if (file.file_size) {
+          const bytes = parseInt(file.file_size);
+          if (bytes > 0) {
+            const k = 1024;
+            const sizes = ["Bytes", "KB", "MB", "GB"];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+          }
+        }
+        
+        return {
+          id: file.id,
+          name: file.original_name || "Unnamed File",
+          type: fileType,
+          size: formattedSize,
+          date: relativeDate,
+          starred: false,
+          shared: file.is_public || false,
+          owner: file.owner || "Unknown",
+          department: file.department || "General",
+          classification: file.classification_level || "Unclassified",
+          description: file.description || "",
+          fileSizeBytes: file.file_size || 0,
+          uploadedAt: file.uploaded_at,
+          documentType: file.document_type,
+          isPublic: file.is_public,
+          folderId: file.folder_id,
+          _apiData: file
+        };
+      });
+      
+      console.log("Transformed files:", transformedFiles.length);
+      
+      // Filter files based on current location
+      let filteredFiles;
+      if (currentFolderId) {
+        // Show files in current folder
+        filteredFiles = transformedFiles.filter(file => 
+          file.folderId && file.folderId.toString() === currentFolderId.toString()
+        );
+        console.log(`📂 Filtered ${filteredFiles.length} files for folder ${currentFolderId}`);
+      } else {
+        // Show root files (no folder_id or null folder_id)
+        filteredFiles = transformedFiles.filter(file => 
+          !file.folderId || 
+          file.folderId === null || 
+          file.folderId === '' || 
+          file.folderId === 'null'
+        );
+        console.log(`📂 Showing ${filteredFiles.length} root files`);
+      }
+      
+      setFiles(filteredFiles);
+      
+      // Calculate total storage
+      const totalSize = filteredFiles.reduce((sum, file) => sum + file.fileSizeBytes, 0);
+      setTotalStorageUsed(totalSize);
+    } else {
+      throw new Error(result.message || "Failed to load files");
+    }
+  } catch (error) {
+    console.error("Error fetching files:", error);
+    setError(error.message);
   } finally {
     setLoading(false);
   }
@@ -865,25 +886,190 @@ const fetchRootContents = async () => {
   </div>
 )} */}
 
+{/* Files Section */}
+<div>
+  <h2 style={{ marginBottom: '20px', fontSize: '18px', color: '#333' }}>
+    📄 Files ({filteredFiles.length})
+  </h2>
+  
+  {filteredFiles.length === 0 ? (
+    <div style={{
+      textAlign: 'center',
+      padding: '60px 20px',
+      backgroundColor: '#f8f9fa',
+      borderRadius: '12px',
+      border: '2px dashed #dee2e6'
+    }}>
+      <div style={{ fontSize: '48px', marginBottom: '20px', opacity: 0.5 }}>📁</div>
+      <h3 style={{ marginBottom: '10px', color: '#6c757d' }}>
+        {files.length === 0 ? "No files found" : "No matching files found"}
+      </h3>
+      <p style={{ color: '#6c757d', marginBottom: '20px' }}>
+        {searchTerm 
+          ? "Try a different search term" 
+          : folders.length === 0 ? "Upload your first file to get started" : "No files in this folder"}
+      </p>
+      <button
+        onClick={() => navigate("/upload")}
+        style={{
+          padding: '10px 20px',
+          backgroundColor: '#007bff',
+          color: 'white',
+          border: 'none',
+          borderRadius: '6px',
+          cursor: 'pointer',
+          fontWeight: 'bold'
+        }}
+      >
+        Upload File
+      </button>
+    </div>
+  ) : (
+    <div style={{
+      display: viewMode === 'grid' ? 'grid' : 'block',
+      gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(250px, 1fr))' : 'none',
+      gap: '20px'
+    }}>
+      {filteredFiles.map(file => (
+        <div
+          key={file.id}
+          style={{
+            backgroundColor: 'white',
+            border: '1px solid #e0e0e0',
+            borderRadius: '12px',
+            padding: viewMode === 'grid' ? '20px' : '16px',
+            display: viewMode === 'list' ? 'flex' : 'block',
+            alignItems: viewMode === 'list' ? 'center' : 'stretch',
+            gap: viewMode === 'list' ? '16px' : '0',
+            transition: 'all 0.2s',
+            ':hover': {
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              transform: 'translateY(-2px)'
+            }
+          }}
+        >
+          {/* File Icon */}
+          <div style={{
+            fontSize: '36px',
+            marginBottom: viewMode === 'grid' ? '12px' : '0',
+            textAlign: viewMode === 'grid' ? 'center' : 'left'
+          }}>
+            {getFileIcon(file.type)}
+          </div>
+          
+          {/* File Info */}
+          <div style={{ flex: 1 }}>
+            <h3 style={{
+              margin: '0 0 8px 0',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}>
+              {file.name}
+            </h3>
+            
+            <div style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '8px',
+              marginBottom: '8px',
+              alignItems: 'center'
+            }}>
+              <span style={{
+                backgroundColor: '#f8f9fa',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                color: '#495057'
+              }}>
+                {file.type.toUpperCase()}
+              </span>
+              <span style={{ fontSize: '14px', color: '#666' }}>
+                {file.size}
+              </span>
+              <span style={{ fontSize: '14px', color: '#666' }}>
+                {file.date}
+              </span>
+            </div>
+            
+            {/* File Details */}
+            {(file.owner || file.department) && (
+              <div style={{ fontSize: '12px', color: '#6c757d' }}>
+                {file.owner && file.owner !== "Unknown" && (
+                  <span style={{ marginRight: '8px' }}>
+                    👤 {file.owner}
+                  </span>
+                )}
+                {file.department && file.department !== "General" && (
+                  <span>
+                    🏢 {file.department}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          
+          {/* File Actions */}
+          <div style={{
+            display: 'flex',
+            gap: '8px',
+            marginTop: viewMode === 'grid' ? '16px' : '0',
+            justifyContent: viewMode === 'grid' ? 'center' : 'flex-end'
+          }}>
+            <button
+              onClick={() => {
+                const updatedFiles = files.map(f => 
+                  f.id === file.id ? { ...f, starred: !f.starred } : f
+                );
+                setFiles(updatedFiles);
+              }}
+              style={{
+                padding: '8px',
+                backgroundColor: 'transparent',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '18px',
+                color: file.starred ? '#ffc107' : '#6c757d',
+                ':hover': {
+                  backgroundColor: '#f8f9fa'
+                }
+              }}
+              title={file.starred ? "Unstar" : "Star"}
+            >
+              {file.starred ? '★' : '☆'}
+            </button>
+            
+            <button
+              onClick={() => handleDownload(file)}
+              style={{
+                padding: '8px',
+                backgroundColor: 'transparent',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '18px',
+                color: '#6c757d',
+                ':hover': {
+                  backgroundColor: '#f8f9fa'
+                }
+              }}
+              title="Download"
+            >
+              ⬇️
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
 
 
 
-{files.map(file => (
-  <div key={file.id} style={styles.fileCard}>
-    <div style={styles.fileIcon}>
-      {getFileIcon(file.original_name)}  {/* Use original_name, not name */}
-    </div>
-    <div style={styles.fileName}>
-      {file.original_name}  {/* Use original_name */}
-    </div>
-    <div style={styles.fileSize}>
-      {formatFileSize(file.file_size)}  {/* Use file_size */}
-    </div>
-    <div style={styles.fileDate}>
-      {new Date(file.uploaded_at).toLocaleDateString()}  {/* Use uploaded_at */}
-    </div>
-  </div>
-))}
 
 
 
