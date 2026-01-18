@@ -305,7 +305,7 @@ const MyFiles = () => {
 
 
 
-{/*const fetchRootContents = async () => {
+const fetchRootContents = async () => {
   try {
     const token = localStorage.getItem("token");
     
@@ -446,58 +446,13 @@ const MyFiles = () => {
   } finally {
     setLoading(false);
   }
-};*/}
-
-
-
-
-
-
-const fetchRootContents = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    
-    console.log("🔍 Fetching root content from /api/folders/content...");
-    
-    const response = await fetch(`${API_BASE}/api/folders/content?parent_id=root`, {
-      headers: { 
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    console.log("📡 Response status:", response.status);
-    
-    const data = await response.json();
-    console.log("📦 API Response:", {
-      success: data.success,
-      folders: data.folders?.length || 0,
-      files: data.files?.length || 0
-    });
-    
-    if (data.success) {
-      setFolders(data.folders || []);
-      setFiles(data.files || []);
-      
-      // Debug: Show file details
-      if (data.files && data.files.length > 0) {
-        console.log("📄 Files received:");
-        data.files.forEach((file, i) => {
-          console.log(`  ${i + 1}. ${file.original_name} (folder_id: ${file.folder_id})`);
-        });
-      }
-    } else {
-      console.error("❌ API Error:", data.message);
-      setFolders([]);
-      setFiles([]);
-    }
-    
-  } catch (err) {
-    console.error("❌ Network error:", err);
-  } finally {
-    setLoading(false);
-  }
 };
+
+
+
+
+
+
 
 
 
@@ -935,7 +890,7 @@ const fetchRootContents = async () => {
 
 
       {/* Empty State */}
-     {/* {folders.length === 0 && files.length === 0 && (
+      {folders.length === 0 && files.length === 0 && (
         <div style={styles.emptyState}>
           <div style={{ fontSize: '60px', marginBottom: '20px' }}>📂</div>
           <h3>No files or folders yet</h3>
@@ -952,7 +907,7 @@ const fetchRootContents = async () => {
             </button>
           </div>
         </div>
-      )}*/}
+      )}
     </div>
   );
 };

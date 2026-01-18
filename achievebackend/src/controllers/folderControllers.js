@@ -413,197 +413,6 @@ export const createFolder = async (req, res) => {
 
 
 
-export const getFolderContent = async (req, res) => {
-  try {
-    console.log('📦 ========= GET FOLDER CONTENT =========');
-    console.log('📦 Query parameters:', req.query);
-    console.log('👤 User ID:', req.user.userId);
-    
-    const { parent_id } = req.query;
-    const userId = req.user.userId;
-
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required'
-      });
-    }
-
-    // ============ GET FOLDERS ============
-    let foldersSql, foldersParams;
-    if (parent_id === 'root' || !parent_id) {
-      foldersSql = `
-        SELECT id, name, parent_id, owner_id, created_at, updated_at 
-        FROM folders 
-        WHERE owner_id = $1 AND parent_id IS NULL 
-        ORDER BY name ASC
-      `;
-      foldersParams = [userId];
-      console.log('🔍 Getting root folders');
-    } else {
-      const parentValidation = validateId(parent_id);
-      if (!parentValidation.valid) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid parent folder ID'
-        });
-      }
-      
-      foldersSql = `
-        SELECT id, name, parent_id, owner_id, created_at, updated_at 
-        FROM folders 
-        WHERE owner_id = $1 AND parent_id = $2 
-        ORDER BY name ASC
-      `;
-      foldersParams = [userId, parentValidation.id];
-      console.log(`🔍 Getting subfolders of ${parentValidation.id}`);
-    }
-
-    // ============ GET FILES ============
-    // IMPORTANT: Use the EXACT column names from your database
-    let filesSql, filesParams;
-    if (parent_id === 'root' || !parent_id) {
-      // Get root files (folder_id IS NULL)
-      filesSql = `
-        SELECT 
-          id,
-          filename,
-          filepath,
-          filetype,
-          original_name,
-          file_size,
-          user_id,
-          description,
-          is_public,
-          document_type,
-          document_date,
-          department,
-          owner,
-          classification_level,
-          uploaded_at,
-          updated_at,
-          public_since,
-          folder_id
-        FROM files 
-        WHERE (user_id = $1 OR owner = $1) 
-          AND (folder_id IS NULL OR folder_id = '') 
-        ORDER BY uploaded_at DESC
-      `;
-      filesParams = [userId];
-      console.log('🔍 Getting root files (folder_id IS NULL)');
-    } else {
-      const parentValidation = validateId(parent_id);
-      if (!parentValidation.valid) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid parent folder ID'
-        });
-      }
-      
-      filesSql = `
-        SELECT 
-          id,
-          filename,
-          filepath,
-          filetype,
-          original_name,
-          file_size,
-          user_id,
-          description,
-          is_public,
-          document_type,
-          document_date,
-          department,
-          owner,
-          classification_level,
-          uploaded_at,
-          updated_at,
-          public_since,
-          folder_id
-        FROM files 
-        WHERE (user_id = $1 OR owner = $1) 
-          AND folder_id = $2
-        ORDER BY uploaded_at DESC
-      `;
-      filesParams = [userId, parentValidation.id];
-      console.log(`🔍 Getting files in folder ${parentValidation.id}`);
-    }
-
-    console.log('📊 Executing queries...');
-    const [foldersResult, filesResult] = await Promise.all([
-      query(foldersSql, foldersParams),
-      query(filesSql, filesParams)
-    ]);
-
-    console.log(`✅ Found ${foldersResult.rows.length} folders and ${filesResult.rows.length} files`);
-
-    // Process folders
-    const folders = foldersResult.rows.map(folder => ({
-      ...folder,
-      id: folder.id.toString(),
-      parent_id: folder.parent_id ? folder.parent_id.toString() : null,
-      owner_id: folder.owner_id ? folder.owner_id.toString() : null
-    }));
-
-    // Process files
-    const files = filesResult.rows.map(file => {
-      // Debug: Log file structure
-      console.log('File row:', {
-        id: file.id,
-        original_name: file.original_name,
-        file_size: file.file_size,
-        folder_id: file.folder_id,
-        has_required_fields: !!file.original_name && !!file.file_size
-      });
-      
-      return {
-        ...file,
-        id: file.id.toString(),
-        folder_id: file.folder_id ? file.folder_id.toString() : null,
-        user_id: file.user_id ? file.user_id.toString() : null,
-        owner: file.owner ? file.owner.toString() : null,
-        // Ensure we have the fields the frontend expects
-        file_size: file.file_size || 0,
-        original_name: file.original_name || 'Unnamed File'
-      };
-    });
-
-    // Debug: Show what we're sending
-    console.log('📤 Response data structure:', {
-      success: true,
-      foldersCount: folders.length,
-      filesCount: files.length,
-      sampleFile: files.length > 0 ? {
-        id: files[0].id,
-        name: files[0].original_name,
-        size: files[0].file_size,
-        folder_id: files[0].folder_id
-      } : 'No files'
-    });
-
-    res.json({
-      success: true,
-      folders,
-      files,
-      counts: {
-        folders: folders.length,
-        files: files.length
-      },
-      parent_id: parent_id || 'root'
-    });
-
-  } catch (error) {
-    console.error('❌ Error in getFolderContent:', error.message);
-    console.error('Stack:', error.stack);
-    
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching folder content',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-};
-
 
 
 
@@ -611,7 +420,7 @@ export const getFolderContent = async (req, res) => {
 
 
 // Get folders by parent
-{/*export const getFolders = async (req, res) => {
+export const getFolders = async (req, res) => {
   try {
     console.log('📂 ========= GET FOLDERS REQUEST =========');
     console.log('📦 Query parameters:', req.query);
@@ -688,7 +497,7 @@ export const getFolderContent = async (req, res) => {
       ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
-};*/}
+};
 
 // Get folder by ID
 export const getFolderById = async (req, res) => {
