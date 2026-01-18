@@ -2,7 +2,7 @@ import express from 'express';
 import {authenticate} from '../middleware/authMiddleware.js';
 import {
   createFolder,
-  getFolderContent,
+  getFolders,
   getFolderById,
   deleteFolder,
   renameFolder,
