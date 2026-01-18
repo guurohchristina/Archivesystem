@@ -3,7 +3,7 @@ import express from 'express';
 import { 
 
   uploadFile, 
-getFiles,
+
   downloadFile,
   updateFile,
   deleteFile,
@@ -29,6 +29,7 @@ const router = express.Router();
 
 // =========== FOLDER MANAGEMENT ROUTES ===========
 // Get user files with folder support (supports folder_id query parameter)
+router.get('/', authenticate, getUserFiles);
 
 // Get all user items (files + folders) for a specific folder
 router.get('/items', authenticate, getAllUserItems);
@@ -48,9 +49,9 @@ router.put('/:id/visibility', authenticate, toggleFileVisibility);  // Toggle pu
 router.get('/:id/visibility', authenticate, getFileVisibility);     // Check visibility status
 
 // =========== BASIC FILE ROUTES ===========
-router.get('/', authenticate, getFiles); 
+{/*router.get('/', authenticate, getFiles);*/} // Backward compatibility - gets all files
 {/*router.post('/', authenticate, uploadMiddleware.single('file'), uploadFile);*/} // Changed to single file upload for folder support
-router.get('/:id', authenticate, getFileDetails);
+{/*router.get('/:id', authenticate, getFileDetails);*/}
 
 router.post('/', authenticate, uploadMiddleware.array('files'), uploadFile);
 
@@ -60,7 +61,7 @@ router.put('/:id', authenticate, updateFile);
 router.delete('/:id', authenticate, deleteFile);
 
 // =========== MYFILES PAGE ROUTES ===========
-router.get('/my-files', authenticate, getFiles); // Reuse getFiles with pagination
+router.get('/my-files', authenticate, getUserFiles); // Reuse getFiles with pagination
 router.get('/stats/summary', authenticate, getFileStats);
 router.get('/departments/list', authenticate, getDepartments);
 router.get('/categories/counts', authenticate, getCategoryCounts);
