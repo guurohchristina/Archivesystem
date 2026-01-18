@@ -14,6 +14,12 @@ const MyFiles = () => {
   const [editFolderName, setEditFolderName] = useState("");
   const [showActionsMenu, setShowActionsMenu] = useState(null); // folderId or null
   const [showEditModal, setShowEditModal] = useState(false);
+  
+  
+  const [viewMode, setViewMode] = useState('grid'); // or 'list'
+const [searchTerm, setSearchTerm] = useState('');
+const [files, setFiles] = useState([]);
+const [filteredFiles, setFilteredFiles] = useState([]);
 
   const API_BASE = 'https://archivesystembackend.onrender.com';
 
@@ -839,8 +845,6 @@ const fetchFiles = async () => {
       )}
 
     
-
-
 {/* Files Section */}
 <div>
   <h2 style={{ marginBottom: '20px', fontSize: '18px', color: '#333' }}>
@@ -1011,6 +1015,8 @@ const fetchFiles = async () => {
     </div>
   )}
 </div>
+
+
 
 
 
