@@ -838,53 +838,7 @@ const fetchFiles = async () => {
         </div>
       )}
 
-      {/* Files Section */}
-      {/*{files.length > 0 && (
-        <div style={{ marginBottom: '40px' }}>
-          <h3>Files ({files.length})</h3>
-          <div style={styles.filesGrid}>
-            {files.map(file => (
-              <div key={file.id} style={styles.fileCard}>
-                <div style={styles.fileIcon}>
-                  {getFileIcon(file.original_name)}
-                </div>
-                <div style={styles.fileName}>{file.original_name}</div>
-                <div style={styles.fileSize}>
-                  {formatFileSize(file.file_size)}
-                </div>
-                <div style={styles.fileDate}>
-                  {new Date(file.uploaded_at).toLocaleDateString()}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}*/}
-      
-     {/* Files Section */}
-{/*{files.length > 0 && (
-  <div style={{ marginBottom: '40px' }}>
-    <h3>Files ({files.length})</h3>
-    <div style={styles.filesGrid}>
-      {files.map(file => (
-        <div key={file.id} style={styles.fileCard}>
-          <div style={styles.fileIcon}>
-            {getFileIcon(file.original_name)}
-          </div>
-          <div style={styles.fileName}>
-            {file.original_name}
-          </div>
-          <div style={styles.fileSize}>
-            {formatFileSize(file.file_size)}
-          </div>
-          <div style={styles.fileDate}>
-            {new Date(file.uploaded_at).toLocaleDateString()}
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-)} */}
+    
 
 
 {/* Files Section */}
