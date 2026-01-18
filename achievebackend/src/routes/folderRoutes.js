@@ -3,6 +3,7 @@ import {authenticate} from '../middleware/authMiddleware.js';
 import {
   createFolder,
   getFolders,
+  getFilesInFolder,
   getFolderById,
   deleteFolder,
   renameFolder,
@@ -18,7 +19,9 @@ router.use(authenticate);
 router.post('/', createFolder);
 
 // Get folders by parent
-router.get('/content', getFolderContent);
+router.get('/', getFolders);
+
+router.get('/files', getFilesInFolder);
 
 // Get specific folder by ID
 router.get('/:id', getFolderById);

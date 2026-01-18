@@ -420,7 +420,7 @@ export const createFolder = async (req, res) => {
 
 
 // Get folders by parent
-{/*export const getFolders = async (req, res) => {
+export const getFolders = async (req, res) => {
   try {
     console.log('📂 ========= GET FOLDERS REQUEST =========');
     console.log('📦 Query parameters:', req.query);
@@ -498,6 +498,137 @@ export const createFolder = async (req, res) => {
     });
   }
 };
+
+
+
+// ============================================
+// GET FILES IN FOLDER (for frontend file display)
+// ============================================
+export const getFilesInFolder = async (req, res) => {
+  try {
+    console.log('📄 ========= GET FILES IN FOLDER =========');
+    console.log('📦 Query parameters:', req.query);
+    console.log('👤 User ID:', req.user.userId);
+    
+    const { folder_id } = req.query;
+    const userId = req.user.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    let sql;
+    let params;
+    
+    // Handle root files (folder_id = 'root' or null) vs folder files
+    if (folder_id === 'root' || !folder_id) {
+      // Get files in ROOT (where folder_id IS NULL or empty)
+      sql = `
+        SELECT 
+          id,
+          filename,
+          filepath,
+          filetype,
+          original_name,
+          file_size,
+          user_id,
+          description,
+          is_public,
+          document_type,
+          document_date,
+          department,
+          owner,
+          classification_level,
+          uploaded_at,
+          updated_at,
+          public_since,
+          folder_id
+        FROM files 
+        WHERE user_id = $1 
+          AND (folder_id IS NULL OR folder_id = '' OR folder_id = 'root')
+        ORDER BY uploaded_at DESC
+      `;
+      params = [userId];
+      console.log('🔍 Getting root files');
+    } else {
+      // Get files in SPECIFIC FOLDER
+      const folderValidation = validateId(folder_id);
+      if (!folderValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid folder ID'
+        });
+      }
+      
+      sql = `
+        SELECT 
+          id,
+          filename,
+          filepath,
+          filetype,
+          original_name,
+          file_size,
+          user_id,
+          description,
+          is_public,
+          document_type,
+          document_date,
+          department,
+          owner,
+          classification_level,
+          uploaded_at,
+          updated_at,
+          public_since,
+          folder_id
+        FROM files 
+        WHERE user_id = $1 AND folder_id = $2
+        ORDER BY uploaded_at DESC
+      `;
+      params = [userId, folderValidation.id];
+      console.log(`🔍 Getting files in folder ${folderValidation.id}`);
+    }
+
+    console.log('📊 Executing query:', sql);
+    console.log('📊 Query parameters:', params);
+    
+    const result = await query(sql, params);
+    
+    console.log(`✅ Found ${result.rows.length} files`);
+    
+    // Process files
+    const files = result.rows.map(file => ({
+      ...file,
+      id: file.id.toString(),
+      folder_id: file.folder_id ? file.folder_id.toString() : null,
+      user_id: file.user_id ? file.user_id.toString() : null,
+      owner: file.owner ? file.owner.toString() : null
+    }));
+
+    res.json({
+      success: true,
+      files,
+      count: files.length,
+      folder_id: folder_id || 'root'
+    });
+
+  } catch (error) {
+    console.error('❌ Error in getFilesInFolder:', error.message);
+    console.error('Stack:', error.stack);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching files',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+
+
+
 
 // Get folder by ID
 export const getFolderById = async (req, res) => {

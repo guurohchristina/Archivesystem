@@ -66,6 +66,38 @@ const determineFileType = (fileName, fileMime) => {
 };
 
 
+// Get all files for user (your existing working function)
+export const getFiles = async (req, res) => {
+  try {
+    console.log('📂 GET /api/upload - Fetching files for user:', req.user.userId);
+    
+    const result = await query(
+      'SELECT * FROM files WHERE user_id = $1 ORDER BY uploaded_at DESC',
+      [req.user.userId]
+    );
+    
+    console.log(`✅ Found ${result.rows.length} files for user ${req.user.userId}`);
+    
+    res.json({
+      success: true,
+      files: result.rows,
+      count: result.rows.length
+    });
+  } catch (error) {
+    console.error('❌ Error fetching files:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch files',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+
+
+
+
+
 
 {/*export const getUserFiles = async (req, res) => {
   try {
@@ -137,7 +169,7 @@ const determineFileType = (fileName, fileMime) => {
 
 
 // Get user files with folder support
-export const getUserFiles = async (req, res) => {
+{/*export const getUserFiles = async (req, res) => {
   try {
     const userId = req.user.userId;
     const folderId = req.query.folder_id;
@@ -207,7 +239,7 @@ export const getUserFiles = async (req, res) => {
     });
   }
 };
-
+*/}
 
 
 
@@ -372,7 +404,7 @@ export const getUserFiles = async (req, res) => {
 };*/}
 
 // Get all user items (files + folders) for MyFiles page
-export const getAllUserItems = async (req, res) => {
+{/*export const getAllUserItems = async (req, res) => {
   const startTime = Date.now();
   
   try {
@@ -522,7 +554,7 @@ export const getAllUserItems = async (req, res) => {
       error: error.message
     });
   }
-};
+};*/}
 
 
 
