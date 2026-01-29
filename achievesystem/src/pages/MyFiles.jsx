@@ -846,7 +846,7 @@ const fetchFiles = async () => {
 
     
 {/* Files Section */}
-<div>
+{/*<div>
   <h2 style={{ marginBottom: '20px', fontSize: '18px', color: '#333' }}>
     📄 Files ({filteredFiles.length})
   </h2>
@@ -903,7 +903,7 @@ const fetchFiles = async () => {
           }}
         >
           {/* File Icon */}
-          <div style={{
+         {/* <div style={{
             fontSize: '36px',
             marginBottom: viewMode === 'grid' ? '12px' : '0',
             textAlign: viewMode === 'grid' ? 'center' : 'left'
@@ -911,8 +911,8 @@ const fetchFiles = async () => {
             {getFileIcon(file.type)}
           </div>
           
-          {/* File Info */}
-          <div style={{ flex: 1 }}>
+        {/* File Info */}
+         {/* <div style={{ flex: 1 }}>
             <h3 style={{
               margin: '0 0 8px 0',
               fontSize: '16px',
@@ -950,7 +950,7 @@ const fetchFiles = async () => {
             </div>
             
             {/* File Details */}
-            {(file.owner || file.department) && (
+            {/*{(file.owner || file.department) && (
               <div style={{ fontSize: '12px', color: '#6c757d' }}>
                 {file.owner && file.owner !== "Unknown" && (
                   <span style={{ marginRight: '8px' }}>
@@ -966,7 +966,7 @@ const fetchFiles = async () => {
             )}
           </div>
           
-          {/* File Actions */}
+          {/* File Actions 
           <div style={{
             display: 'flex',
             gap: '8px',
@@ -1015,7 +1015,7 @@ const fetchFiles = async () => {
     </div>
   )}
 </div>
-
+*/}
 
 
 
