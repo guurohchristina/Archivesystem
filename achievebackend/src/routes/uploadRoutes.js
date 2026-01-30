@@ -4,6 +4,7 @@ import {
 
   uploadFile, 
 getFiles,
+getFileDetails,
   downloadFile,
   updateFile,
   deleteFile,
