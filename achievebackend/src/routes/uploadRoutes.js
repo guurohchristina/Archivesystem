@@ -62,7 +62,7 @@ router.put('/:id', authenticate, updateFile);
 router.delete('/:id', authenticate, deleteFile);
 
 // =========== MYFILES PAGE ROUTES ===========
-router.get('/my-files', authenticate, getUserFiles); // Reuse getFiles with pagination
+router.get('/my-files', authenticate, getFiles); // Reuse getFiles with pagination
 router.get('/stats/summary', authenticate, getFileStats);
 router.get('/departments/list', authenticate, getDepartments);
 router.get('/categories/counts', authenticate, getCategoryCounts);
