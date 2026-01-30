@@ -1965,8 +1965,8 @@ export const getSharedWithMe = async (req, res) => {
 // Default export for backward compatibility
 export default {
   
-  getUserFiles,
-  getAllUserItems,
+
+  
   getAllFiles, // Backward compatibility
   getPublicFiles,
   uploadFile,
