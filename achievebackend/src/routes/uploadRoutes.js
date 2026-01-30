@@ -17,7 +17,7 @@ import {
   
   // NEW FOLDER FUNCTIONS
   getUserFiles,           // Get files with folder support
-  getAllUserItems,        // Get files + folders
+        // Get files + folders
   moveFile,              // Move file between folders
   searchItems            // Search files and folders
   
@@ -32,7 +32,7 @@ const router = express.Router();
 router.get('/', authenticate, getUserFiles);
 
 // Get all user items (files + folders) for a specific folder
-router.get('/items', authenticate, getAllUserItems);
+{/*router.get('/items', authenticate, getAllUserItems);*/}
 
 // Move file to different folder
 router.put('/:id/move', authenticate, moveFile);
