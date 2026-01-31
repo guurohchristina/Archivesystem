@@ -43,7 +43,7 @@ const Folder = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const fetchFolderContents = async () => {
+ {/* const fetchFolderContents = async () => {
     setLoading(true);
     setError(null);
     
@@ -64,41 +64,16 @@ const Folder = () => {
         }
       }
 
-      // 2. Fetch files in this folder - Use the ALL files endpoint and filter
-      const filesRes = await fetch(`${API_BASE}/api/upload`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
+      // 2. Fetch files in this folder
+      const filesRes = await fetch(
+        `${API_BASE}/api/upload?folder_id=${folderId || 'root'}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       const filesData = await filesRes.json();
-      console.log("📦 All files response:", {
-        success: filesData.success,
-        count: filesData.files?.length || 0
-      });
       
       if (filesData.success) {
-        const allFiles = filesData.files || [];
-        
-        // Filter files for this specific folder
-        let filteredFiles;
-        if (folderId) {
-          // For specific folder - get files where folder_id matches
-          filteredFiles = allFiles.filter(file => {
-            const fileFolderId = file.folder_id || file.folderId;
-            return fileFolderId && fileFolderId.toString() === folderId.toString();
-          });
-          console.log(`📄 Found ${filteredFiles.length} files in folder ${folderId}`);
-        } else {
-          // For root - get files with no folder_id or null folder_id
-          filteredFiles = allFiles.filter(file => {
-            const fileFolderId = file.folder_id || file.folderId;
-            return !fileFolderId || fileFolderId === null || fileFolderId === 'null';
-          });
-          console.log(`📄 Found ${filteredFiles.length} files in root`);
-        }
-        
-        setFiles(filteredFiles);
+        setFiles(filesData.files || []);
       } else {
-        console.error("Files API error:", filesData.message);
         setFiles([]);
       }
 
@@ -107,17 +82,11 @@ const Folder = () => {
         `${API_BASE}/api/folders?parent_id=${folderId || 'root'}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
       const foldersData = await foldersRes.json();
-      console.log("📁 Folders response:", {
-        success: foldersData.success,
-        count: foldersData.folders?.length || 0
-      });
       
       if (foldersData.success) {
         setFolders(foldersData.folders || []);
       } else {
-        console.error("Folders API error:", foldersData.message);
         setFolders([]);
       }
 
@@ -127,7 +96,80 @@ const Folder = () => {
     } finally {
       setLoading(false);
     }
-  };
+  };*/}
+  
+  
+  const fetchFolderContents = async () => {
+  setLoading(true);
+  setError(null);
+  
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Please log in");
+
+    console.log(`📂 Fetching folder ${folderId || 'root'}...`);
+
+    // 1. Fetch current folder info
+    if (folderId) {
+      const folderRes = await fetch(`${API_BASE}/api/folders/${folderId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const folderData = await folderRes.json();
+      if (folderData.success) {
+        setCurrentFolder(folderData.folder);
+      }
+    }
+
+    // 2. Fetch files in this folder - Use the corrected endpoint
+    const filesRes = await fetch(
+      `${API_BASE}/api/upload/user?folder_id=${folderId || 'root'}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    
+    const filesData = await filesRes.json();
+    console.log("📦 Files response:", {
+      success: filesData.success,
+      count: filesData.files?.length || 0,
+      folder_id: filesData.folder_id
+    });
+    
+    if (filesData.success) {
+      setFiles(filesData.files || []);
+    } else {
+      console.error("Files API error:", filesData.message);
+      setFiles([]);
+    }
+
+    // 3. Fetch subfolders
+    const foldersRes = await fetch(
+      `${API_BASE}/api/folders?parent_id=${folderId || 'root'}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    
+    const foldersData = await foldersRes.json();
+    console.log("📁 Folders response:", {
+      success: foldersData.success,
+      count: foldersData.folders?.length || 0
+    });
+    
+    if (foldersData.success) {
+      setFolders(foldersData.folders || []);
+    } else {
+      console.error("Folders API error:", foldersData.message);
+      setFolders([]);
+    }
+
+  } catch (err) {
+    console.error("Error fetching folder:", err);
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+  
+  
+  
+  
 
   const fetchAllFolders = async () => {
     try {
@@ -375,7 +417,11 @@ const Folder = () => {
   }
 
   return (
+    
     <div style={styles.container}>
+      {/* Header with Fixed Buttons */}
+   
+
       {/* Breadcrumb */}
       <div style={styles.breadcrumb}>
         <Link to="/files" style={styles.breadcrumbLink}>
@@ -412,8 +458,10 @@ const Folder = () => {
           )}
         </div>
       </div>
+      
 
-      <div style={styles.header}>
+
+   <div style={styles.header}>
         <div style={styles.headerLeft}>
           <h1 style={styles.title}>
             {currentFolder ? `📁 ${currentFolder.name}` : '📂 My Files'}
@@ -438,6 +486,10 @@ const Folder = () => {
           </button>
         </div>
       </div>
+
+
+
+
 
       {/* Create Folder Modal */}
       {showCreateFolder && (
@@ -757,6 +809,41 @@ const styles = {
     fontSize: '14px',
     color: '#5f6368',
   },
+  primaryButton: {
+    padding: '10px 20px',
+    backgroundColor: '#4285f4',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    transition: 'background-color 0.2s',
+    ':hover': {
+      backgroundColor: '#3367d6',
+    },
+    ':disabled': {
+      backgroundColor: '#cccccc',
+      cursor: 'not-allowed',
+    },
+  },
+  secondaryButton: {
+    padding: '10px 20px',
+    backgroundColor: '#f1f3f4',
+    color: '#202124',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    transition: 'background-color 0.2s',
+    ':hover': {
+      backgroundColor: '#e8eaed',
+    },
+    ':disabled': {
+      backgroundColor: '#f5f5f5',
+      color: '#bdbdbd',
+      cursor: 'not-allowed',
+    },
+  },
   breadcrumb: {
     marginTop: '30px',
     marginBottom: '20px',
@@ -768,6 +855,9 @@ const styles = {
   breadcrumbLink: {
     color: '#4285f4',
     textDecoration: 'none',
+    ':hover': {
+      textDecoration: 'underline',
+    },
   },
   breadcrumbSeparator: {
     margin: '0 8px',
@@ -787,6 +877,11 @@ const styles = {
     borderRadius: '8px',
     padding: '0 12px',
     maxWidth: '500px',
+    transition: 'box-shadow 0.2s',
+    ':focus-within': {
+      boxShadow: '0 1px 6px rgba(0, 0, 0, 0.1)',
+      borderColor: '#4285f4',
+    },
   },
   searchIcon: {
     fontSize: '16px',
@@ -800,6 +895,9 @@ const styles = {
     outline: 'none',
     fontSize: '14px',
     backgroundColor: 'transparent',
+    '::placeholder': {
+      color: '#80868b',
+    },
   },
   clearSearchButton: {
     background: 'none',
@@ -813,6 +911,9 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    ':hover': {
+      color: '#202124',
+    },
   },
   modalOverlay: {
     position: 'fixed',
@@ -847,6 +948,15 @@ const styles = {
     borderRadius: '4px',
     fontSize: '16px',
     boxSizing: 'border-box',
+    ':focus': {
+      outline: 'none',
+      borderColor: '#4285f4',
+      boxShadow: '0 0 0 2px rgba(66, 133, 244, 0.2)',
+    },
+    ':disabled': {
+      backgroundColor: '#f5f5f5',
+      cursor: 'not-allowed',
+    },
   },
   moveSelect: {
     width: '100%',
@@ -857,12 +967,50 @@ const styles = {
     fontSize: '16px',
     boxSizing: 'border-box',
     backgroundColor: 'white',
+    ':focus': {
+      outline: 'none',
+      borderColor: '#4285f4',
+      boxShadow: '0 0 0 2px rgba(66, 133, 244, 0.2)',
+    },
   },
   modalActions: {
     display: 'flex',
     justifyContent: 'flex-end',
     gap: '10px',
     marginTop: '20px',
+  },
+  cancelButton: {
+    padding: '10px 20px',
+    backgroundColor: '#f1f3f4',
+    color: '#202124',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    ':hover': {
+      backgroundColor: '#e8eaed',
+    },
+    ':disabled': {
+      backgroundColor: '#f5f5f5',
+      color: '#bdbdbd',
+      cursor: 'not-allowed',
+    },
+  },
+  confirmButton: {
+    padding: '10px 20px',
+    backgroundColor: '#4285f4',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    ':hover': {
+      backgroundColor: '#3367d6',
+    },
+    ':disabled': {
+      backgroundColor: '#cccccc',
+      cursor: 'not-allowed',
+    },
   },
   section: {
     marginBottom: '40px',
@@ -884,6 +1032,12 @@ const styles = {
     borderRadius: '8px',
     padding: '20px',
     backgroundColor: '#f8f9fa',
+    transition: 'all 0.2s',
+    ':hover': {
+      backgroundColor: '#f1f3f4',
+      transform: 'translateY(-2px)',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+    },
   },
   folderLink: {
     textDecoration: 'none',
@@ -919,6 +1073,10 @@ const styles = {
     color: '#5f6368',
     padding: '4px 8px',
     borderRadius: '4px',
+    transition: 'background-color 0.2s',
+    ':hover': {
+      backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    },
   },
   actionsMenu: {
     position: 'absolute',
@@ -943,6 +1101,10 @@ const styles = {
     cursor: 'pointer',
     fontSize: '14px',
     color: '#202124',
+    transition: 'background-color 0.2s',
+    ':hover': {
+      backgroundColor: '#f5f5f5',
+    },
   },
   filesTable: {
     border: '1px solid #e0e0e0',
@@ -966,6 +1128,13 @@ const styles = {
     padding: '15px',
     borderBottom: '1px solid #e0e0e0',
     alignItems: 'center',
+    transition: 'background-color 0.2s',
+    ':hover': {
+      backgroundColor: '#f8f9fa',
+    },
+    ':last-child': {
+      borderBottom: 'none',
+    },
   },
   colName: {
     display: 'flex',
@@ -995,6 +1164,10 @@ const styles = {
     fontSize: '16px',
     padding: '8px',
     borderRadius: '4px',
+    transition: 'background-color 0.2s',
+    ':hover': {
+      backgroundColor: '#f1f3f4',
+    },
   },
   emptyState: {
     textAlign: 'center',
@@ -1042,10 +1215,13 @@ const styles = {
     borderRadius: '4px',
     cursor: 'pointer',
     marginTop: '15px',
+    ':hover': {
+      backgroundColor: '#3367d6',
+    },
   },
 };
 
-// Add CSS for hover effects
+// Add CSS animation
 const addStyles = () => {
   if (!document.getElementById('folder-styles')) {
     const styleSheet = document.createElement('style');
@@ -1059,78 +1235,6 @@ const addStyles = () => {
       @keyframes fadeIn {
         from { opacity: 0; transform: translateY(-10px); }
         to { opacity: 1; transform: translateY(0); }
-      }
-      
-      /* Button hover effects */
-      button:hover {
-        opacity: 0.9;
-      }
-      
-      /* Primary button specific */
-      [style*="background-color: #4285f4"]:hover {
-        background-color: #3367d6 !important;
-      }
-      
-      /* Secondary button specific */
-      [style*="background-color: #f1f3f4"]:hover {
-        background-color: #e8eaed !important;
-      }
-      
-      /* Folder item hover */
-      [style*="border: 1px solid #e0e0e0"][style*="padding: 20px"]:hover {
-        background-color: #f1f3f4 !important;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        transition: all 0.2s;
-      }
-      
-      /* Dots button hover */
-      [style*="color: #5f6368"][style*="font-size: 20px"]:hover {
-        background-color: rgba(0, 0, 0, 0.05) !important;
-      }
-      
-      /* Menu item hover */
-      [style*="display: flex"][style*="align-items: center"][style*="width: 100%"]:hover {
-        background-color: #f5f5f5 !important;
-      }
-      
-      /* Search input focus */
-      input[type="text"]:focus {
-        outline: none;
-        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
-        border-color: #4285f4 !important;
-      }
-      
-      /* Modal input focus */
-      [style*="width: 100%"][style*="padding: 12px"]:focus {
-        outline: none;
-        border-color: #4285f4 !important;
-        box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
-      }
-      
-      /* Action button hover */
-      [style*="background: none"][style*="font-size: 16px"]:hover {
-        background-color: #f1f3f4 !important;
-      }
-      
-      /* Table row hover */
-      [style*="display: grid"][style*="grid-template-columns: 3fr 1fr 1fr 1fr 1fr"]:hover {
-        background-color: #f8f9fa !important;
-      }
-      
-      /* Breadcrumb link hover */
-      a[style*="color: #4285f4"]:hover {
-        text-decoration: underline;
-      }
-      
-      /* Cancel button hover */
-      [style*="background-color: #f1f3f4"][style*="color: #202124"]:hover {
-        background-color: #e8eaed !important;
-      }
-      
-      /* Confirm button hover */
-      [style*="background-color: #4285f4"][style*="color: white"]:hover {
-        background-color: #3367d6 !important;
       }
       
       .actions-menu {
