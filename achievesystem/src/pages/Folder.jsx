@@ -647,95 +647,36 @@ const Folder = () => {
       )}
 
       {/* Files Section - LIST VIEW */}
-{filteredFiles.length > 0 && (
+   {files.length > 0 && (
   <div style={{ marginBottom: '40px' }}>
-    <h3>Files ({filteredFiles.length})</h3>
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-      gap: '20px'
-    }}>
-      {filteredFiles.map(file => (
+    <h3>Files ({files.length})</h3>
+    <div style={styles.filesList}>
+      {files.map(file => (
         <div
           key={file.id}
-          style={{
-            backgroundColor: 'white',
-            border: '1px solid #e0e0e0',
-            borderRadius: '12px',
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center'
-          }}
+          style={styles.fileListItem}
         >
           {/* File Icon */}
-          <div style={{ fontSize: '36px', marginBottom: '12px' }}>
+          <div style={styles.fileListIcon}>
             {getFileIcon(file.name)}
           </div>
           
           {/* File Info */}
-          <div style={{ width: '100%', textAlign: 'center' }}>
-            <h3 style={{
-              margin: '0 0 8px 0',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis'
-            }}>
-              {file.name}
-            </h3>
-            
-            <div style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '8px',
-              marginBottom: '8px',
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}>
-              <span style={{
-                backgroundColor: '#f8f9fa',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                fontSize: '12px',
-                fontWeight: 'bold',
-                color: '#495057'
-              }}>
-                {file.type.toUpperCase()}
-              </span>
-              <span style={{ fontSize: '14px', color: '#666' }}>
-                {file.size}
-              </span>
-              <span style={{ fontSize: '14px', color: '#666' }}>
-                {file.date}
-              </span>
+          <div style={styles.fileListInfo}>
+            <div style={styles.fileListName}>{file.name}</div>
+            <div style={styles.fileListDetails}>
+              <span style={styles.fileListType}>{file.type.toUpperCase()}</span>
+              <span style={styles.fileListSize}>{file.size}</span>
+              <span style={styles.fileListDate}>{file.date}</span>
             </div>
-            
-            {/* File Details */}
-            {(file.owner || file.department) && (
-              <div style={{ fontSize: '12px', color: '#6c757d' }}>
-                {file.owner && file.owner !== "Unknown" && (
-                  <span style={{ marginRight: '8px' }}>
-                    👤 {file.owner}
-                  </span>
-                )}
-                {file.department && file.department !== "General" && (
-                  <span>
-                    🏢 {file.department}
-                  </span>
-                )}
-              </div>
+            {file.owner && file.owner !== "Unknown" && (
+              <div style={styles.fileListOwner}>👤 {file.owner}</div>
             )}
           </div>
           
-          {/* File Actions - Same as MyFiles */}
-          <div style={{
-            display: 'flex',
-            gap: '8px',
-            marginTop: '16px',
-            justifyContent: 'center'
-          }}>
+          {/* File Actions - INLINE, NO THREE DOTS */}
+          <div style={styles.fileListActions}>
+            {/* Star/Unstar Button */}
             <button
               onClick={() => {
                 const updatedFiles = files.map(f => 
@@ -744,60 +685,44 @@ const Folder = () => {
                 setFiles(updatedFiles);
               }}
               style={{
-                padding: '8px',
-                backgroundColor: 'transparent',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '18px',
-                color: file.starred ? '#ffc107' : '#6c757d'
+                ...styles.actionButton,
+                color: file.starred ? '#ffc107' : '#6c757d',
+                marginRight: '8px'
               }}
               title={file.starred ? "Unstar" : "Star"}
             >
               {file.starred ? '★' : '☆'}
             </button>
             
+            {/* Download Button */}
             <button
               onClick={() => handleDownload(file)}
               style={{
-                padding: '8px',
-                backgroundColor: 'transparent',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '18px',
-                color: '#6c757d'
+                ...styles.actionButton,
+                marginRight: '8px'
               }}
               title="Download"
             >
               ⬇️
             </button>
             
+            {/* Rename Button */}
             <button
               onClick={() => handleRenameFile(file)}
               style={{
-                padding: '8px',
-                backgroundColor: 'transparent',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '18px',
-                color: '#6c757d'
+                ...styles.actionButton,
+                marginRight: '8px'
               }}
               title="Rename"
             >
               ✏️
             </button>
             
+            {/* Delete Button */}
             <button
               onClick={() => handleDeleteFile(file)}
               style={{
-                padding: '8px',
-                backgroundColor: 'transparent',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '18px',
+                ...styles.actionButton,
                 color: '#ea4335'
               }}
               title="Delete"
@@ -810,6 +735,11 @@ const Folder = () => {
     </div>
   </div>
 )}
+
+
+
+
+
 
       {/* Empty State */}
       {filteredFolders.length === 0 && filteredFiles.length === 0 && (
