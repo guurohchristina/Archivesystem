@@ -686,9 +686,9 @@ const fetchFiles = async () => {
     );
   }
 
- return (
+{/*  return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', position: 'relative' }}>
-      {/* Header */}
+      {/* Header 
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
         <h1>📂 My Files</h1>
         <div>
@@ -708,7 +708,7 @@ const fetchFiles = async () => {
         </div>
       </div>
 
-      {/* Create Folder Modal */}
+      {/* Create Folder Modal 
       {showCreateFolderModal && (
         <div style={styles.modalOverlay} onClick={() => setShowCreateFolderModal(false)}>
           <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
@@ -746,7 +746,7 @@ const fetchFiles = async () => {
         </div>
       )}
 
-      {/* Edit Folder Modal */}
+      {/* Edit Folder Modal 
       {showEditModal && editingFolder && (
         <div style={styles.modalOverlay} onClick={() => setShowEditModal(false)}>
           <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
@@ -785,7 +785,7 @@ const fetchFiles = async () => {
         </div>
       )}
 
-      {/* Folders Section */}
+      {/* Folders Section 
       {folders.length > 0 && (
         <div style={{ marginBottom: '40px' }}>
           <h3>Folders ({folders.length})</h3>
@@ -804,7 +804,7 @@ const fetchFiles = async () => {
                   </div>
                 </div>
                 
-                {/* Three Dots Menu Button */}
+                {/* Three Dots Menu Button 
                 <button
                   onClick={(e) => openActionsMenu(e, folder.id)}
                   style={styles.dotsButton}
@@ -813,7 +813,7 @@ const fetchFiles = async () => {
                   ⋮
                 </button>
                 
-                {/* Actions Menu Dropdown */}
+                {/* Actions Menu Dropdown 
                 {showActionsMenu === folder.id && (
                   <div style={styles.actionsMenu} onClick={(e) => e.stopPropagation()}>
                     <button
@@ -853,7 +853,7 @@ const fetchFiles = async () => {
 
 
 
-      {/* Empty State */}
+      {/* Empty State 
       {folders.length === 0 && files.length === 0 && (
         <div style={styles.emptyState}>
           <div style={{ fontSize: '60px', marginBottom: '20px' }}>📂</div>
@@ -874,7 +874,7 @@ const fetchFiles = async () => {
       )}
     </div>
   );
-};
+};*/}
 
 
 
@@ -885,7 +885,7 @@ const fetchFiles = async () => {
 
 
 // Helper functions
-const getFileIcon = (filename) => {
+{/*const getFileIcon = (filename) => {
   if (!filename) return '📎';
   const ext = filename.split('.').pop().toLowerCase();
   if (ext === 'pdf') return '📄';
@@ -1160,8 +1160,637 @@ const addStyles = () => {
   }
 };
 
-addStyles();
+addStyles();*/}}
 
+return (
+  <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', position: 'relative' }}>
+    {/* Header */}
+    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
+      <h1>📂 My Files</h1>
+      <div>
+        <button onClick={handleUpload} style={styles.button}>
+          📤 Upload File
+        </button>
+        <button 
+          onClick={() => setShowCreateFolderModal(true)} 
+          style={styles.secondaryButton}
+        >
+          📁 New Folder
+        </button>
+      </div>
+    </div>
+
+    {/* Create Folder Modal */}
+    {showCreateFolderModal && (
+      <div style={styles.modalOverlay} onClick={() => setShowCreateFolderModal(false)}>
+        <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+          <h3 style={styles.modalTitle}>Create New Folder</h3>
+          <p style={styles.modalDescription}>
+            This folder will be created in My Files (root)
+          </p>
+          <input
+            type="text"
+            placeholder="Enter folder name"
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            style={styles.modalInput}
+            autoFocus
+          />
+          <div style={styles.modalActions}>
+            <button
+              onClick={() => {
+                setShowCreateFolderModal(false);
+                setNewFolderName("");
+              }}
+              style={styles.modalCancel}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCreateFolder}
+              style={styles.modalConfirm}
+              disabled={!newFolderName.trim()}
+            >
+              Create Folder
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Edit Folder Modal */}
+    {showEditModal && editingFolder && (
+      <div style={styles.modalOverlay} onClick={() => setShowEditModal(false)}>
+        <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+          <h3 style={styles.modalTitle}>Rename Folder</h3>
+          <p style={styles.modalDescription}>
+            Enter new name for folder
+          </p>
+          <input
+            type="text"
+            placeholder="Enter new folder name"
+            value={editFolderName}
+            onChange={(e) => setEditFolderName(e.target.value)}
+            style={styles.modalInput}
+            autoFocus
+          />
+          <div style={styles.modalActions}>
+            <button
+              onClick={() => {
+                setShowEditModal(false);
+                setEditingFolder(null);
+                setEditFolderName("");
+              }}
+              style={styles.modalCancel}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleEditFolder}
+              style={styles.modalConfirm}
+              disabled={!editFolderName.trim()}
+            >
+              Rename Folder
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Folders Section */}
+    {folders.length > 0 && (
+      <div style={{ marginBottom: '40px' }}>
+        <h3>Folders ({folders.length})</h3>
+        <div style={styles.foldersGrid}>
+          {folders.map(folder => (
+            <div 
+              key={folder.id} 
+              style={styles.folderCard}
+              onClick={() => navigate(`/files/folder/${folder.id}`)}
+            >
+              <div style={styles.folderContent}>
+                <div style={styles.folderIcon}>📁</div>
+                <div style={styles.folderName}>{folder.name}</div>
+                <div style={styles.folderDate}>
+                  Created: {new Date(folder.created_at).toLocaleDateString()}
+                </div>
+              </div>
+              
+              {/* Three Dots Menu Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openActionsMenu(e, folder.id);
+                }}
+                style={styles.dotsButton}
+                title="Folder actions"
+              >
+                ⋮
+              </button>
+              
+              {/* Actions Menu Dropdown */}
+              {showActionsMenu === folder.id && (
+                <div style={styles.actionsMenu} onClick={(e) => e.stopPropagation()}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEditModal(folder);
+                    }}
+                    style={styles.menuItem}
+                  >
+                    <span style={{ marginRight: '8px' }}>✏️</span>
+                    Edit
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteFolder(folder);
+                    }}
+                    style={{ ...styles.menuItem, color: '#ea4335' }}
+                  >
+                    <span style={{ marginRight: '8px' }}>🗑️</span>
+                    Delete
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {/* Files Section */}
+    {files.length > 0 && (
+      <div style={{ marginBottom: '40px' }}>
+        <h3>Files ({files.length})</h3>
+        <div style={styles.filesGrid}>
+          {files.map(file => (
+            <div
+              key={file.id}
+              style={styles.fileCard}
+            >
+              <div style={styles.fileIcon}>{getFileIcon(file.name)}</div>
+              <div style={styles.fileName}>{file.name}</div>
+              <div style={styles.fileSize}>{formatFileSize(file.size)}</div>
+              <div style={styles.fileDate}>
+                {new Date(file.created_at).toLocaleDateString()}
+              </div>
+              <div style={styles.fileActions}>
+                <button
+                  onClick={() => handleDownload(file)}
+                  style={styles.actionButton}
+                  title="Download"
+                >
+                  ⬇️
+                </button>
+                <button
+                  onClick={() => {
+                    // Toggle star/unstar
+                    const updatedFiles = files.map(f => 
+                      f.id === file.id ? { ...f, starred: !f.starred } : f
+                    );
+                    setFiles(updatedFiles);
+                  }}
+                  style={styles.actionButton}
+                  title={file.starred ? "Unstar" : "Star"}
+                >
+                  {file.starred ? '★' : '☆'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {/* Empty State */}
+    {folders.length === 0 && files.length === 0 && (
+      <div style={styles.emptyState}>
+        <div style={{ fontSize: '60px', marginBottom: '20px' }}>📂</div>
+        <h3>No files or folders yet</h3>
+        <p>Get started by uploading files or creating folders</p>
+        <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
+          <button onClick={handleUpload} style={styles.button}>
+            📤 Upload First File
+          </button>
+          <button 
+            onClick={() => setShowCreateFolderModal(true)} 
+            style={styles.secondaryButton}
+          >
+            📁 Create Folder
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+);
+
+// Helper functions
+const getFileIcon = (filename) => {
+  if (!filename) return '📎';
+  const ext = filename.split('.').pop().toLowerCase();
+  if (ext === 'pdf') return '📄';
+  if (['doc', 'docx'].includes(ext)) return '📝';
+  if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(ext)) return '🖼️';
+  if (['mp4', 'mov', 'avi', 'mkv'].includes(ext)) return '🎬';
+  if (['mp3', 'wav', 'aac'].includes(ext)) return '🎵';
+  if (['zip', 'rar', '7z'].includes(ext)) return '📦';
+  return '📎';
+};
+
+const formatFileSize = (bytes) => {
+  if (!bytes || bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
+// Styles
+const styles = {
+  button: {
+    padding: '10px 20px',
+    backgroundColor: '#4285f4',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    marginRight: '10px',
+    transition: 'background-color 0.2s',
+  },
+  secondaryButton: {
+    padding: '10px 20px',
+    backgroundColor: '#f1f3f4',
+    color: '#202124',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    transition: 'background-color 0.2s',
+  },
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: '24px',
+    borderRadius: '8px',
+    width: '400px',
+    maxWidth: '90%',
+    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+  },
+  modalTitle: {
+    margin: '0 0 12px 0',
+    fontSize: '18px',
+    fontWeight: '500',
+    color: '#202124',
+  },
+  modalDescription: {
+    fontSize: '14px',
+    color: '#5f6368',
+    margin: '0 0 16px 0',
+  },
+  modalInput: {
+    width: '100%',
+    padding: '10px 12px',
+    border: '1px solid #dadce0',
+    borderRadius: '4px',
+    fontSize: '14px',
+    marginBottom: '16px',
+    boxSizing: 'border-box',
+  },
+  modalActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '8px',
+  },
+  modalCancel: {
+    padding: '8px 16px',
+    backgroundColor: '#f1f3f4',
+    color: '#202124',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px',
+  },
+  modalConfirm: {
+    padding: '8px 16px',
+    backgroundColor: '#4285f4',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px',
+  },
+  foldersGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+    gap: '20px',
+    marginTop: '15px',
+    position: 'relative',
+  },
+  folderCard: {
+    border: '1px solid #e0e0e0',
+    borderRadius: '8px',
+    padding: '20px',
+    backgroundColor: '#f8f9fa',
+    cursor: 'pointer',
+    position: 'relative',
+  },
+  folderContent: {
+    textAlign: 'center',
+  },
+  folderIcon: {
+    fontSize: '40px',
+    marginBottom: '10px',
+  },
+  folderName: {
+    fontSize: '14px',
+    color: '#202124',
+    fontWeight: '500',
+    marginBottom: '5px',
+    wordBreak: 'break-word',
+  },
+  folderDate: {
+    fontSize: '12px',
+    color: '#5f6368',
+  },
+  dotsButton: {
+    position: 'absolute',
+    top: '10px',
+    right: '10px',
+    background: 'none',
+    border: 'none',
+    fontSize: '20px',
+    cursor: 'pointer',
+    color: '#5f6368',
+    padding: '4px 8px',
+    borderRadius: '4px',
+  },
+  actionsMenu: {
+    position: 'absolute',
+    top: '40px',
+    right: '10px',
+    backgroundColor: 'white',
+    border: '1px solid #e0e0e0',
+    borderRadius: '6px',
+    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+    minWidth: '120px',
+    zIndex: 100,
+    overflow: 'hidden',
+  },
+  menuItem: {
+    display: 'flex',
+    alignItems: 'center',
+    width: '100%',
+    padding: '10px 12px',
+    background: 'none',
+    border: 'none',
+    textAlign: 'left',
+    cursor: 'pointer',
+    fontSize: '14px',
+    color: '#202124',
+  },
+  filesGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+    gap: '20px',
+    marginTop: '15px',
+  },
+  fileCard: {
+    border: '1px solid #e0e0e0',
+    borderRadius: '8px',
+    padding: '15px',
+    backgroundColor: 'white',
+  },
+  fileIcon: {
+    fontSize: '30px',
+    marginBottom: '10px',
+    textAlign: 'center',
+  },
+  fileName: {
+    fontSize: '13px',
+    color: '#202124',
+    wordBreak: 'break-word',
+    marginBottom: '5px',
+  },
+  fileSize: {
+    fontSize: '12px',
+    color: '#5f6368',
+    marginBottom: '3px',
+  },
+  fileDate: {
+    fontSize: '11px',
+    color: '#80868b',
+  },
+  fileActions: {
+    display: 'flex',
+    gap: '8px',
+    marginTop: '10px',
+  },
+  actionButton: {
+    padding: '6px',
+    backgroundColor: 'transparent',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '16px',
+    color: '#6c757d',
+  },
+  emptyState: {
+    textAlign: 'center',
+    padding: '60px 20px',
+    color: '#5f6368',
+  },
+};
+
+// Add CSS for hover effects and animations
+const addStyles = () => {
+  if (!document.getElementById('myfiles-styles')) {
+    const styleSheet = document.createElement('style');
+    styleSheet.id = 'myfiles-styles';
+    styleSheet.textContent = `
+      /* Button hover effects */
+      .myfiles-button:hover {
+        background-color: #3367d6 !important;
+      }
+      
+      .myfiles-secondary-button:hover {
+        background-color: #e8eaed !important;
+      }
+      
+      .myfiles-modal-cancel:hover {
+        background-color: #e8eaed !important;
+      }
+      
+      .myfiles-modal-confirm:hover {
+        background-color: #3367d6 !important;
+      }
+      
+      .myfiles-modal-confirm:disabled {
+        background-color: #cccccc !important;
+        cursor: not-allowed !important;
+      }
+      
+      .myfiles-modal-input:focus {
+        outline: none;
+        border-color: #4285f4 !important;
+        box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2) !important;
+      }
+      
+      /* Folder card hover effects */
+      .myfiles-folder-card:hover {
+        background-color: #f1f3f4 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+      }
+      
+      .myfiles-folder-card {
+        transition: all 0.2s !important;
+      }
+      
+      /* Dots button hover */
+      .myfiles-dots-button:hover {
+        background-color: rgba(0, 0, 0, 0.05) !important;
+      }
+      
+      /* Actions menu items */
+      .myfiles-menu-item:hover {
+        background-color: #f5f5f5 !important;
+      }
+      
+      /* File card hover */
+      .myfiles-file-card:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+      }
+      
+      .myfiles-file-card {
+        transition: box-shadow 0.2s !important;
+      }
+      
+      /* Action buttons */
+      .myfiles-action-button:hover {
+        background-color: rgba(0, 0, 0, 0.05) !important;
+      }
+      
+      /* Animations */
+      @keyframes fadeIn {
+        from { 
+          opacity: 0; 
+          transform: translateY(-5px); 
+        }
+        to { 
+          opacity: 1; 
+          transform: translateY(0); 
+        }
+      }
+      
+      .myfiles-actions-menu {
+        animation: fadeIn 0.2s ease-out !important;
+      }
+    `;
+    document.head.appendChild(styleSheet);
+  }
+};
+
+// Add event listeners for dynamic hover effects
+const addHoverListeners = () => {
+  // Add hover classes to elements
+  const buttons = document.querySelectorAll('[style*="4285f4"]');
+  buttons.forEach(btn => {
+    if (btn.style.backgroundColor === 'rgb(66, 133, 244)' || 
+        btn.style.backgroundColor === '#4285f4') {
+      btn.classList.add('myfiles-button');
+    }
+  });
+  
+  const secondaryButtons = document.querySelectorAll('[style*="f1f3f4"]');
+  secondaryButtons.forEach(btn => {
+    if (btn.style.backgroundColor === 'rgb(241, 243, 244)' || 
+        btn.style.backgroundColor === '#f1f3f4') {
+      btn.classList.add('myfiles-secondary-button');
+    }
+  });
+  
+  // Add classes to other elements
+  document.querySelectorAll('[style*="border: 1px solid #e0e0e0"]').forEach(el => {
+    if (el.style.padding === '20px') {
+      el.classList.add('myfiles-folder-card');
+    } else if (el.style.padding === '15px') {
+      el.classList.add('myfiles-file-card');
+    }
+  });
+  
+  // Add class to dots buttons
+  document.querySelectorAll('button').forEach(btn => {
+    if (btn.textContent === '⋮' && btn.style.position === 'absolute') {
+      btn.classList.add('myfiles-dots-button');
+    }
+  });
+  
+  // Add class to actions menu
+  document.querySelectorAll('[style*="box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1)"]').forEach(el => {
+    if (el.style.minWidth === '120px') {
+      el.classList.add('myfiles-actions-menu');
+    }
+  });
+  
+  // Add class to menu items
+  document.querySelectorAll('[style*="display: flex; align-items: center"]').forEach(el => {
+    if (el.style.width === '100%') {
+      el.classList.add('myfiles-menu-item');
+    }
+  });
+  
+  // Add class to action buttons
+  document.querySelectorAll('button').forEach(btn => {
+    if (btn.textContent === '⬇️' || btn.textContent === '☆' || btn.textContent === '★') {
+      if (btn.style.backgroundColor === 'transparent') {
+        btn.classList.add('myfiles-action-button');
+      }
+    }
+  });
+  
+  // Add class to modal buttons
+  document.querySelectorAll('button').forEach(btn => {
+    if (btn.style.backgroundColor === 'rgb(241, 243, 244)' || 
+        btn.style.backgroundColor === '#f1f3f4') {
+      if (btn.textContent === 'Cancel') {
+        btn.classList.add('myfiles-modal-cancel');
+      }
+    }
+    if (btn.style.backgroundColor === 'rgb(66, 133, 244)' || 
+        btn.style.backgroundColor === '#4285f4') {
+      if (btn.textContent === 'Create Folder' || btn.textContent === 'Rename Folder') {
+        btn.classList.add('myfiles-modal-confirm');
+      }
+    }
+  });
+  
+  // Add class to modal inputs
+  document.querySelectorAll('input[type="text"]').forEach(input => {
+    if (input.style.border === '1px solid rgb(218, 220, 224)' || 
+        input.style.border === '1px solid #dadce0') {
+      input.classList.add('myfiles-modal-input');
+    }
+  });
+};
+
+// Initialize styles and hover effects
+useEffect(() => {
+  addStyles();
+  addHoverListeners();
+}, []);
 
 
 
