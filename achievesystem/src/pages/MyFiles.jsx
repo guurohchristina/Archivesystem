@@ -381,6 +381,57 @@ const MyFiles = () => {
           </button>
         </div>
       </div>
+      
+      
+
+  {/* Search Bar */}
+      <div style={{ marginBottom: '30px' }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          backgroundColor: 'white',
+          border: '1px solid #dadce0',
+          borderRadius: '8px',
+          padding: '0 12px',
+          maxWidth: '500px'
+        }}>
+          <span style={{ fontSize: '16px', color: '#5f6368', marginRight: '8px' }}>🔍</span>
+          <input
+            type="text"
+            placeholder="Search files and folders..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              flex: 1,
+              padding: '12px 0',
+              border: 'none',
+              outline: 'none',
+              fontSize: '14px',
+              backgroundColor: 'transparent'
+            }}
+          />
+          {searchTerm && (
+            <button 
+              onClick={() => setSearchTerm("")}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#5f6368',
+                cursor: 'pointer',
+                fontSize: '18px',
+                padding: '0',
+                width: '24px',
+                height: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Create Folder Modal */}
       {showCreateFolderModal && (
