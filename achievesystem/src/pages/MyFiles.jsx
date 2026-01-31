@@ -522,7 +522,7 @@ const MyFiles = () => {
       )}
 
       {/* Files Section */}
-      {files.length > 0 && (
+      {/*{files.length > 0 && (
         <div style={{ marginBottom: '40px' }}>
           <h3>Files ({files.length})</h3>
           <div style={styles.filesGrid}>
@@ -562,7 +562,101 @@ const MyFiles = () => {
             ))}
           </div>
         </div>
-      )}
+      )}*/}
+      
+      {files.length > 0 && (
+  <div style={{ marginBottom: '40px' }}>
+    <h3>Files ({files.length})</h3>
+    <div style={styles.filesList}>
+      {files.map(file => (
+        <div
+          key={file.id}
+          style={styles.fileListItem}
+        >
+          {/* File Icon */}
+          <div style={styles.fileListIcon}>
+            {getFileIcon(file.name)}
+          </div>
+          
+          {/* File Info */}
+          <div style={styles.fileListInfo}>
+            <div style={styles.fileListName}>{file.name}</div>
+            <div style={styles.fileListDetails}>
+              <span style={styles.fileListType}>{file.type.toUpperCase()}</span>
+              <span style={styles.fileListSize}>{file.size}</span>
+              <span style={styles.fileListDate}>{file.date}</span>
+            </div>
+            {file.owner && file.owner !== "Unknown" && (
+              <div style={styles.fileListOwner}>👤 {file.owner}</div>
+            )}
+          </div>
+          
+          {/* File Actions - INLINE, NO THREE DOTS */}
+          <div style={styles.fileListActions}>
+            {/* Star/Unstar Button */}
+            <button
+              onClick={() => {
+                const updatedFiles = files.map(f => 
+                  f.id === file.id ? { ...f, starred: !f.starred } : f
+                );
+                setFiles(updatedFiles);
+              }}
+              style={{
+                ...styles.actionButton,
+                color: file.starred ? '#ffc107' : '#6c757d',
+                marginRight: '8px'
+              }}
+              title={file.starred ? "Unstar" : "Star"}
+            >
+              {file.starred ? '★' : '☆'}
+            </button>
+            
+            {/* Download Button */}
+            <button
+              onClick={() => handleDownload(file)}
+              style={{
+                ...styles.actionButton,
+                marginRight: '8px'
+              }}
+              title="Download"
+            >
+              ⬇️
+            </button>
+            
+            {/* Rename Button */}
+            <button
+              onClick={() => handleRenameFile(file)}
+              style={{
+                ...styles.actionButton,
+                marginRight: '8px'
+              }}
+              title="Rename"
+            >
+              ✏️
+            </button>
+            
+            {/* Delete Button */}
+            <button
+              onClick={() => handleDeleteFile(file)}
+              style={{
+                ...styles.actionButton,
+                color: '#ea4335'
+              }}
+              title="Delete"
+            >
+              🗑️
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+      
+      
+      
+
+
 
       {/* Empty State */}
       {folders.length === 0 && files.length === 0 && (
@@ -815,6 +909,92 @@ const styles = {
     padding: '60px 20px',
     color: '#5f6368',
   },
+  
+  
+ filesList: {
+  border: '1px solid #e0e0e0',
+  borderRadius: '8px',
+  overflow: 'hidden',
+  backgroundColor: 'white',
+},
+
+fileListItem: {
+  display: 'flex',
+  alignItems: 'center',
+  padding: '16px 20px',
+  borderBottom: '1px solid #e0e0e0',
+  transition: 'background-color 0.2s',
+  ':hover': {
+    backgroundColor: '#f8f9fa',
+  },
+  ':last-child': {
+    borderBottom: 'none',
+  },
+},
+
+fileListIcon: {
+  fontSize: '32px',
+  marginRight: '16px',
+  flexShrink: 0,
+  width: '40px',
+  textAlign: 'center',
+},
+
+fileListInfo: {
+  flex: 1,
+  minWidth: 0, // For text overflow
+},
+
+fileListName: {
+  fontSize: '15px',
+  fontWeight: '500',
+  color: '#202124',
+  marginBottom: '6px',
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+},
+
+fileListDetails: {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
+  marginBottom: '4px',
+},
+
+fileListType: {
+  fontSize: '12px',
+  backgroundColor: '#f8f9fa',
+  padding: '2px 8px',
+  borderRadius: '4px',
+  fontWeight: 'bold',
+  color: '#495057',
+},
+
+fileListSize: {
+  fontSize: '13px',
+  color: '#5f6368',
+},
+
+fileListDate: {
+  fontSize: '13px',
+  color: '#5f6368',
+},
+
+fileListOwner: {
+  fontSize: '12px',
+  color: '#6c757d',
+},
+
+fileListActions: {
+  display: 'flex',
+  alignItems: 'center',
+  flexShrink: 0,
+}, 
+  
+  
+  
+  
 };
 
 // Add CSS for hover effects and animations
