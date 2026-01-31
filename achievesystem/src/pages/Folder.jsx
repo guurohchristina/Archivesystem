@@ -708,72 +708,61 @@ const Folder = () => {
                 </div>
                 
                 {/* File Actions */}
-                <div style={styles.fileActions}>
-                  <button
-                    onClick={() => {
-                      const updatedFiles = files.map(f => 
-                        f.id === file.id ? { ...f, starred: !f.starred } : f
-                      );
-                      setFiles(updatedFiles);
-                    }}
-                    style={{
-                      padding: '8px',
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '18px',
-                      color: file.starred ? '#ffc107' : '#6c757d'
-                    }}
-                    title={file.starred ? "Unstar" : "Star"}
-                  >
-                    {file.starred ? '★' : '☆'}
-                  </button>
-                  
-                  <button
-                    onClick={() => handleDownload(file)}
-                    style={{
-                      padding: '8px',
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '18px',
-                      color: '#6c757d'
-                    }}
-                    title="Download"
-                  >
-                    ⬇️
-                  </button>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openActionsMenu(e, file.id, 'file');
-                    }}
-                    style={styles.dotsButton}
-                    title="More actions"
-                  >
-                    ⋮
-                  </button>
-                  
-                  {/* File Actions Menu Dropdown */}
-                  {showActionsMenu === file.id && (
-                    <div style={{...styles.actionsMenu, top: '40px', right: '10px'}} onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteFile(file);
-                          setShowActionsMenu(null);
-                        }}
-                        style={{ ...styles.menuItem, color: '#ea4335' }}
-                      >
-                        <span style={{ marginRight: '8px' }}>🗑️</span>
-                        Delete File
-                      </button>
-                    </div>
-                  )}
-                </div>
+               <div style={styles.fileListActions}>
+            {/* Star/Unstar Button */}
+            <button
+              onClick={() => {
+                const updatedFiles = files.map(f => 
+                  f.id === file.id ? { ...f, starred: !f.starred } : f
+                );
+                setFiles(updatedFiles);
+              }}
+              style={{
+                ...styles.actionButton,
+                color: file.starred ? '#ffc107' : '#6c757d',
+                marginRight: '8px'
+              }}
+              title={file.starred ? "Unstar" : "Star"}
+            >
+              {file.starred ? '★' : '☆'}
+            </button>
+            
+            {/* Download Button */}
+            <button
+              onClick={() => handleDownload(file)}
+              style={{
+                ...styles.actionButton,
+                marginRight: '8px'
+              }}
+              title="Download"
+            >
+              ⬇️
+            </button>
+            
+            {/* Rename Button */}
+            <button
+              onClick={() => handleRenameFile(file)}
+              style={{
+                ...styles.actionButton,
+                marginRight: '8px'
+              }}
+              title="Rename"
+            >
+              ✏️
+            </button>
+            
+            {/* Delete Button */}
+            <button
+              onClick={() => handleDeleteFile(file)}
+              style={{
+                ...styles.actionButton,
+                color: '#ea4335'
+              }}
+              title="Delete"
+            >
+              🗑️
+            </button>
+          </div>
               </div>
             ))}
           </div>
