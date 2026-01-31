@@ -294,14 +294,14 @@ const MyFiles = () => {
     alert(`Downloading ${file.name}`);
   };
   
- const filteredFiles = files.filter(file => 
+{/* const filteredFiles = files.filter(file => 
     file.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredFolders = folders.filter(folder => 
     folder.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
- 
+ */}
   
   
   
