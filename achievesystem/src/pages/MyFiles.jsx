@@ -1175,7 +1175,7 @@ return (
           onClick={() => setShowCreateFolderModal(true)} 
           style={styles.secondaryButton}
         >
-          📁 New Folder
+          📁 New Folders
         </button>
       </div>
     </div>
