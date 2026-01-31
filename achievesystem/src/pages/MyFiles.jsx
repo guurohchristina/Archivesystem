@@ -293,6 +293,20 @@ const MyFiles = () => {
     console.log("Download file:", file);
     alert(`Downloading ${file.name}`);
   };
+  
+ const filteredFiles = files.filter(file => 
+    file.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredFolders = folders.filter(folder => 
+    folder.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+ 
+  
+  
+  
+  
+  
 
   const openEditModal = (folder) => {
     setEditingFolder(folder);
