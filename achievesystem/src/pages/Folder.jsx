@@ -647,35 +647,68 @@ const Folder = () => {
       )}
 
       {/* Files Section - LIST VIEW */}
-   {files.length > 0 && (
-  <div style={{ marginBottom: '40px' }}>
-    <h3>Files ({files.length})</h3>
-    <div style={styles.filesList}>
-      {files.map(file => (
-        <div
-          key={file.id}
-          style={styles.fileListItem}
-        >
-          {/* File Icon */}
-          <div style={styles.fileListIcon}>
-            {getFileIcon(file.name)}
-          </div>
-          
-          {/* File Info */}
-          <div style={styles.fileListInfo}>
-            <div style={styles.fileListName}>{file.name}</div>
-            <div style={styles.fileListDetails}>
-              <span style={styles.fileListType}>{file.type.toUpperCase()}</span>
-              <span style={styles.fileListSize}>{file.size}</span>
-              <span style={styles.fileListDate}>{file.date}</span>
-            </div>
-            {file.owner && file.owner !== "Unknown" && (
-              <div style={styles.fileListOwner}>👤 {file.owner}</div>
-            )}
-          </div>
-          
-          {/* File Actions - INLINE, NO THREE DOTS */}
-          <div style={styles.fileListActions}>
+      {filteredFiles.length > 0 && (
+        <div style={{ marginBottom: '40px' }}>
+          <h3>Files ({filteredFiles.length})</h3>
+          <div style={styles.filesGrid}>
+            {filteredFiles.map(file => (
+              <div
+                key={file.id}
+                style={styles.fileCard}
+              >
+                {/* File Icon */}
+                <div style={styles.fileIcon}>
+                  {getFileIcon(file.name)}
+                </div>
+                
+                {/* File Info */}
+                <div style={{ flex: 1 }}>
+                  <h3 style={styles.fileName}>{file.name}</h3>
+                  
+                  <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '8px',
+                    marginBottom: '8px',
+                    alignItems: 'center'
+                  }}>
+                    <span style={{
+                      backgroundColor: '#f8f9fa',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      color: '#495057'
+                    }}>
+                      {file.type.toUpperCase()}
+                    </span>
+                    <span style={{ fontSize: '14px', color: '#666' }}>
+                      {file.size}
+                    </span>
+                    <span style={{ fontSize: '14px', color: '#666' }}>
+                      {file.date}
+                    </span>
+                  </div>
+                  
+                  {/* File Details */}
+                  {(file.owner || file.department) && (
+                    <div style={{ fontSize: '12px', color: '#6c757d' }}>
+                      {file.owner && file.owner !== "Unknown" && (
+                        <span style={{ marginRight: '8px' }}>
+                          👤 {file.owner}
+                        </span>
+                      )}
+                      {file.department && file.department !== "General" && (
+                        <span>
+                          🏢 {file.department}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                
+                {/* File Actions */}
+               <div style={styles.fileListActions}>
             {/* Star/Unstar Button */}
             <button
               onClick={() => {
@@ -730,16 +763,11 @@ const Folder = () => {
               🗑️
             </button>
           </div>
+              </div>
+            ))}
+          </div>
         </div>
-      ))}
-    </div>
-  </div>
-)}
-
-
-
-
-
+      )}
 
       {/* Empty State */}
       {filteredFolders.length === 0 && filteredFiles.length === 0 && (
