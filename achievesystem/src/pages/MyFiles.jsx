@@ -317,6 +317,47 @@ const MyFiles = () => {
     }
   };
   
+  const handleRenameFile = (file) => {
+  const newName = prompt("Enter new file name (with extension):", file.name);
+  if (newName && newName.trim() !== file.name) {
+    const updatedFiles = files.map(f => 
+      f.id === file.id ? { ...f, name: newName.trim() } : f
+    );
+    setFiles(updatedFiles);
+  }
+ };
+ 
+ const handleDeleteFile = async (file) => {
+    if (!window.confirm(`Delete file "${file.name}"?`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE}/api/upload/${file.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        fetchFolderContents(); // Refresh
+        alert("File deleted successfully!");
+      } else {
+        alert(result.message);
+      }
+    } catch (err) {
+      console.error("Error deleting file:", err);
+      alert("Failed to delete file");
+    }
+  };
+ 
+ 
+ 
+  
+  
+  
+  
 {/* const filteredFiles = files.filter(file => 
     file.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -559,7 +600,7 @@ const MyFiles = () => {
                 onClick={() => navigate(`/files/folder/${folder.id}`)}
               >
                 <div style={styles.folderContent}>
-                  <div style={styles.folderIcon}>📁</div>
+                <BlueFolderIcon size={48} />
                   <div style={styles.folderName}>{folder.name}</div>
                   <div style={styles.folderDate}>
                     Created: {new Date(folder.created_at).toLocaleDateString()}
