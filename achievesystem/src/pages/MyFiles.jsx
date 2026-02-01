@@ -691,12 +691,9 @@ const MyFiles = () => {
                 right: '15px',
                 background: 'transparent',
                 border: 'none',
-                borderRadius: '4px',
-                width: '5px',
-                height: '5px',
+            
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+          
                 cursor: 'pointer',
                 fontSize: '20px',
                 color: '#5f6368',
