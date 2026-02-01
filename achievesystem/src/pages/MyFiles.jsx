@@ -589,7 +589,7 @@ const MyFiles = () => {
       )}
 
       {/* Folders Section */}
-      {folders.length > 0 && (
+    {/*  {folders.length > 0 && (
         <div style={{ marginBottom: '40px' }}>
           <h3>Folders ({folders.length})</h3>
           <div style={styles.foldersGrid}>
@@ -607,7 +607,7 @@ const MyFiles = () => {
                   </div>
                 </div>
                 
-                {/* Three Dots Menu Button */}
+                {/* Three Dots Menu Button 
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -619,7 +619,7 @@ const MyFiles = () => {
                   ⋮
                 </button>
                 
-                {/* Actions Menu Dropdown */}
+                {/* Actions Menu Dropdown 
                 {showActionsMenu === folder.id && (
                   <div style={styles.actionsMenu} onClick={(e) => e.stopPropagation()}>
                     <button
@@ -648,7 +648,176 @@ const MyFiles = () => {
             ))}
           </div>
         </div>
-      )}
+      )}*/}
+      {folders.length > 0 && (
+  <div style={{ marginBottom: '40px' }}>
+    <h3>Folders ({folders.length})</h3>
+    <div style={styles.foldersGrid}>
+      {folders.map(folder => (
+        <div 
+          key={folder.id} 
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            cursor: 'pointer'
+          }}
+          onClick={() => navigate(`/files/folder/${folder.id}`)}
+        >
+          {/* Folder Icon Container with Dots Button */}
+          <div style={{ 
+            position: 'relative',
+            marginBottom: '12px'
+          }}>
+            {/* Blue Folder Icon */}
+            <div style={{ 
+              width: '80px',
+              height: '80px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <BlueFolderIcon size={64} />
+            </div>
+            
+            {/* Three Dots Menu Button - On top of folder icon */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                openActionsMenu(e, folder.id);
+              }}
+              style={{
+                position: 'absolute',
+                top: '0',
+                right: '0',
+                background: 'white',
+                border: '1px solid #e0e0e0',
+                borderRadius: '50%',
+                width: '28px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: '16px',
+                color: '#5f6368',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                transition: 'all 0.2s',
+                zIndex: 10
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#f8f9fa';
+                e.currentTarget.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+              }}
+              title="Folder actions"
+            >
+              ⋮
+            </button>
+            
+            {/* Actions Menu Dropdown */}
+            {showActionsMenu === folder.id && (
+              <div style={{
+                position: 'absolute',
+                top: '30px',
+                right: '0',
+                backgroundColor: 'white',
+                border: '1px solid #e0e0e0',
+                borderRadius: '6px',
+                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+                minWidth: '120px',
+                zIndex: 100,
+                overflow: 'hidden'
+              }} onClick={(e) => e.stopPropagation()}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openEditModal(folder);
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    width: '100%',
+                    padding: '10px 12px',
+                    background: 'none',
+                    border: 'none',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    color: '#202124',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <span style={{ marginRight: '8px' }}>✏️</span>
+                  Edit
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteFolder(folder);
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    width: '100%',
+                    padding: '10px 12px',
+                    background: 'none',
+                    border: 'none',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    color: '#ea4335',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <span style={{ marginRight: '8px' }}>🗑️</span>
+                  Delete
+                </button>
+              </div>
+            )}
+          </div>
+          
+          {/* Folder Name and Date - Below the icon */}
+          <div style={{ textAlign: 'center', maxWidth: '150px' }}>
+            <div style={{
+              fontSize: '14px',
+              color: '#202124',
+              fontWeight: '500',
+              marginBottom: '4px',
+              wordBreak: 'break-word',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}>
+              {folder.name}
+            </div>
+            <div style={{ 
+              fontSize: '12px', 
+              color: '#5f6368',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}>
+              {new Date(folder.created_at).toLocaleDateString()}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+      
+      
+      
+
+
 
       {/* Files Section */}
       {/*{files.length > 0 && (
