@@ -688,13 +688,13 @@ const MyFiles = () => {
               }}
               style={{
                 position: 'absolute',
-                top: '8px',
+                top: '20px',
                 right: '8px',
                 background: 'transparent',
                 border: '1px solid #e0e0e0',
-                borderRadius: '50%',
-                width: '28px',
-                height: '28px',
+              
+                width: '4px',
+                height: '6px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
