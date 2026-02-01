@@ -360,12 +360,12 @@ const MyFiles = () => {
   
 {/* const filteredFiles = files.filter(file => 
     file.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  );*/}
 
   const filteredFolders = folders.filter(folder => 
     folder.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
- */}
+ 
   
   
   
@@ -650,9 +650,9 @@ const MyFiles = () => {
         </div>
       )}*/}
       
-      {folders.length > 0 && (
+      {filteredFolders.length > 0 && (
   <div style={{ marginBottom: '40px' }}>
-    <h3>Folders ({folders.length})</h3>
+    <h3>Folders ({filteredFolders.length})</h3>
     <div style={styles.foldersGrid}>
       {folders.map(folder => (
         <div 
