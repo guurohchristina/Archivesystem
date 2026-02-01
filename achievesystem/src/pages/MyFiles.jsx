@@ -288,10 +288,33 @@ const MyFiles = () => {
     }
   };
 
-  const handleDownload = (file) => {
-    // Implement download functionality
-    console.log("Download file:", file);
-    alert(`Downloading ${file.name}`);
+  const handleDownload = async (file) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE}/api/upload/${file._apiData.id}/download`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        const result = await response.json();
+        alert(result.message || "Failed to download file");
+      }
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      alert("Error downloading file. Please try again.");
+    }
   };
   
 {/* const filteredFiles = files.filter(file => 
