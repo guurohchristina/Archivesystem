@@ -446,7 +446,7 @@ const filesFiltered = files.filter(file =>
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', position: 'relative' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
-        <h1>📂 My Files</h1>
+      
         <div>
           <button onClick={handleUpload} style={styles.button}>
             📤 Upload File
