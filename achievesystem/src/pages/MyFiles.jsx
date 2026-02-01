@@ -717,15 +717,15 @@ const MyFiles = () => {
             {showActionsMenu === folder.id && (
               <div style={{
                 position: 'absolute',
-                bottom: '50px',  // Position above the dots button
-                right: '8px',
-                backgroundColor: 'white',
-                border: '1px solid #e0e0e0',
-                borderRadius: '6px',
-                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-                minWidth: '120px',
-                zIndex: 100,
-                overflow: 'hidden'
+    top: '40px',
+    right: '10px',
+    backgroundColor: 'white',
+    border: '1px solid #e0e0e0',
+    borderRadius: '6px',
+    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+    minWidth: '120px',
+    zIndex: 100,
+    overflow: 'hidden',
               }} onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={(e) => {
@@ -1115,18 +1115,7 @@ const styles = {
     color: '#5f6368',
   },
 
-  actionsMenu: {
-    position: 'absolute',
-    top: '40px',
-    right: '10px',
-    backgroundColor: 'white',
-    border: '1px solid #e0e0e0',
-    borderRadius: '6px',
-    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-    minWidth: '120px',
-    zIndex: 100,
-    overflow: 'hidden',
-  },
+
   menuItem: {
     display: 'flex',
     alignItems: 'center',
