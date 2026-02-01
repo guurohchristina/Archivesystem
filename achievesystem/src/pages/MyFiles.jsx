@@ -649,6 +649,7 @@ const MyFiles = () => {
           </div>
         </div>
       )}*/}
+      
       {folders.length > 0 && (
   <div style={{ marginBottom: '40px' }}>
     <h3>Folders ({folders.length})</h3>
@@ -660,27 +661,25 @@ const MyFiles = () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            position: 'relative'
           }}
           onClick={() => navigate(`/files/folder/${folder.id}`)}
         >
-          {/* Folder Icon Container with Dots Button */}
+          {/* Folder Icon Container */}
           <div style={{ 
             position: 'relative',
-            marginBottom: '12px'
+            marginBottom: '12px',
+            width: '120px',  // Match the icon size
+            height: '120px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}>
             {/* Blue Folder Icon */}
-            <div style={{ 
-              width: '80px',
-              height: '80px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <BlueFolderIcon size={120} />
-            </div>
+            <BlueFolderIcon size={120} />
             
-            {/* Three Dots Menu Button - On top of folder icon */}
+            {/* Three Dots Menu Button - Lower right corner */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -688,30 +687,32 @@ const MyFiles = () => {
               }}
               style={{
                 position: 'absolute',
-                top: '20px',
+                bottom: '8px',
                 right: '8px',
                 background: 'transparent',
-                border: '1px solid #e0e0e0',
-              
-                
-                
+                border: 'none',
+                borderRadius: '4px',
+                width: '28px',
+                height: '28px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                fontSize: '16px',
+                fontSize: '20px',
                 color: '#5f6368',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                 transition: 'all 0.2s',
-                zIndex: 10
+                zIndex: 10,
+                opacity: 0.8
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f8f9fa';
-                e.currentTarget.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.15)';
+                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
+                e.currentTarget.style.opacity = '1';
+                e.currentTarget.style.transform = 'scale(1.1)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'white';
-                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.opacity = '0.8';
+                e.currentTarget.style.transform = 'scale(1)';
               }}
               title="Folder actions"
             >
@@ -722,8 +723,8 @@ const MyFiles = () => {
             {showActionsMenu === folder.id && (
               <div style={{
                 position: 'absolute',
-                top: '30px',
-                right: '0',
+                bottom: '38px',  // Position above the dots button
+                right: '8px',
                 backgroundColor: 'white',
                 border: '1px solid #e0e0e0',
                 borderRadius: '6px',
@@ -813,7 +814,6 @@ const MyFiles = () => {
     </div>
   </div>
 )}
-      
       
       
 
