@@ -677,7 +677,7 @@ const MyFiles = () => {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <BlueFolderIcon size={100} />
+              <BlueFolderIcon size={120} />
             </div>
             
             {/* Three Dots Menu Button - On top of folder icon */}
@@ -688,9 +688,9 @@ const MyFiles = () => {
               }}
               style={{
                 position: 'absolute',
-                top: '0',
-                right: '0',
-                background: 'white',
+                top: '8px',
+                right: '8px',
+                background: 'transparent',
                 border: '1px solid #e0e0e0',
                 borderRadius: '50%',
                 width: '28px',
