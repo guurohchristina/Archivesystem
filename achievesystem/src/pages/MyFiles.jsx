@@ -687,19 +687,16 @@ const MyFiles = () => {
               }}
               style={{
                 position: 'absolute',
-                bottom: '8px',
-                right: '15px',
-                background: 'transparent',
-                border: 'none',
-            
-                display: 'flex',
-          
-                cursor: 'pointer',
-                fontSize: '20px',
-                color: '#5f6368',
-                transition: 'all 0.2s',
-                zIndex: 10,
-                opacity: 0.8
+    
+    right: '10px',
+    background: 'none',
+    border: 'none',
+    fontSize: '20px',
+    cursor: 'pointer',
+    color: '#5f6368',
+    padding: '4px 8px',
+    borderRadius: '4px',
+    zIndex:100,
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
@@ -1117,18 +1114,7 @@ const styles = {
     fontSize: '12px',
     color: '#5f6368',
   },
-  dotsButton: {
-    position: 'absolute',
-    top: '10px',
-    right: '10px',
-    background: 'none',
-    border: 'none',
-    fontSize: '20px',
-    cursor: 'pointer',
-    color: '#5f6368',
-    padding: '4px 8px',
-    borderRadius: '4px',
-  },
+
   actionsMenu: {
     position: 'absolute',
     top: '40px',
