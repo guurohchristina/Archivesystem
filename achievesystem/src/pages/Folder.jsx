@@ -344,6 +344,21 @@ const Folder = () => {
       alert("Error downloading file");
     }
   };
+  
+  
+ const handleRenameFile = (file) => {
+  const newName = prompt("Enter new file name (with extension):", file.name);
+  if (newName && newName.trim() !== file.name) {
+    const updatedFiles = files.map(f => 
+      f.id === file.id ? { ...f, name: newName.trim() } : f
+    );
+    setFiles(updatedFiles);
+  }
+ };
+  
+  
+  
+  
 
   const handleDeleteFile = async (file) => {
     if (!window.confirm(`Delete file "${file.name}"?`)) {
