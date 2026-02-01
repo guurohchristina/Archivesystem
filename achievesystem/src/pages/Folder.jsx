@@ -319,7 +319,7 @@ const Folder = () => {
     }
   };
 
-  const handleDownload = async (file) => {
+  {/*const handleDownload = async (file) => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_BASE}/api/upload/${file.id}/download`, {
@@ -343,7 +343,68 @@ const Folder = () => {
       console.error("Download error:", err);
       alert("Error downloading file");
     }
-  };
+  };*/}
+  
+ const handleDownload = async (file) => {
+  try {
+    console.log("Downloading file:", file.name);
+    
+    const token = localStorage.getItem("token");
+    
+    // Method 1: Try blob download first (most reliable)
+    try {
+      const response = await fetch(`${API_BASE}/api/upload/${file.id}/download`, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Accept': 'application/octet-stream'
+        }
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = file.name || "download";
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        console.log("File downloaded via blob method");
+        return;
+      }
+    } catch (blobError) {
+      console.log("Blob method failed, trying alternative...");
+    }
+    
+    // Method 2: Try to get direct URL
+    const fileRes = await fetch(`${API_BASE}/api/upload/${file.id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    const fileData = await fileRes.json();
+    
+    if (fileData.success) {
+      const fileInfo = fileData.file || fileData.data || fileData;
+      const downloadUrl = fileInfo.download_url || fileInfo.file_url || fileInfo.url;
+      
+      if (downloadUrl) {
+        window.open(downloadUrl, '_blank');
+        console.log("File opened in new tab via direct URL");
+      } else {
+        alert("No download URL available for this file");
+      }
+    } else {
+      alert(fileData.message || "Failed to download file");
+    }
+    
+  } catch (error) {
+    console.error("Final download error:", error);
+    alert(`Unable to download "${file.name}". Please contact support.`);
+  }
+}; 
+  
+  
   
   
  const handleRenameFile = (file) => {
