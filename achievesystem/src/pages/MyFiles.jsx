@@ -693,8 +693,8 @@ const MyFiles = () => {
                 background: 'transparent',
                 border: '1px solid #e0e0e0',
               
-                width: '4px',
-                height: '6px',
+                
+                
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
