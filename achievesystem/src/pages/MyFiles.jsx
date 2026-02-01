@@ -359,7 +359,10 @@ const MyFiles = () => {
   
   
 const filesFiltered = files.filter(file => 
-    file.name.toLowerCase().includes(searchTerm.toLowerCase())
+    file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    file.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    file.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    file.department.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredFolders = folders.filter(folder => 
