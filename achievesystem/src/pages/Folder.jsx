@@ -1000,8 +1000,8 @@ const styles = {
   },
   filesGrid: {
     display: 'grid',
-    gridTemplateColumns: '1fr',
-    gap: '15px',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+    gap: '20px',
     marginTop: '15px',
   },
   fileCard: {
@@ -1009,28 +1009,129 @@ const styles = {
     borderRadius: '8px',
     padding: '15px',
     backgroundColor: 'white',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    position: 'relative',
   },
   fileIcon: {
-    fontSize: '36px',
-    flexShrink: 0,
+    fontSize: '30px',
+    marginBottom: '10px',
+    textAlign: 'center',
   },
   fileName: {
-    margin: '0 0 8px 0',
-    fontSize: '16px',
-    fontWeight: 'bold',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
+    fontSize: '13px',
+    color: '#202124',
+    wordBreak: 'break-word',
+    marginBottom: '5px',
+  },
+  fileSize: {
+    fontSize: '12px',
+    color: '#5f6368',
+    marginBottom: '3px',
+  },
+  fileDate: {
+    fontSize: '11px',
+    color: '#80868b',
   },
   fileActions: {
     display: 'flex',
+    gap: '8px',
+    marginTop: '10px',
+  },
+  actionButton: {
+    padding: '6px',
+    backgroundColor: 'transparent',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '16px',
+    color: '#6c757d',
+  },
+  emptyState: {
+    textAlign: 'center',
+    padding: '60px 20px',
+    color: '#5f6368',
+  },
+  
+  
+ filesList: {
+  border: '1px solid #e0e0e0',
+  borderRadius: '8px',
+  overflow: 'hidden',
+  backgroundColor: 'white',
+},
+
+fileListItem: {
+  display: 'flex',
+  alignItems: 'center',
+  padding: '16px 20px',
+  borderBottom: '1px solid #e0e0e0',
+  transition: 'background-color 0.2s',
+  ':hover': {
+    backgroundColor: '#f8f9fa',
+  },
+  ':last-child': {
+    borderBottom: 'none',
+  },
+},
+
+fileListIcon: {
+  fontSize: '32px',
+  marginRight: '16px',
+  flexShrink: 0,
+  width: '40px',
+  textAlign: 'center',
+},
+
+fileListInfo: {
+  flex: 1,
+  minWidth: 0, // For text overflow
+},
+
+fileListName: {
+  fontSize: '15px',
+  fontWeight: '500',
+  color: '#202124',
+  marginBottom: '6px',
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+},
+
+fileListDetails: {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
+  marginBottom: '4px',
+},
+
+fileListType: {
+  fontSize: '12px',
+  backgroundColor: '#f8f9fa',
+  padding: '2px 8px',
+  borderRadius: '4px',
+  fontWeight: 'bold',
+  color: '#495057',
+},
+
+fileListSize: {
+  fontSize: '13px',
+  color: '#5f6368',
+},
+
+fileListDate: {
+  fontSize: '13px',
+  color: '#5f6368',
+},
+
+fileListOwner: {
+  fontSize: '12px',
+  color: '#6c757d',
+},
+
+fileListActions: {
+  display: 'flex',
   alignItems: 'center',
   flexShrink: 0,
-  },
+}, 
+  
   emptyState: {
     textAlign: 'center',
     padding: '60px 20px',
