@@ -647,127 +647,9 @@ const Folder = () => {
       )}
 
       {/* Files Section - LIST VIEW */}
-      {filteredFiles.length > 0 && (
-        <div style={{ marginBottom: '40px' }}>
-          <h3>Files ({filteredFiles.length})</h3>
-          <div style={styles.filesGrid}>
-            {filteredFiles.map(file => (
-              <div
-                key={file.id}
-                style={styles.fileCard}
-              >
-                {/* File Icon */}
-                <div style={styles.fileIcon}>
-                  {getFileIcon(file.name)}
-                </div>
-                
-                {/* File Info */}
-                <div style={{ flex: 1 }}>
-                  <h3 style={styles.fileName}>{file.name}</h3>
-                  
-                  <div style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '8px',
-                    marginBottom: '8px',
-                    alignItems: 'center'
-                  }}>
-                    <span style={{
-                      backgroundColor: '#f8f9fa',
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      color: '#495057'
-                    }}>
-                      {file.type.toUpperCase()}
-                    </span>
-                    <span style={{ fontSize: '14px', color: '#666' }}>
-                      {file.size}
-                    </span>
-                    <span style={{ fontSize: '14px', color: '#666' }}>
-                      {file.date}
-                    </span>
-                  </div>
-                  
-                  {/* File Details */}
-                  {(file.owner || file.department) && (
-                    <div style={{ fontSize: '12px', color: '#6c757d' }}>
-                      {file.owner && file.owner !== "Unknown" && (
-                        <span style={{ marginRight: '8px' }}>
-                          👤 {file.owner}
-                        </span>
-                      )}
-                      {file.department && file.department !== "General" && (
-                        <span>
-                          🏢 {file.department}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-                
-                {/* File Actions */}
-               <div style={styles.fileListActions}>
-            {/* Star/Unstar Button */}
-            <button
-              onClick={() => {
-                const updatedFiles = files.map(f => 
-                  f.id === file.id ? { ...f, starred: !f.starred } : f
-                );
-                setFiles(updatedFiles);
-              }}
-              style={{
-                ...styles.actionButton,
-                color: file.starred ? '#ffc107' : '#6c757d',
-                marginRight: '8px'
-              }}
-              title={file.starred ? "Unstar" : "Star"}
-            >
-              {file.starred ? '★' : '☆'}
-            </button>
-            
-            {/* Download Button */}
-            <button
-              onClick={() => handleDownload(file)}
-              style={{
-                ...styles.actionButton,
-                marginRight: '8px'
-              }}
-              title="Download"
-            >
-              ⬇️
-            </button>
-            
-            {/* Rename Button */}
-            <button
-              onClick={() => handleRenameFile(file)}
-              style={{
-                ...styles.actionButton,
-                marginRight: '8px'
-              }}
-              title="Rename"
-            >
-              ✏️
-            </button>
-            
-            {/* Delete Button */}
-            <button
-              onClick={() => handleDeleteFile(file)}
-              style={{
-                ...styles.actionButton,
-                color: '#ea4335'
-              }}
-              title="Delete"
-            >
-              🗑️
-            </button>
-          </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      
+      
+      
 
       {/* Empty State */}
       {filteredFolders.length === 0 && filteredFiles.length === 0 && (
@@ -1059,9 +941,8 @@ const styles = {
   },
   fileActions: {
     display: 'flex',
-    gap: '8px',
-    marginLeft: 'auto',
-    position: 'relative',
+  alignItems: 'center',
+  flexShrink: 0,
   },
   emptyState: {
     textAlign: 'center',
