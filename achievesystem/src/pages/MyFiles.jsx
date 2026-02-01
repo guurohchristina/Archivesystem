@@ -358,9 +358,9 @@ const MyFiles = () => {
   
   
   
-{/* const filteredFiles = files.filter(file => 
+const file = files.filter(file => 
     file.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );*/}
+  );
 
   const filteredFolders = folders.filter(folder => 
     folder.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -856,9 +856,9 @@ const MyFiles = () => {
         </div>
       )}*/}
       
-      {files.length > 0 && (
+      {file.length > 0 && (
   <div style={{ marginBottom: '40px' }}>
-    <h3>Files ({files.length})</h3>
+    <h3>Files ({file.length})</h3>
     <div style={styles.filesList}>
       {files.map(file => (
         <div
