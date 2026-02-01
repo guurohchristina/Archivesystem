@@ -941,8 +941,9 @@ const styles = {
   },
   fileActions: {
     display: 'flex',
-  alignItems: 'center',
-  flexShrink: 0,
+    gap: '8px',
+    marginLeft: 'auto',
+    position: 'relative',
   },
   emptyState: {
     textAlign: 'center',
