@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
-
+import BlueFolderIcon from "./BlueFolderIcon.jsx";
 const MyFiles = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();

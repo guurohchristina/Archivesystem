@@ -1,3 +1,5 @@
+import React from 'react';
+
 const BlueFolderIcon = ({ size = 40 }) => (
   <div style={{
     width: `${size}px`,
@@ -31,3 +33,4 @@ const BlueFolderIcon = ({ size = 40 }) => (
     </svg>
   </div>
 );
+export default BlueFolderIcon;
