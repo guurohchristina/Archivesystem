@@ -717,7 +717,7 @@ const MyFiles = () => {
             {showActionsMenu === folder.id && (
               <div style={{
                 position: 'absolute',
-    top: '40px',
+    top: '80px',
     right: '10px',
     backgroundColor: 'white',
     border: '1px solid #e0e0e0',
