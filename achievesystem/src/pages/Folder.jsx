@@ -647,7 +647,94 @@ const Folder = () => {
       )}
 
       {/* Files Section - LIST VIEW */}
-      
+     { files.length > 0 && (
+  <div style={{ marginBottom: '40px' }}>
+    <h3>Files ({files.length})</h3>
+    <div style={styles.filesList}>
+      {files.map(file => (
+        <div
+          key={file.id}
+          style={styles.fileListItem}
+        >
+          {/* File Icon */}
+          <div style={styles.fileListIcon}>
+            {getFileIcon(file.name)}
+          </div>
+          
+          {/* File Info */}
+          <div style={styles.fileListInfo}>
+            <div style={styles.fileListName}>{file.name}</div>
+            <div style={styles.fileListDetails}>
+              <span style={styles.fileListType}>{file.type.toUpperCase()}</span>
+              <span style={styles.fileListSize}>{file.size}</span>
+              <span style={styles.fileListDate}>{file.date}</span>
+            </div>
+            {file.owner && file.owner !== "Unknown" && (
+              <div style={styles.fileListOwner}>👤 {file.owner}</div>
+            )}
+          </div>
+          
+          {/* File Actions - INLINE, NO THREE DOTS */}
+          <div style={styles.fileListActions}>
+            {/* Star/Unstar Button */}
+            <button
+              onClick={() => {
+                const updatedFiles = files.map(f => 
+                  f.id === file.id ? { ...f, starred: !f.starred } : f
+                );
+                setFiles(updatedFiles);
+              }}
+              style={{
+                ...styles.actionButton,
+                color: file.starred ? '#ffc107' : '#6c757d',
+                marginRight: '8px'
+              }}
+              title={file.starred ? "Unstar" : "Star"}
+            >
+              {file.starred ? '★' : '☆'}
+            </button>
+            
+            {/* Download Button */}
+            <button
+              onClick={() => handleDownload(file)}
+              style={{
+                ...styles.actionButton,
+                marginRight: '8px'
+              }}
+              title="Download"
+            >
+              ⬇️
+            </button>
+            
+            {/* Rename Button */}
+            <button
+              onClick={() => handleRenameFile(file)}
+              style={{
+                ...styles.actionButton,
+                marginRight: '8px'
+              }}
+              title="Rename"
+            >
+              ✏️
+            </button>
+            
+            {/* Delete Button */}
+            <button
+              onClick={() => handleDeleteFile(file)}
+              style={{
+                ...styles.actionButton,
+                color: '#ea4335'
+              }}
+              title="Delete"
+            >
+              🗑️
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
       
       
 
@@ -941,9 +1028,8 @@ const styles = {
   },
   fileActions: {
     display: 'flex',
-    gap: '8px',
-    marginLeft: 'auto',
-    position: 'relative',
+  alignItems: 'center',
+  flexShrink: 0,
   },
   emptyState: {
     textAlign: 'center',
