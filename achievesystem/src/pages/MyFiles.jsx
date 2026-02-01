@@ -359,10 +359,7 @@ const MyFiles = () => {
   
   
 const filesFiltered = files.filter(file => 
-    file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    file.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    file.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    file.department.toLowerCase().includes(searchTerm.toLowerCase())
+    file.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredFolders = folders.filter(folder => 
@@ -657,7 +654,7 @@ const filesFiltered = files.filter(file =>
   <div style={{ marginBottom: '40px' }}>
     <h3>Folders ({filteredFolders.length})</h3>
     <div style={styles.foldersGrid}>
-      {folders.map(folder => (
+      {filteredFolders.map(folder => (
         <div 
           key={folder.id} 
           style={{
@@ -863,7 +860,7 @@ const filesFiltered = files.filter(file =>
   <div style={{ marginBottom: '40px' }}>
     <h3>Files ({filesFiltered.length})</h3>
     <div style={styles.filesList}>
-      {files.map(file => (
+      {filesFiltered.map(file => (
         <div
           key={file.id}
           style={styles.fileListItem}
@@ -954,7 +951,7 @@ const filesFiltered = files.filter(file =>
 
 
       {/* Empty State */}
-      {filteredFolders.length === 0 && filesFiltered.length === 0 && (
+      {filteredFolders.length === 0 && files.length === 0 && (
         <div style={styles.emptyState}>
           <div style={{ fontSize: '60px', marginBottom: '20px' }}>📂</div>
           <h3>No files or folders yet</h3>

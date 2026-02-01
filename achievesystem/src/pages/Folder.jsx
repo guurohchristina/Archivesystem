@@ -869,11 +869,11 @@ const Folder = () => {
       
 
       {/* Files Section - LIST VIEW */}
-     { files.length > 0 && (
+     { filteredFiles.length > 0 && (
   <div style={{ marginBottom: '40px' }}>
-    <h3>Files ({files.length})</h3>
+    <h3>Files ({filteredFiles.length})</h3>
     <div style={styles.filesList}>
-      {files.map(file => (
+      {filteredFiles.map(file => (
         <div
           key={file.id}
           style={styles.fileListItem}
